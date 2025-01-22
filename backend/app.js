@@ -1,0 +1,1 @@
+// cài đặt cấu hình ban đầu
