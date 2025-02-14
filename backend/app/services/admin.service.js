@@ -1,4 +1,7 @@
 const { ObjectId } = require("mongodb");
+const bcrypt = require("bcrypt");
+const jwt = require("jsonwebtoken");
+const config = require("../config/index");
 
 class adminService {
     constructor(client) {
@@ -20,6 +23,15 @@ class adminService {
     // create
     async create(payload) {
         const admin = this.extractAdminData(payload);
+        const existingAdmin = await this.Admin.findOne({ username: admin.username });
+        if (existingAdmin) {
+            return {
+                statusCode: 400, message: "User đã tồn tại"
+            };
+        }
+        // Mã hóa trước khi lưu vào CSDL
+        const salt = await bcrypt.genSalt(10);
+        admin.password = await bcrypt.hash(admin.password, salt);
         const result = await this.Admin.insertOne(admin);
         if (result.acknowledged) {
             return { _id: result.insertedId, ...admin };
@@ -27,16 +39,41 @@ class adminService {
         return null;
     }
 
-    //auth
-    async authenticate(payload) {
+    async login(payload) {
         const adminData = this.extractAdminData(payload);
         const admin = await this.Admin.findOne({ username: adminData.username });
-        // const isPasswordValid = await bcrypt.compare(adminData.admin_pass, admin.admin_pass);
-        const isPasswordValid = adminData.password === admin.password;
-        if (isPasswordValid) {
+
+        if (!admin) {
+            throw new Error("Tài khoản không tồn tại");
+        }
+
+        const isPasswordValid = await bcrypt.compare(adminData.password, admin.password);
+        if (!isPasswordValid) {
+            throw new Error("Mật khẩu không đúng");
+        }
+
+        const token = jwt.sign(
+            {
+                id: admin._id,
+                username: admin.username,
+                role: "admin"
+            },
+            config.jwt.secret,  // Chuỗi bí mật từ file config
+            { expiresIn: "1h" }
+        );
+
+        return { token, admin: { id: admin._id, username: admin.username } };
+    }
+
+
+
+    async findOne(query) {
+        try {
+            const admin = await this.Admin.findOne(query); // Hàm findOne có sẵn trong MongoDB driver
             return admin;
-        } else {
-            throw new Error('Mật khẩu không đúng');
+        } catch (error) {
+            console.error("Error finding admin:", error);
+            throw new Error("An error occurred while retrieving admin");
         }
     }
 
@@ -53,12 +90,6 @@ class adminService {
         });
     }
 
-    // findById
-    async findById(id) {
-        return await this.Admin.findOne({
-            _id: ObjectId.isValid(id) ? new ObjectId(id) : null,
-        });
-    }
 
     // update
     async update(id, payload) {
@@ -66,6 +97,10 @@ class adminService {
             _id: ObjectId.isValid(id) ? new ObjectId(id) : null,
         };
         const update = this.extractAdminData(payload);
+        if (update.password) {
+            const saltRounds = 10;
+            update.password = await bcrypt.hash(update.password, saltRounds);
+        }
 
         const result = await this.Admin.findOneAndUpdate(
             filter,
@@ -84,15 +119,11 @@ class adminService {
         return result;
     }
 
-    // findFavorite
-    async findFavorite() {
-        return await this.find({ favorite: true });
-    }
-
     // deleteAll
     async deleteAll() {
         const result = await this.Admin.deleteMany({});
         return result.deletedCount;
     }
+
 }
 module.exports = adminService;

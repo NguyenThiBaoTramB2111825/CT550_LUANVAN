@@ -12,16 +12,22 @@ const supplierRouter = require("./app/routes/supplier.route");
 const colorRouter = require("./app/routes/color.route");
 const sizeRouter = require("./app/routes/size.route");
 const adminRouter = require("./app/routes/admin.route");
+const employeeRouter = require("./app/routes/employee.route");
+const customerRouter = require("./app/routes/customer.route");
+const discountRouter = require("./app/routes/customer.route")
 
 app.use(cors());
 app.use(express.json());
-
+app.use('uploads', express.static('uploads'));
 app.use("/api/category", categoryRouter);
 app.use("/api/brand", brandRouter);
 app.use("/api/supplier",supplierRouter )
 app.use("/api/color", colorRouter);
 app.use("/api/size", sizeRouter);
 app.use("/api/admin", adminRouter);
+app.use("/api/customer", customerRouter);
+app.use("/api/employee", employeeRouter );
+app.use("/api/customer", discountRouter);
 
 
 app.get("/", (req, res) => {
