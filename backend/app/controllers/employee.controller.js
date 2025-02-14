@@ -1,12 +1,10 @@
 const ApiError = require("../api-error");
 const MongoDB = require("../utils/mongodb.util");
 const EmployeeService = require("../services/employee.service");
-// const BorrowService = require("../services/borrow.service");
 const jwt = require('jsonwebtoken');
 const upload = require("../utils/multer.config");
 const { ObjectId } = require("mongodb");
 const { blacklistedTokens } = require("../utils/authUtils");
-const employeeService = require("../services/employee.service");
 
 exports.create = [
     upload.single('profileImage') // Dùng multer để upload ảnh
