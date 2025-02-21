@@ -4,13 +4,16 @@ const DiscountService = require("../services/discount.service");
 const { ObjectId } = require("mongodb");
 
 exports.create = async (req, res, next) => {
+    console.log("Dữ liệu nhập vào: ", req.body);
     if (!req.body?.name) {
         return next(new ApiError(400, "Name can not be empty"));
     }
 
     try {
         const discountService = new DiscountService(MongoDB.client);
+        console.log("Gọi discountService ...");
         const document = await discountService.create(req.body);
+         console.log("Kết quả sau khi gọi create ...", document);
         if (document.statusCode == 400) {
             return res.status(400).json({ message: document.message });
         }
@@ -57,7 +60,7 @@ exports.findOne = async (req, res, next) => {
 exports.findOneByName = async (req, res, next) => {
     try {
         const discountService = new DiscountService(MongoDB.client);
-        const document = await discountService.findOne({ name: req.params.name});
+        const document = await discountService.findOne({ name: {$regex: new RegExp(req.params.name, "i")}});
         if (document.statusCode == 400) {
             return res.status(400).json({ message: document.message });
         }
@@ -79,7 +82,10 @@ exports.update = async (req, res, next) => {
             return next(new ApiError(document.statusCode, document.message));
         }
 
-        return res.send({ message: "Discount was updated successfully" });
+        return res.send({
+            message: "Discount was updated successfully",
+            data: document.data
+         });
 
     } catch (error) {
         return next(

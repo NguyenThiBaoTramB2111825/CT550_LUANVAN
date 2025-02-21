@@ -94,16 +94,7 @@ class employeeService{
             }
         }
     }
-
-    async findOne(query) {
-        try {
-            const employee = await this.Employee.findOne(query);
-            return employee;
-        } catch (err) {
-            console.error("Error finding employee: ", err);
-            throw new Error("An error occured while retrieving employee");
-        }
-    }
+    
     // find
     async find(filter) {
         const cursor = await this.Employee.find(filter);

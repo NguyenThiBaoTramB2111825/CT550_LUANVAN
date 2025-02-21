@@ -15,6 +15,8 @@ const adminRouter = require("./app/routes/admin.route");
 const employeeRouter = require("./app/routes/employee.route");
 const customerRouter = require("./app/routes/customer.route");
 const discountRouter = require("./app/routes/discount.route")
+const productRouter = require("./app/routes/product.route");
+
 
 app.use(cors());
 app.use(express.json());
@@ -28,6 +30,7 @@ app.use("/api/admin", adminRouter);
 app.use("/api/customer", customerRouter);
 app.use("/api/employee", employeeRouter );
 app.use("/api/discount", discountRouter);
+app.use("/api/product", productRouter);
 
 
 app.get("/", (req, res) => {
