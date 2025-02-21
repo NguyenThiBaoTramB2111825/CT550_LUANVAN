@@ -247,14 +247,12 @@ class ProductService{
         }
     }
 
-
-    async delete(id){
+    async delete(id) {
         const result = await this.Product.findOneAndDelete({
             _id: ObjectId.isValid(id) ? new ObjectId(id) : null,
         });
         return result;
     }
-
     async deleteAll() {
         const result = await this.Product.deleteMany({});
         return result.deletedCount;

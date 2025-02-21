@@ -100,14 +100,16 @@ exports.delete = async (req, res, next) => {
     try {
         const productService = new ProductService(MongoDB.client);
         const document = await productService.delete(req.params.id);
-        if (!document) {
-            return next(new ApiError(400, "Không tìm thấy product"));
+        console.log("Giá trị của document sau khi gọi delete: ", document);
+
+        if (document.statusCode == 404) {
+            return next(new ApiError(document.statusCode, document.message));
         }
         return res.send({ message: "product đã được xóa thành công" });
     }
     catch (error) {
         return next(
-        new ApiError(500, `Không thể xóa product với id=${res.params.id}`));
+        new ApiError(500, `Không thể xóa product`));
     }
 };
 
