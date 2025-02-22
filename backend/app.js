@@ -17,6 +17,8 @@ const customerRouter = require("./app/routes/customer.route");
 const discountRouter = require("./app/routes/discount.route")
 const productRouter = require("./app/routes/product.route");
 const imageRouter = require("./app/routes/image.route");
+const productDetailRouter = require("./app/routes/productDetail.route");
+const importDetailRouter = require("./app/routes/importDetail.route");
 
 
 app.use(cors());
@@ -33,6 +35,8 @@ app.use("/api/employee", employeeRouter );
 app.use("/api/discount", discountRouter);
 app.use("/api/product", productRouter);
 app.use("/api/image", imageRouter);
+app.use("/api/productDetail", productDetailRouter);
+app.use("/api/importDetail", importDetailRouter);
 
 app.get("/", (req, res) => {
     res.json({ message: "well come to fashion shop application." });

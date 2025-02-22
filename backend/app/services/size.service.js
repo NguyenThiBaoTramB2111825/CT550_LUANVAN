@@ -64,9 +64,18 @@ class SizeService{
         });
     }
 
-    async findOne(query) {
-    return await this.Size.findOne(query);
-}
+        async findOne(query) {
+        try {
+            const size = await this.Size.findOne(query);
+            if (!size) {
+                throw new Error(`Không tìm thấy size với điều kiện: ${JSON.stringify(query)}`);
+            }
+            return size;
+        } catch (err) {
+            console.log("Lỗi khi findOne Size: ", err.message);
+            throw new Error(`Lỗi truy vấn sản phẩm: ${err.message}`);
+        }
+    }
 
 
     async update(id, payload) {
