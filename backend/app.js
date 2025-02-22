@@ -16,6 +16,7 @@ const employeeRouter = require("./app/routes/employee.route");
 const customerRouter = require("./app/routes/customer.route");
 const discountRouter = require("./app/routes/discount.route")
 const productRouter = require("./app/routes/product.route");
+const imageRouter = require("./app/routes/image.route");
 
 
 app.use(cors());
@@ -31,7 +32,7 @@ app.use("/api/customer", customerRouter);
 app.use("/api/employee", employeeRouter );
 app.use("/api/discount", discountRouter);
 app.use("/api/product", productRouter);
-
+app.use("/api/image", imageRouter);
 
 app.get("/", (req, res) => {
     res.json({ message: "well come to fashion shop application." });
