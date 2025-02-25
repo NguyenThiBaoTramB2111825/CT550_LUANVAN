@@ -20,6 +20,7 @@ const imageRouter = require("./app/routes/image.route");
 const productDetailRouter = require("./app/routes/productDetail.route");
 const importDetailRouter = require("./app/routes/importDetail.route");
 const addressRouter = require("./app/routes/address.route");
+const cartRouter = require("./app/routes/cart.route");
 
 app.use(cors());
 app.use(express.json());
@@ -38,6 +39,8 @@ app.use("/api/image", imageRouter);
 app.use("/api/productDetail", productDetailRouter);
 app.use("/api/importDetail", importDetailRouter);
 app.use("/api/address", addressRouter);
+app.use("/api/cart", cartRouter);
+
 
 app.get("/", (req, res) => {
     res.json({ message: "well come to fashion shop application." });
