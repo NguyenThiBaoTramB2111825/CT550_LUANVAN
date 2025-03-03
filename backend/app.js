@@ -21,6 +21,9 @@ const productDetailRouter = require("./app/routes/productDetail.route");
 const importDetailRouter = require("./app/routes/importDetail.route");
 const addressRouter = require("./app/routes/address.route");
 const cartRouter = require("./app/routes/cart.route");
+const orderRouter = require("./app/routes/order.route");
+const reviewRouter = require("./app/routes/review.route");
+
 
 app.use(cors());
 app.use(express.json());
@@ -40,6 +43,8 @@ app.use("/api/productDetail", productDetailRouter);
 app.use("/api/importDetail", importDetailRouter);
 app.use("/api/address", addressRouter);
 app.use("/api/cart", cartRouter);
+app.use("/api/order", orderRouter);
+app.use("/api/review", reviewRouter);
 
 
 app.get("/", (req, res) => {
