@@ -32,4 +32,6 @@ router
 router
     .route("/logout/")
     .post(customer.logoutCustomer);
+
+router.route("/refresh-token").post(customer.refreshToken);
 module.exports = router;

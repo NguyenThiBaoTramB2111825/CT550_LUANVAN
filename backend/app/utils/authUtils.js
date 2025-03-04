@@ -1,15 +1,14 @@
 const jwt = require('jsonwebtoken');
 const config = require("../config/index"); 
 
-
-const blacklistedTokens = new Set();
-
 const authenticateToken = (req, res, next) => {
     const authHeader = req.headers["authorization"];
     const token = authHeader && authHeader.split(" ")[1];
     if (!token) {
         return res.status(401).send({ message: 'Bạn chưa đăng nhập, Cần đăng nhập để tiếp tục (Không có token được truyền trong authorization) '});
     }
+    const { blacklistedTokens } = require("./tokenUtils");
+
     if (blacklistedTokens.has(token)) {
         return res.status(404).json({ message: "Tài khoản đã được đăng xuất, cần đăng nhập để tiếp tục (token bị vô hiệu hóa)" });
     }
@@ -40,6 +39,5 @@ const authorizeRole = (role) => {
 
 module.exports = {
     authenticateToken,
-    blacklistedTokens,
-    authorizeRole
+    authorizeRole,
 } 

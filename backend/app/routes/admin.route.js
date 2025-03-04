@@ -17,4 +17,5 @@ router
 router.route("/login/").post(admins.login);
 router.route("/profile").post(authenticateToken, admins.profile);
 router.route("/logout").post(authenticateToken, admins.logout);
+router.route("/refresh-token").post(admins.refreshToken);
 module.exports = router;

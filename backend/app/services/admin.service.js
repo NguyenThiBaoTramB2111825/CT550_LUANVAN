@@ -3,6 +3,8 @@ const bcrypt = require("bcrypt");
 const jwt = require("jsonwebtoken");
 const config = require("../config/index");
 
+console.log("Loaded config: ", config);
+
 class adminService {
     constructor(client) {
         this.Admin = client.db().collection("admin");
@@ -40,6 +42,7 @@ class adminService {
     }
 
     async login(payload) {
+        console.log("Giá trị nhận được: ", payload);
         const adminData = this.extractAdminData(payload);
         const admin = await this.Admin.findOne({ username: adminData.username });
 
@@ -51,6 +54,7 @@ class adminService {
         if (!isPasswordValid) {
             throw new Error("Mật khẩu không đúng");
         }
+        console.log("Bắt đầu đăng nhập tài khoản");
 
         const token = jwt.sign(
             {
@@ -61,8 +65,20 @@ class adminService {
             config.jwt.secret,  // Chuỗi bí mật từ file config
             { expiresIn: "1h" }
         );
+        
+        const refreshToken = jwt.sign(
+            {
+                id: admin._id,
+                role: "admin",
+                username: admin.username
+            },
+            config.jwt.refreshSecret,
+            { expiresIn: '7d' }
+        );
 
-        return { token, admin: { id: admin._id, username: admin.username } };
+        console.log("Giá trị của refreshToken: ", refreshToken);
+
+        return { token,refreshToken, admin: { id: admin._id, username: admin.username } };
     }
 
 

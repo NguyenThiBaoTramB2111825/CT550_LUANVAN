@@ -81,8 +81,21 @@ class customerService {
                 role: "customer"
             },
             config.jwt.secret,
-            {expiresIn: "1h"}
-        )
+            { expiresIn: "1h" }
+        );
+
+        const refreshToken = jwt.sign(
+            {
+                id: customer._id,
+                role: "customer",
+                name: customer.name
+            },
+            config.jwt.refreshSecret,
+            { expiresIn: '7d' }
+        );
+
+        console.log("Giá trị của refreshToken: ", refreshToken);
+
         return {
             token, customer: {
                 id: customer._id,
@@ -93,7 +106,8 @@ class customerService {
                 email: customer.email,
                 isDeleted: customer.isDeleted,
                 profileImage: customer.profileImage,
-            }
+            },
+             refreshToken,
         }
     }
 

@@ -1,11 +1,12 @@
 const ApiError = require("../api-error");
 const MongoDB = require("../utils/mongodb.util");
 const CustomerService = require("../services/customer.service");
-// const BorrowService = require("../services/borrow.service");
 const jwt = require('jsonwebtoken');
 const upload = require("../utils/multer.config");
 const { ObjectId } = require("mongodb");
-const { blacklistedTokens } = require("../utils/authUtils");
+const config = require("../config/index");
+
+const { blacklistedTokens, blacklistedRefreshTokens, verifyRefreshToken } = require('../utils/tokenUtils');
 
 exports.create = [
     upload.single('profileImage') // Dùng multer để upload ảnh
@@ -39,9 +40,16 @@ exports.loginCustomer = async (req, res, next) => {
     try {
         const customerService = new CustomerService(MongoDB.client);
         const result = await customerService.login(req.body);
+
+        res.cookie('refreshToken', result.refreshToken, {
+            httpOny: true,
+            secure: true, // Bật nếu dùng HTTPS
+            sameSite: 'Strict' // Tránh CSRF
+        })
         return res.send({
             message: "Đăng nhập thành công",
             token: result.token,
+            refreshToken: result.refreshToken,
             customer: result.customer
         })
     } catch (error) {
@@ -53,17 +61,45 @@ exports.loginCustomer = async (req, res, next) => {
 
 exports.logoutCustomer = async (req, res, next) => {
     const token = req.headers.authorization?.split(" ")[1];
+    const refreshToken = req.cookies?.refreshToken;
     if (!token) {
         return next(new ApiError(400, "Token không được cung cấp"));
     }
     try {
+        console.log('blacklistedTokens:', blacklistedTokens);   // kiểm tra
+        console.log('blacklistedRefreshTokens:', blacklistedRefreshTokens); // kiểm tra
+
+
         blacklistedTokens.add(token);
+        blacklistedRefreshTokens.add(refreshToken); 
+                
+        console.log('blacklistedTokens sau khi được add token:', blacklistedTokens);   // kiểm tra
+        console.log('blacklistedRefreshTokens sau khi được add refreshtoken:', blacklistedRefreshTokens); // kiểm tra
+        
+        res.clearCookie('refreshToken');
         return res.status(200).json({ message: "Đăng xuất thành công" });
 
     } catch (eror) {
-        return next(new ApiError(500, "Đã có lỗi xảy ra trong quá trình đăng xuất"));
+        return next(new ApiError(500, `Đã có lỗi xảy ra trong quá trình đăng xuất: ${eror.message}` ));
     }
 }
+
+exports.refreshToken = async (req, res, next) => {
+    const { refreshToken } = req.body;
+    const result = verifyRefreshToken(refreshToken);
+    if (!result) {
+        return res.status(403).json({ message: 'Refresh token không hợp lệ hoặc đã hết hạn' });
+    }
+    try {
+        const { id, name, role } = result;
+        const accessToken = jwt.sign({ id, name, role }, config.jwt.secret, { expiresIn: '1h' });
+        return res.json({ accessToken})
+    }
+    catch (error) {
+        return res.status(403).json(error.message);
+    }
+
+};
 
 exports.findALL = async (req, res, next) => {
     let documents = [];
@@ -143,14 +179,6 @@ exports.update = [
 exports.delete = async (req, res, next) => {
     try {
         const customerService = new CustomerService(MongoDB.client);
-        // const borrowService = new BorrowService(MongoDB.client);
-        // const activeBorrow = await borrowService.findActiveBorrowByUserId(req.params.id);
-        // if (activeBorrow) {
-        //     // Kiểm tra user có đang mượn không, nếu đang mượn không thể xóa
-        //     return next(
-        //         new ApiError(400, 'Người dùng có đơn mượn đang mượn, không thể xóa.')
-        //     );
-        // }
         const document = await customerService.delete(req.params.id);
         if (!document) {
             return next(new ApiError(404, "Customer not found"));
