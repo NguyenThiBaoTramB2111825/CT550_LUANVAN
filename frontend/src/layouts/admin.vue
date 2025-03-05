@@ -1,46 +1,64 @@
-
 <script>
 import TheHeader from '../components/admin/TheHeader.vue';
 import TheMenu from '../components/admin/TheMenu.vue';
-// import Login from '../components/admin/Login.vue';
 import Cookies from 'js-cookie';
 
 export default {
     components: {
         TheHeader,
         TheMenu,
-        // Login,
     },
     setup() {
         const token = Cookies.get('accessToken');
+        // const logout = () => {
+        //     Cookies.remove('accessToken');
+        //     window.location.href = '/admin';
+        // }
         return {
-            token
+            token,
         }
     }
 }
 </script>
 
-
 <template>
-    <!-- <div v-if="!token">
-        <Login />
-    </div> -->
-    <!-- <div v-else> -->
-        <TheHeader />
-        <div class="container-fluid">
-            <div class="row">
-                <div class="col-sm-2 d-none d-sm-flex mt-4">
-                    <a-list size="small" bordered style="width: 100%;">
-                        <TheMenu />
-                        <template #header>
-                            <div>Bảng Điều Khiển</div>
-                        </template>
-                    </a-list>
-                </div>
-                <div class="col-12 col-sm-10">
-                    <router-view></router-view>
-                </div>
+
+  <div class="d-flex vh-100">
+        <!-- Sidebar luôn hiển thị trên desktop -->
+        <aside class="border-end bg-light p-3 d-none d-md-block" style="width: 250px;">
+            <TheMenu />
+        </aside>
+
+        <!-- Offcanvas cho mobile -->
+        <div class="offcanvas offcanvas-start" tabindex="-1" id="offcanvasMenu">
+            <div class="offcanvas-header">
+                <h5 class="offcanvas-title">Danh Mục</h5>
+                <button type="button" class="btn-close" data-bs-dismiss="offcanvas"></button>
+            </div>
+            <div class="offcanvas-body">
+                <TheMenu />
             </div>
         </div>
-    <!-- </div> -->
+
+        <!-- Admin Drawer -->
+        <div class="offcanvas offcanvas-end" tabindex="-1" id="offcanvasAdmin">
+            <div class="offcanvas-header">
+                <h5 class="offcanvas-title">Thông Tin Admin</h5>
+                <button type="button" class="btn-close" data-bs-dismiss="offcanvas"></button>
+            </div>
+            <div class="offcanvas-body">
+                <p>Xin chào Admin!</p>
+                <p>Email: admin@example.com</p>
+                <button class="btn btn-danger">Logout</button>
+            </div>
+        </div>
+
+        <div class="flex-grow-1 d-flex flex-column">
+            <TheHeader />
+            <main class="flex-grow-1 p-3">
+                <router-view />
+            </main>
+        </div>
+    </div>
+
 </template>

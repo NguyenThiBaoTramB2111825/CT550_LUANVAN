@@ -1,78 +1,75 @@
 <template>
-  <div class="container-fluid bg-primary">
-    <div class="row">
-      <div class="col-1 d-flex d-sm-none align-items-center justify-content-center">
-        <span @click="showDrawerMenu()">
-          <i class="fa-solid fa-bars fa-xl"></i>
-        </span>
-      </div>
-      <div class="col-10 col-sm-9 d-flex align-items-center justify-content-center justify-content-sm-start">
-        <img width="120px" height="60px" src="../../assets/images/logo.jpg" class="mx-3" alt="logo" />
-        <span class="d-none d-sm-flex text-white">Quản Trị</span>
-      </div>
-      <div class="col-sm-3 d-none d-sm-flex align-items-center justify-content-sm-end">
-        <div class="dropdown">
-          <div class="dropdown-toggle text-white  " data-bs-toggle="dropdown" aria-expanded="false">
-            Admin
-          </div>
-          <ul class="dropdown-menu">
-            <li><a class="dropdown-item" href="#">Đăng Xuất</a></li>
-            <!-- <li><a class="dropdown-item" @click="logout" href="#">Đăng Xuất</a></li> -->
-            <li><a class="dropdown-item" href="#">Another action</a></li>
-            <li><a class="dropdown-item" href="#">Something else here</a></li>
-          </ul>
+    <div class="container-fluid bg-primary">
+        <div class="row align-items-center py-3">
+            <!-- Nút mở menu mobile (Chỉ hiện ở màn hình nhỏ < 768px) -->
+            <div class="col-1 d-flex d-md-none justify-content-center">
+                <button @click="showDrawerMenu" class="btn btn-outline-primary">
+                    <i class="fa-solid fa-bars fa-xl text-white"></i>
+                </button>
+            </div>
+
+            <div class="col-10 col-md-8 d-flex align-items-center">
+                <img src="../../assets/images/logo.jpg"  class="border rounded-2" width="140" height="60" alt="logo" />
+                <span class="d-none d-md-inline text-white fs-5 mx-3 fw-bold">Quản Trị cửa hàng thời trang FASHION SHOP</span>
+            </div>
+
+            <!-- Dropdown Admin (Chỉ hiện ở màn hình >= md) -->
+            <div class="col-md-4 d-none d-md-flex justify-content-end pr-3">
+                <div class="dropdown">
+                    <span class="text-white dropdown-toggle fs-5" data-bs-toggle="dropdown">
+                        Admin
+                    </span>
+                    <ul class="dropdown-menu">
+                        <li><a class="dropdown-item" href="#">Đăng Xuất</a></li>
+                        <li><a class="dropdown-item" href="#">Another action</a></li>
+                        <li><a class="dropdown-item" href="#">Something else here</a></li>
+                    </ul>
+                </div>
+            </div>
+
+            <!-- Nút mở thông tin admin (chỉ hiện ở mobile < 768px) -->
+            <div class="col-1 d-flex d-md-none justify-content-center">
+                <button @click="showDrawerAdmin" class="btn btn-outline-secondary">
+                    <i class="fa-solid fa-user fa-xl text-white"></i>
+                </button>
+            </div>
         </div>
-      </div>
-      <div class="col-1 d-flex d-sm-none align-items-center justify-content-center">
-        <span @click="showDrawerAdmin()">
-          <i class="fa-solid fa-user fa-xl me-2"></i>
-        </span>
-      </div>
     </div>
-  </div>
-  <a-drawer v-model:open="open_menu" title="Danh Mục" placement="left">
-    <TheMenu />
-  </a-drawer>
-  <a-drawer v-model:open="open_admin" title="Admin" placement="right">
-    <div>
-      <p>Some contents...</p>
-      <p>Some contents...</p>
-      <p>Some contents...</p>
-    </div>
-  </a-drawer>
 </template>
-<script>
-import { ref } from 'vue';
-import TheMenu from './TheMenu.vue';
+
+<script >
+import { useMenu } from '../../store/use-menu';
+import axios from 'axios';
+
 export default {
-  components: {
-    TheMenu,
-  },
-  setup() {
-    const open_menu = ref(false);
-    const open_admin = ref(false);
-    const showDrawerMenu = () => {
-      open_menu.value = true;
+    setup() {
+        const menuStore = useMenu();
+
+      const showDrawerMenu = () => {
+        menuStore.toggleMenu();
+        const offcanvas = new bootstrap.Offcanvas(document.getElementById('offcanvasMenu'));
+        offcanvas.show();
+      };
+
+      const showDrawerAdmin = () => {
+         menuStore.toggleAdmin();
+            const offcanvas = new bootstrap.Offcanvas(document.getElementById('offcanvasAdmin'));
+            offcanvas.show();
     };
-
-    const showDrawerAdmin = () => {
-      open_admin.value = true;
-    };
-
-    // const logout = () => {
-    //   sessionStorage.clear();
-    //   window.location.href="/admin";
-    // }
-    return {
-      open_menu,
-      open_admin,
-      showDrawerAdmin,
-      showDrawerMenu,
-    //   logout
-    }
-  }
-}
+      
+      // const logout = () => {
+      //       document.cookie = 'accessToken=;expires=Thu, 01 Jan 1970 00:00:00 GMT;path=/;';
+      //       document.cookie = 'user_name=;expires=Thu, 01 Jan 1970 00:00:00 GMT;path=/;';
+      //       delete axios.defaults.headers.common['Authorization'];
+      //       window.location.href = "/admin";
+      //   };
 
 
-
+        return {
+            showDrawerMenu,
+          showDrawerAdmin,
+            // logout
+        };
+    },
+};
 </script>
