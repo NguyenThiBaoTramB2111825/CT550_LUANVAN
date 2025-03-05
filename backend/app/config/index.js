@@ -1,14 +1,13 @@
 // const { refreshToken } = require('../controllers/admin.controller');
 
 
-console.log("Loading config...");
+// console.log("Loading config...");
 
 require('dotenv').config(); 
 
 const config = {
     app: {
         port: process.env.PORT || 3000,
-
     },
     db: {
         uri: process.env.MONGODB_URI || "mongodb://127.0.0.1:27017/db_fashion_shop"
@@ -20,4 +19,4 @@ const config = {
 };
 
 module.exports = config;
-console.log("Loaded config: ", config);
+// console.log("Loaded config: ", config);

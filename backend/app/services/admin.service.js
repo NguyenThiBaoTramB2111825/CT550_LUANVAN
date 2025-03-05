@@ -3,7 +3,7 @@ const bcrypt = require("bcrypt");
 const jwt = require("jsonwebtoken");
 const config = require("../config/index");
 
-console.log("Loaded config: ", config);
+// console.log("Loaded config: ", config);
 
 class adminService {
     constructor(client) {
