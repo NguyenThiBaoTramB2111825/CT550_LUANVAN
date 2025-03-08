@@ -4,7 +4,7 @@ const express = require("express");
 const cors = require("cors");
 const ApiError = require("./app/api-error")
 const app = express();
-
+const path = require('path');
 
 const categoryRouter = require("./app/routes/category.route");
 const brandRouter = require("./app/routes/brand.route");
@@ -13,6 +13,7 @@ const colorRouter = require("./app/routes/color.route");
 const sizeRouter = require("./app/routes/size.route");
 const adminRouter = require("./app/routes/admin.route");
 const employeeRouter = require("./app/routes/employee.route");
+const employee2Router = require("./app/routes/employee2.route");
 const customerRouter = require("./app/routes/customer.route");
 const discountRouter = require("./app/routes/discount.route")
 const productRouter = require("./app/routes/product.route");
@@ -23,6 +24,7 @@ const addressRouter = require("./app/routes/address.route");
 const cartRouter = require("./app/routes/cart.route");
 const orderRouter = require("./app/routes/order.route");
 const reviewRouter = require("./app/routes/review.route");
+
 
 
 app.use(cors());
@@ -36,6 +38,7 @@ app.use("/api/size", sizeRouter);
 app.use("/api/admin", adminRouter);
 app.use("/api/customer", customerRouter);
 app.use("/api/employee", employeeRouter );
+app.use("/api/employee2", employee2Router );
 app.use("/api/discount", discountRouter);
 app.use("/api/product", productRouter);
 app.use("/api/image", imageRouter);
@@ -46,7 +49,8 @@ app.use("/api/cart", cartRouter);
 app.use("/api/order", orderRouter);
 app.use("/api/review", reviewRouter);
 
-
+// cho phép serve thư mục 'uploads' client truy cập ảnh
+app.use('/uploads', express.static(path.join(__dirname, 'app','uploads')));
 app.get("/", (req, res) => {
     res.json({ message: "well come to fashion shop application." });
 });

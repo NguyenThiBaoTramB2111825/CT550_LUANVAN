@@ -2,20 +2,26 @@
 import TheHeader from '../components/admin/TheHeader.vue';
 import TheMenu from '../components/admin/TheMenu.vue';
 import Cookies from 'js-cookie';
+import { useMenu } from '../store/use-menu';
+import Login from '../components/admin/Login.vue';
 
 export default {
     components: {
         TheHeader,
         TheMenu,
+        Login,
     },
     setup() {
         const token = Cookies.get('accessToken');
+        console.log("Current token:", token);
+
+        const menuStore = useMenu();
         // const logout = () => {
         //     Cookies.remove('accessToken');
         //     window.location.href = '/admin';
         // }
         return {
-            token,
+            token,menuStore
         }
     }
 }
@@ -23,37 +29,17 @@ export default {
 
 <template>
 
-  <div class="d-flex vh-100">
+    <div v-if="!token">
+        <Login/>
+    </div>
+
+  <div v-else class="d-flex vh-100">
         <!-- Sidebar luôn hiển thị trên desktop -->
-        <aside class="border-end bg-light p-3 d-none d-md-block" style="width: 250px;">
+        <aside class="border-end bg-light sidebar"  :class="{'collapsed': !menuStore.isMenuVisible }">
             <TheMenu />
         </aside>
 
-        <!-- Offcanvas cho mobile -->
-        <div class="offcanvas offcanvas-start" tabindex="-1" id="offcanvasMenu">
-            <div class="offcanvas-header">
-                <h5 class="offcanvas-title">Danh Mục</h5>
-                <button type="button" class="btn-close" data-bs-dismiss="offcanvas"></button>
-            </div>
-            <div class="offcanvas-body">
-                <TheMenu />
-            </div>
-        </div>
-
-        <!-- Admin Drawer -->
-        <div class="offcanvas offcanvas-end" tabindex="-1" id="offcanvasAdmin">
-            <div class="offcanvas-header">
-                <h5 class="offcanvas-title">Thông Tin Admin</h5>
-                <button type="button" class="btn-close" data-bs-dismiss="offcanvas"></button>
-            </div>
-            <div class="offcanvas-body">
-                <p>Xin chào Admin!</p>
-                <p>Email: admin@example.com</p>
-                <button class="btn btn-danger">Logout</button>
-            </div>
-        </div>
-
-        <div class="flex-grow-1 d-flex flex-column">
+        <div class="d-flex flex-grow-1  flex-column">
             <TheHeader />
             <main class="flex-grow-1 p-3">
                 <router-view />
@@ -62,3 +48,21 @@ export default {
     </div>
 
 </template>
+
+<style scoped>
+.sidebar {
+    width: 250px;
+    padding: 5px;
+    transition: width 0.3s ease;
+    overflow: hidden;
+    white-space: nowrap;
+
+}
+
+.sidebar.collapsed {
+    width: 0;
+    padding: 0;
+    border: none;
+}
+
+</style>

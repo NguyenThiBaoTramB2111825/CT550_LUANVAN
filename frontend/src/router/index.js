@@ -56,9 +56,9 @@
 
 import { createWebHistory, createRouter } from "vue-router";
 import admin from "./admin.js";
-// import customer from "./customer.js";
+import customer from "./customer.js";
 
-const routes = [...admin];
+const routes = [...admin, ...customer];
 
 const router = createRouter({
   history: createWebHistory(import.meta.env.BASE_URL),

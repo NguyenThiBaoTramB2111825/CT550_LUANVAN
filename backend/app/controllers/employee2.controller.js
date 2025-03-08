@@ -1,6 +1,6 @@
 const ApiError = require("../api-error");
 const MongoDB = require("../utils/mongodb.util");
-const EmployeeService = require("../services/employee.service");
+const Employee2Service = require("../services/employee2.service");
 const jwt = require('jsonwebtoken');
 const upload = require("../utils/multer.config");
 const { ObjectId } = require("mongodb");
@@ -14,34 +14,34 @@ exports.create = [
         }
 
         try {
-            const employeeService = new EmployeeService(MongoDB.client);
+            const employee2Service = new Employee2Service(MongoDB.client);
             if (req.file) {
                 req.body.profileImage = `/uploads/${req.file.filename}`;
             }
-            const document = await employeeService.create(req.body);
+            const document = await employee2Service.create(req.body);
             if (document.statusCode == 400) {
                 return res.status(400).json({ message: document.message });
             }
             return res.send(document);
         } catch (error) {
-            return next(new ApiError(500, "An Error Occurred while creating the employee"));
+            return next(new ApiError(500, "An Error Occurred while creating the employee2"));
         }
     }
 ]
 
-exports.loginEmployee = async (req, res, next) => {
+exports.loginEmployee2 = async (req, res, next) => {
     if (!req.body?.name || !req.body?.password) {
         return next(new ApiError(400, "Tên người dùng và mật khẩu không được để trống"));
     }
     console.log("Dữ liệu nhập vào: ", req.body.name, req.body.password);
 
     try {
-        const employeeService = new EmployeeService(MongoDB.client);
-        const result = await employeeService.login(req.body);
+        const employee2Service = new Employee2Service(MongoDB.client);
+        const result = await employee2Service.login(req.body);
         return res.send({
             message: "Đăng nhập thành công",
             token: result.token,
-            employee: result.employee
+            employee2: result.employee2
         })
     } catch (error) {
         console.error("Lỗi khi đăng nhập:", error.message);  // Log chi tiết lỗi
@@ -50,7 +50,7 @@ exports.loginEmployee = async (req, res, next) => {
 };
 
 
-exports.logoutEmployee = async (req, res, next) => {
+exports.logoutEmployee2 = async (req, res, next) => {
     const token = req.headers.authorization?.split(" ")[1];
     if (!token) {
         return next(new ApiError(400, "Token không được cung cấp"));
@@ -68,16 +68,16 @@ exports.findALL = async (req, res, next) => {
     let documents = [];
 
     try {
-        const employeeService = new EmployeeService(MongoDB.client);
+        const employee2Service = new Employee2Service(MongoDB.client);
         const { name } = req.query;
         if (name) {
-            documents = await employeeService.findByName(name);
+            documents = await employee2Service.findByName(name);
         } else {
-            documents = await employeeService.find({});
+            documents = await employee2Service.find({});
         }
     } catch (error) {
         return next(
-            new ApiError(500, "An Error Occurred while retrieving employee")
+            new ApiError(500, "An Error Occurred while retrieving employee2")
         );
     }
 
@@ -86,29 +86,29 @@ exports.findALL = async (req, res, next) => {
 
 exports.findOne = async (req, res, next) => {
     try {
-        const employeeService = new EmployeeService(MongoDB.client);
-        const document = await employeeService.findOne({ _id: new ObjectId(req.params.id) });
+        const employee2Service = new Employee2Service(MongoDB.client);
+        const document = await employee2Service.findOne({ _id: new ObjectId(req.params.id) });
         if (document.statusCode == 400) {
             return res.status(400).json({ message: document.message });
         }
         return res.send(document);
     } catch (error) {
         return next(
-            new ApiError(500, "An Error Occurred while retrieving employee")
+            new ApiError(500, "An Error Occurred while retrieving employee2")
         );
     };
 };
 exports.findByName = async (req, res, next) => {
     try {
-        const employeeService = new EmployeeService(MongoDB.client);
-        const document = await employeeService.findByName(req.params.name);
+        const employee2Service = new Employee2Service(MongoDB.client);
+        const document = await employee2Service.findByName(req.params.name);
         if (document.statusCode == 400) {
             return res.status(400).json({ message: document.message });
         }
         return res.send(document);
     } catch (error) {
         return next(
-            new ApiError(500, "An Error Occurred while retrieving employee")
+            new ApiError(500, "An Error Occurred while retrieving employee2")
         );
     };
 };
@@ -127,17 +127,17 @@ exports.update = [
         }
 
         try {
-            const employeeService = new EmployeeService(MongoDB.client);
-            const document = await employeeService.update(id, payload);
+            const employee2Service = new Employee2Service(MongoDB.client);
+            const document = await employee2Service.update(id, payload);
             if (document.statusCode && document.statusCode !== 200) {
                 return next(new ApiError(document.statusCode, document.message));
             }
 
-            return res.send({ message: "Employee was updated successfully" });
+            return res.send({ message: "Employee2 was updated successfully" });
 
         } catch (error) {
             return next(
-                new ApiError(500, `Error updating employee with id=${id}`)
+                new ApiError(500, `Error updating employee2 with id=${id}`)
             );
         }
     }
@@ -145,7 +145,7 @@ exports.update = [
 
 exports.delete = async (req, res, next) => {
     try {
-        const employeeService = new EmployeeService(MongoDB.client);
+        const employee2Service = new Employee2Service(MongoDB.client);
         // const borrowService = new BorrowService(MongoDB.client);
         // const activeBorrow = await borrowService.findActiveBorrowByUserId(req.params.id);
         // if (activeBorrow) {
@@ -154,23 +154,23 @@ exports.delete = async (req, res, next) => {
         //         new ApiError(400, 'Người dùng có đơn mượn đang mượn, không thể xóa.')
         //     );
         // }
-        const document = await employeeService.delete(req.params.id);
+        const document = await employee2Service.delete(req.params.id);
         if (!document) {
-            return next(new ApiError(404, "employee not found"));
+            return next(new ApiError(404, "employee2 not found"));
         }
         // await borrowService.deleteWithUserId(req.params.id);
-        return res.send({ messgae: "employee was deleted successfully" });
+        return res.send({ messgae: "employee2 was deleted successfully" });
     } catch (error) {
         return next(
-            new ApiError(500, `Could not delete employee with id=${req.params.id}`)
+            new ApiError(500, `Could not delete employee2 with id=${req.params.id}`)
         );
     }
 };
 
 exports.deleteALL = async (req, res, next) => {
     try {
-        const employeeService = new EmployeeService(MongoDB.client);
-        const deletedCount = await employeeService.deleteAll();
+        const employee2Service = new Employee2Service(MongoDB.client);
+        const deletedCount = await employee2Service.deleteAll();
         return res.send({
             message: `${deletedCount} users were deleted successfully`,
         });
