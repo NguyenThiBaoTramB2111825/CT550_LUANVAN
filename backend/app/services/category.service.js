@@ -17,12 +17,6 @@ class CategoryService{
         );
         return category;
     }
-    // create
-    // async create(payload) {
-    //     const category = this.extractCategoryData(payload);
-    //     const result = await this.Category.insertOne(category);
-    //     return result.value;
-    // }
 
     async create(payload) {
         const category = this.extractCategoryData(payload);
@@ -48,7 +42,9 @@ class CategoryService{
 
     async findByName(name) {
         return await this.find({
-            name: { $regex: new RegExp(name), $options: "i" },
+            name: {
+                $regex: new RegExp(`.*${name}.*`, "i")  // Tìm bất cứ đâu trong chuỗi, không phân biệt hoa thường
+            }
         });
     }
 

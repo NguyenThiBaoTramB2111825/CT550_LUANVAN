@@ -5,6 +5,7 @@ const router = express.Router();
 
 router.route("/").get(category.findAll).post(category.create).delete(category.deleteAll);
 router.route("/:id").get(category.findOne).put(category.update).delete(category.delete);
+router.route("/name/:name").get(category.findByName);
 
 
 module.exports = router;

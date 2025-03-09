@@ -47,6 +47,18 @@ export default {
             if (route.name === "warehouse-manager-add") {
                 crumbs.splice(1, 0, { path: "/admin/warehouse-manager", label: "Quản lý nhân viên kho" });
             }
+            if (route.name === "category-update") {
+                crumbs.splice(1, 0, { path: "/admin/category", label: "Quản lý danh mục sản phẩm" });
+            }
+            if (route.name === "category-add") {
+                crumbs.splice(1, 0, { path: "/admin/category", label: "Quản lý danh mục sản phẩm" });
+            }
+            if (route.name === "brand-update") {
+                crumbs.splice(1, 0, { path: "/admin/brand", label: "Quản lý thương hiệu" });
+            }
+            if (route.name === "brand-add") {
+                crumbs.splice(1, 0, { path: "/admin/brand", label: "Quản lý thương hiệu" });
+            }
 
             return crumbs;
 

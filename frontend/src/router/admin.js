@@ -56,31 +56,70 @@ const admin = [
           breadcrumb: 'Thêm'
         },
       },
-      // {
-      //   path: "customer",
-      //   name: "customer",
-      //   component: () => import("../../../backend/app/"),
-      // },
-      // {
-      //   path: "books",
-      //   name: "admin-books-create",
-      //   component: () => import("../../../backend/"),
-      // },
-    //   {
-    //     path: "books/:id",
-    //     name: "admin-books-edit",
-    //     component: () => import("../pages/admin/books/edit.vue"),
-    //   },
-    //   {
-    //     path: "nxbs",
-    //     name: "admin-nxbs",
-    //     component: () => import("../pages/admin/nxbs/index.vue"),
-    //   },
-    //   {
-    //     path: "borrows",
-    //     name: "admin-borrows",
-    //     component: () => import("../pages/admin/borrows/index.vue"),
-    //   },
+      {
+        path: "customer",
+        name: "customer",
+        component: () => import("../pages/admin/customer/index.vue"),
+        meta: {breadcrumb: "Quản lý khách hàng"}
+      },
+
+      {
+        path: "customer-update/:id",
+        name: "customer-update",
+        component: () => import("../pages/admin/customer/update.vue"),
+        meta: {
+          breadcrumb: 'Cập nhật'
+        },
+      },
+
+      {
+        path: "category",
+        name: "category",
+        component: () => import("../pages/admin/category/index.vue"),
+        meta: {
+          breadcrumb: 'Quản lý danh mục'
+        },
+      },
+      {
+        path: "category-update/:id",
+        name: "category-update",
+        component: () => import("../pages/admin/category/update.vue"),
+        meta: {
+          breadcrumb: 'Cập nhật'
+        },
+      },
+      {
+        path: "category-add/",
+        name: "category-add",
+        component: () => import("../pages/admin/category/add.vue"),
+        meta: {
+          breadcrumb: 'Thêm'
+        },
+      },
+      {
+        path: "brand",
+        name: "brand",
+        component: () => import("../pages/admin/brand/index.vue"),
+        meta: {
+          breadcrumb: 'Quản lý thương hiệu'
+        },
+      },
+      {
+        path: "brand-update/:id",
+        name: "brand-update",
+        component: () => import("../pages/admin/brand/update.vue"),
+        meta: {
+          breadcrumb: 'Cập nhật'
+        },
+      },
+      {
+        path: "brand-add/",
+        name: "brand-add",
+        component: () => import("../pages/admin/brand/add.vue"),
+        meta: {
+          breadcrumb: 'Thêm'
+        },
+      },
     ],
   },
 ];

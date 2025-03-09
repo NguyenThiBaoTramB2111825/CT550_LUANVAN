@@ -135,10 +135,10 @@ exports.findOne = async (req, res, next) => {
         );
     };
 };
-exports.findOneByName = async (req, res, next) => {
+exports.findByPhone = async (req, res, next) => {
     try {
         const customerService = new CustomerService(MongoDB.client);
-        const document = await customerService.findOne({ name: req.params.name});
+        const document = await customerService.findByPhone(req.params.phone);
         if (document.statusCode == 400) {
             return res.status(400).json({ message: document.message });
         }
@@ -149,6 +149,23 @@ exports.findOneByName = async (req, res, next) => {
         );
     };
 };
+
+
+exports.findByName = async (req, res, next) => {
+    try {
+        const customerService = new CustomerService(MongoDB.client);
+        const document = await customerService.findByName(req.params.name);
+        if (document.statusCode == 400) {
+            return res.status(400).json({ message: document.message });
+        }
+        return res.send(document);
+    } catch (error) {
+        return next(
+            new ApiError(500, "An Error Occurred while retrieving employee")
+        );
+    };
+};
+
 
 exports.update = [
     upload.single('profileImage'),
@@ -177,17 +194,17 @@ exports.update = [
 ]
 
 exports.delete = async (req, res, next) => {
+    console.log("Giá trị id nhận vào để delete: ", req.params.id);
     try {
         const customerService = new CustomerService(MongoDB.client);
         const document = await customerService.delete(req.params.id);
         if (!document) {
             return next(new ApiError(404, "Customer not found"));
         }
-        // await borrowService.deleteWithUserId(req.params.id);
         return res.send({ messgae: "customer was deleted successfully" });
     } catch (error) {
         return next(
-            new ApiError(500, `Could not delete customer with id=${req.params.id}`)
+            new ApiError(500, `Could not delete customer with id=${req.params.id}: ${error.message}`)
         );
     }
 };

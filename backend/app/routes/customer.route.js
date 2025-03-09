@@ -9,17 +9,17 @@ const router = express.Router();
 // router
 //     .route("/:token")
 //     .put(authenticateToken.authenticateTokenFromParams, customer.update);
-    
-router
-    .route("/:id")
-    .get(customer.findOne);
-router
+    router
     .route("/name/:name")
-    .get(customer.findOneByName);
-    
+    .get(customer.findByName);
+
+router.route("/phone/:phone").get(customer.findByPhone);
 router
     .route("/:id")
-    .put(authenticateToken,authorizeRole("admin"),  customer.update);
+    .get(customer.findOne)
+    .put(customer.update)
+    .delete(customer.delete);
+    //.put(authenticateToken,authorizeRole("admin"),  customer.update);
     
 router
     .route("/")

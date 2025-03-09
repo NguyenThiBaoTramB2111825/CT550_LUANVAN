@@ -16,7 +16,7 @@ class customerService {
             email: payload.email,
             address: payload.address || null,
             profileImage: payload.profileImage,
-            isDeleted: payload.isDeleted || false,
+            status: payload.status || "Đang hoạt động",
         };
         // Remove undefined fields
         Object.keys(customer).forEach(
@@ -104,7 +104,7 @@ class customerService {
                 phone: customer.phone,
                 address: customer.address,
                 email: customer.email,
-                isDeleted: customer.isDeleted,
+                status: customer.status,
                 profileImage: customer.profileImage,
             },
              refreshToken,
@@ -129,7 +129,16 @@ class customerService {
     // findByName
     async findByName(name) {
         return await this.find({
-            name: { $regex: new RegExp(name), $options: "i" },
+            name: {
+                $regex: new RegExp(`.*${name}.*`, "i")  // Tìm bất cứ đâu trong chuỗi, không phân biệt hoa thường
+            }
+        });
+    }
+    async findByPhone(phone) {
+        return await this.find({
+            phone: {
+                $regex: new RegExp(`.*${phone}.*`, "i")  // Tìm bất cứ đâu trong chuỗi, không phân biệt hoa thường
+            }
         });
     }
 
@@ -168,7 +177,7 @@ class customerService {
         });
 
         if (duplicateCheck) {
-            return { statusCode: 409, message: "Tên hoặc số điện thoại đã được sử dụng bởi khách hàng khác" };
+            return { statusCode: 409, message: "Email hoặc số điện thoại đã được sử dụng" };
         }
         if (update.password) {
                 const saltRounds = 10;
@@ -210,15 +219,6 @@ class customerService {
         }
     };
     
-    async findOneCustomerByPhone (phone) {
-        try {
-            const customer = await this.Customer.findOne({ phone: phone });
-            return customer; 
-        } catch (error) {
-            console.error('Error finding Customer by phone number:', error);
-            throw error;
-        }
-    };
-    
+
 }
 module.exports = customerService;

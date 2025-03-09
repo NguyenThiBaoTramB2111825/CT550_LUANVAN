@@ -70,6 +70,23 @@ exports.findOne = async (req, res, next) => {
     
     try {
         const categoryService = new CategoryService(MongoDB.client);
+        const document = await categoryService.findById(req.params.id);
+        if (!document) {
+            return next(new ApiError(404, "Không tìm thấy danh mục"));
+        }
+        return res.send(document);
+    }
+    catch (error) {
+        return next(
+            new ApiError(500, "Lỗi truy xuất dữ liệu")
+        )
+    }
+    
+};
+exports.findByName = async (req, res, next) => {
+    
+    try {
+        const categoryService = new CategoryService(MongoDB.client);
         const document = await categoryService.findByName(req.params.name);
         if (!document) {
             return next(new ApiError(404, "Không tìm thấy danh mục"));

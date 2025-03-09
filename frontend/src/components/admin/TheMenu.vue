@@ -1,47 +1,4 @@
 
-    <!-- <div class="d-flex flex-column h-100 bg-light" :class="{ 'hidden': !menuStore.isMenuVisible}"></div> -->
-
-        <!-- <div class="d-flex align-items-center justify-content-center text-center fs-5 fw-bold m-3" style="height: 50px;">
-            Bảng điều khiển
-        </div>
-        <div class="list-group" >
-            <router-link :to="{ name: 'admin-dashboard' }" class="list-group-item list-group-item-action">
-                <i class="fa-solid fa-user me-3"></i> Quản lý nhân viên
-            </router-link>
-            <router-link :to="{ name: 'admin-dashboard' }" class="list-group-item list-group-item-action">
-                <i class="fa-solid fa-box me-3"></i> Khách hàng
-            </router-link>
-            <router-link :to="{ name: 'admin-dashboard' }" class="list-group-item list-group-item-action">
-                <i class="fa-solid fa-receipt me-3"></i> Quản lý đơn hàng
-            </router-link>
-            <router-link :to="{ name: 'admin-dashboard' }" class="list-group-item list-group-item-action">
-                <i class="fa-solid fa-user me-3"></i> Quản lý sản phẩm
-            </router-link>
-            <router-link :to="{ name: 'admin-dashboard' }" class="list-group-item list-group-item-action">
-                <i class="fa-solid fa-box me-3"></i> Quản lý nhập xuất
-            </router-link>
-            <router-link :to="{ name: 'admin-dashboard' }" class="list-group-item list-group-item-action">
-                <i class="fa-solid fa-receipt me-3"></i> Quản lý danh mục
-            </router-link>
-            <router-link :to="{ name: 'admin-dashboard' }" class="list-group-item list-group-item-action">
-                <i class="fa-solid fa-user me-2"></i> Màu sắc
-            </router-link>
-            <router-link :to="{ name: 'admin-dashboard' }" class="list-group-item list-group-item-action">
-                <i class="fa-solid fa-user me-2"></i> Kích cỡ
-            </router-link>
-            <router-link :to="{ name: 'admin-dashboard' }" class="list-group-item list-group-item-action">
-                <i class="fa-solid fa-box me-2"></i> Quản lý Khuyến mãi
-            </router-link>
-            <router-link :to="{ name: 'admin-dashboard' }" class="list-group-item list-group-item-action">
-                <i class="fa-solid fa-receipt me-2"></i> 
-            </router-link>
-            <router-link :to="{ name: 'admin-dashboard' }" class="list-group-item list-group-item-action">
-                <i class="fa-solid fa-box me-2"></i> Đánh giá
-            </router-link>
-            <router-link :to="{ name: 'admin-dashboard' }" class="list-group-item list-group-item-action">
-                <i class="fa-solid fa-receipt me-2"></i> Quản lý Nhà cung cấp
-            </router-link>
-        </div> -->
 <template>
     <div class="bg-light">
         <div class="d-flex align-items-center justify-content-center text-center fs-5 fw-bold m-3" style="height: 50px;">
@@ -89,12 +46,22 @@ export default defineComponent({
             {
                 title: "Khách hàng",
                 icon: "fa-box",
-                route: "admin-dashboard"
+                route: "customer"
             },
             {
                 title: "Quản lý đơn hàng",
                 icon: "fa-receipt",
                 route: "admin-dashboard"
+            },
+            {
+                title: "Quản lý danh mục",
+                icon: "fa-receipt",
+                route: "category"
+            },
+            {
+                title: "Quản lý thương hiệu",
+                icon: "fa-receipt",
+                route: "brand"
             }
             // Thêm các mục khác tương tự...
         ];
