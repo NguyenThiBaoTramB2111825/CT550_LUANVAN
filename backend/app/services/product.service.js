@@ -109,68 +109,6 @@ class ProductService{
         }
     }
 
-    // async update(id, payload) {
-    //     console.log("Payload nhận được:", payload);
-
-    //     // Kiểm tra ID hợp lệ
-    //     if (!ObjectId.isValid(id)) {
-    //         return { statusCode: 400, message: "ID không hợp lệ" };
-    //     }
-    //     const productId = new ObjectId(id);
-
-    //     // Tìm sản phẩm hiện tại
-    //     const existingProduct = await this.Product.findOne({ _id: productId });
-    //     console.log("Giá trị của existingProduct:", existingProduct);
-
-    //     if (!existingProduct) {
-    //         return { statusCode: 404, message: "Sản phẩm cần cập nhật không tồn tại" };
-    //     }
-
-    //     // Chuẩn bị dữ liệu cập nhật, loại bỏ giá trị undefined
-    //     const update = {};
-    //     for (const key in payload) {
-    //         if (payload[key] !== undefined) {
-    //             update[key] = payload[key];
-    //         }
-    //     }
-
-    //     // Kiểm tra nếu không có dữ liệu mới để cập nhật
-    //     if (Object.keys(update).length === 0) {
-    //         return { statusCode: 400, message: "Không có dữ liệu mới nào để cập nhật" };
-    //     }
-
-    //     // Kiểm tra trùng lặp tên sản phẩm
-    //     if (update.name) {
-    //         const duplicate = await this.Product.findOne({ _id: { $ne: productId }, name: update.name });
-    //         if (duplicate) {
-    //             return { statusCode: 409, message: "Tên sản phẩm đã tồn tại." };
-    //         }
-    //     }
-
-    //     try {
-    //         // Kiểm tra log trước khi cập nhật
-    //         console.log("Dữ liệu sẽ được cập nhật:", update);
-
-    //         // Cập nhật sản phẩm
-    //         const result = await this.Product.updateOne(
-    //             { _id: productId },
-    //             {
-    //                 $set: update
-    //             }
-    //         );
-    //         if (result.modifiedCount === 0) {
-    //             return { statusCode: 400, message: "Không có thay đổi nào được thực hiện" };
-    //         }
-
-    //         console.log("Kết quả cập nhật:", result);
-    //         return { statusCode: 200, message: "Cập nhật thành công", data: result.value };
-    //     } catch (error) {
-    //         console.error("Lỗi khi cập nhật sản phẩm:", error);
-    //         return { statusCode: 500, message: "Lỗi server", error: error.message };
-    //     }
-    // }
-
-
     async update(id, payload) {
         console.log("Payload nhận được:", payload);
 
