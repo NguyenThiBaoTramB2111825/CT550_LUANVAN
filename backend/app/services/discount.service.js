@@ -50,14 +50,21 @@ class discountService {
         const discount = {
             name: payload.name,
             description: payload.description,
-            quantity: payload.quantity,
+            quantity: parseInt(payload.quantity, 10),
             remaining_quantity: payload.quantity,
-            value: payload.value,
+            value: parseFloat(payload.value) || 0,
+            // value: this.parseFloat(payload.value),
             type: payload.type || 'percentage' ,//|| "fixed",
             startDate: this.parseDate(payload.startDate),
             endDate:  this.parseDate(payload.endDate, true),
             isActive: this.parseDate(payload.startDate) <= now && now <= this.parseDate(payload.endDate, true),
         };
+
+        if (discount.startDate > discount.endDate) {
+            return {
+                statusCode: 400, message: "Thời gian khuyến mãi không hợp lệ"
+            }
+        }
 
         console.log("Dữ liệu sau khi được extract: ", discount);
         // Remove undefined fields
@@ -72,6 +79,9 @@ class discountService {
     async create(payload) {
         console.log("Giá trị nhận vào từ payload: ", payload);
         const discount = this.extractdiscountData(payload);
+        if (discount.statusCode === 400) {
+            return {statusCode: 400, message: "Thời gian khuyến mãi không hợp lệ"}
+        }
         console.log("Giá trị của discount sau khi extract: ", discount);
         let existingdiscount = await this.Discount.findOne({ name: discount.name });
         if (existingdiscount) {
@@ -106,8 +116,10 @@ class discountService {
     // findByName
     async findByName(name) {
         return await this.find({
-            name: { $regex: new RegExp(name), $options: "i" },
-        });
+            name: {
+                $regex: new RegExp(`.*${name}.*`, "i")
+            }
+        })
     }
 
     // findById
@@ -137,7 +149,7 @@ class discountService {
             }
             return update[key] === existingdiscount[key];
         });
-        if (isSameData) {
+        if (isSameData &&  payload.isActive == existingdiscount.isActive) {
             return {
                 statusCode: 400, message: "Không có dữ liệu mới nào cần cập nhật"
             }

@@ -120,6 +120,30 @@ const admin = [
           breadcrumb: 'Thêm'
         },
       },
+      {
+        path: "discount-update/:id",
+        name: "discount-update",
+        component: () => import("../pages/admin/discount/update.vue"),
+        meta: {
+          breadcrumb: 'Cập nhật'
+        },
+      },
+      {
+        path: "discount-add/",
+        name: "discount-add",
+        component: () => import("../pages/admin/discount/add.vue"),
+        meta: {
+          breadcrumb: 'Thêm'
+        },
+      },
+      {
+        path: "discount",
+        name: "discount",
+        component: () => import("../pages/admin/discount/index.vue"),
+        meta: {
+          breadcrumb: 'Quản lý khuyến mãi'
+        },
+      },
     ],
   },
 ];

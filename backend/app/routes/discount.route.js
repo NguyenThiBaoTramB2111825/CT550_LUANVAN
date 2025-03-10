@@ -7,7 +7,7 @@ router
     .get(discount.findOne);
 router
     .route("/name/:name")
-    .get(discount.findOneByName);
+    .get(discount.findByName);
     
 router
     .route("/:id")

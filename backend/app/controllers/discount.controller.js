@@ -57,10 +57,10 @@ exports.findOne = async (req, res, next) => {
         );
     };
 };
-exports.findOneByName = async (req, res, next) => {
+exports.findByName = async (req, res, next) => {
     try {
         const discountService = new DiscountService(MongoDB.client);
-        const document = await discountService.findOne({ name: {$regex: new RegExp(req.params.name, "i")}});
+        const document = await discountService.findByName(req.params.name);
         if (document.statusCode == 400) {
             return res.status(400).json({ message: document.message });
         }
