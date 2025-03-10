@@ -59,6 +59,12 @@ export default {
             if (route.name === "brand-add") {
                 crumbs.splice(1, 0, { path: "/admin/brand", label: "Quản lý thương hiệu" });
             }
+            if (route.name === "product-update") {
+                crumbs.splice(1, 0, { path: "/admin/product", label: "Quản lý sản phẩm" });
+            }
+            if (route.name === "product-add") {
+                crumbs.splice(1, 0, { path: "/admin/product", label: "Quản lý sản phẩm" });
+            }
 
             return crumbs;
 

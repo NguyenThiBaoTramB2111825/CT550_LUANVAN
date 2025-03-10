@@ -144,6 +144,31 @@ const admin = [
           breadcrumb: 'Quản lý khuyến mãi'
         },
       },
+      {
+        path: "product",
+        name: "product",
+        component: () => import("../pages/admin/product/index.vue"),
+        meta: {
+          breadcrumb: 'Quản lý sản phẩm'
+        },
+      },
+
+      {
+        path: "product-update/:id",
+        name: "product-update",
+        component: () => import("../pages/admin/product/update.vue"),
+        meta: {
+          breadcrumb: 'Cập nhật'
+        },
+      },
+      {
+        path: "product-add",
+        name: "product-add",
+        component: () => import("../pages/admin/product/add.vue"),
+        meta: {
+          breadcrumb: 'Thêm'
+        },
+      }
     ],
   },
 ];

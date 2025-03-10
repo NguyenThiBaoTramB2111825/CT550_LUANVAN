@@ -67,6 +67,11 @@ export default defineComponent({
                 title: "Quản lý khuyến mãi",
                 icon: "fa-receipt",
                 route: "discount"
+            },
+            {
+                title: "Quản lý sản phẩm",
+                icon: "fa-receipt",
+                route: "product"
             }
             // Thêm các mục khác tương tự...
         ];

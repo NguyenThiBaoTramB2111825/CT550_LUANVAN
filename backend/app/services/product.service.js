@@ -109,143 +109,162 @@ class ProductService{
         }
     }
 
-    async update(id, payload) {
-        console.log("id và pay load nhận được: ", id, payload);
-        const filter = {
-            _id: ObjectId.isValid(id) ? new ObjectId(id) : null,
-        };
+    // async update(id, payload) {
+    //     console.log("Payload nhận được:", payload);
 
-        const existingProduct = await this.Product.findOne(filter);
+    //     // Kiểm tra ID hợp lệ
+    //     if (!ObjectId.isValid(id)) {
+    //         return { statusCode: 400, message: "ID không hợp lệ" };
+    //     }
+    //     const productId = new ObjectId(id);
+
+    //     // Tìm sản phẩm hiện tại
+    //     const existingProduct = await this.Product.findOne({ _id: productId });
+    //     console.log("Giá trị của existingProduct:", existingProduct);
+
+    //     if (!existingProduct) {
+    //         return { statusCode: 404, message: "Sản phẩm cần cập nhật không tồn tại" };
+    //     }
+
+    //     // Chuẩn bị dữ liệu cập nhật, loại bỏ giá trị undefined
+    //     const update = {};
+    //     for (const key in payload) {
+    //         if (payload[key] !== undefined) {
+    //             update[key] = payload[key];
+    //         }
+    //     }
+
+    //     // Kiểm tra nếu không có dữ liệu mới để cập nhật
+    //     if (Object.keys(update).length === 0) {
+    //         return { statusCode: 400, message: "Không có dữ liệu mới nào để cập nhật" };
+    //     }
+
+    //     // Kiểm tra trùng lặp tên sản phẩm
+    //     if (update.name) {
+    //         const duplicate = await this.Product.findOne({ _id: { $ne: productId }, name: update.name });
+    //         if (duplicate) {
+    //             return { statusCode: 409, message: "Tên sản phẩm đã tồn tại." };
+    //         }
+    //     }
+
+    //     try {
+    //         // Kiểm tra log trước khi cập nhật
+    //         console.log("Dữ liệu sẽ được cập nhật:", update);
+
+    //         // Cập nhật sản phẩm
+    //         const result = await this.Product.updateOne(
+    //             { _id: productId },
+    //             {
+    //                 $set: update
+    //             }
+    //         );
+    //         if (result.modifiedCount === 0) {
+    //             return { statusCode: 400, message: "Không có thay đổi nào được thực hiện" };
+    //         }
+
+    //         console.log("Kết quả cập nhật:", result);
+    //         return { statusCode: 200, message: "Cập nhật thành công", data: result.value };
+    //     } catch (error) {
+    //         console.error("Lỗi khi cập nhật sản phẩm:", error);
+    //         return { statusCode: 500, message: "Lỗi server", error: error.message };
+    //     }
+    // }
+
+
+    async update(id, payload) {
+        console.log("Payload nhận được:", payload);
+
+        // Kiểm tra ID hợp lệ
+        if (!ObjectId.isValid(id)) {
+            return { statusCode: 400, message: "ID không hợp lệ" };
+        }
+        const productId = new ObjectId(id);
+
+        // Tìm sản phẩm hiện tại
+        const existingProduct = await this.Product.findOne({ _id: productId });
         if (!existingProduct) {
             return { statusCode: 404, message: "Sản phẩm cần cập nhật không tồn tại" };
         }
-            
-        const update = this.extractProductData(payload);
-        console.log("Giá trị của update sau khi được extract: ", update);
 
-        // Bảo toàn các giá trị cũ cho các trường không có trong payload
-        for (let key in existingProduct) {
-            if (existingProduct.hasOwnProperty(key) && update[key] === undefined) {
-                update[key] = existingProduct[key];
-                console.log("Giá trị sau khi được gán cho dữ liệu là: ", update[key]);
+        // Chuẩn bị dữ liệu cập nhật, loại bỏ giá trị undefined
+        const update = {};
+        for (const key in payload) {
+            if (payload[key] !== undefined) {
+                update[key] = payload[key];
             }
         }
-        // update.brand_id = update.brand_id ?? existingProduct.brand_id;
-        // update.category_id = update.category_id ?? existingProduct.category_id;
-        // update.discount_id = update.discount_id ?? existingProduct.discount_id
-        // update.price_selling =  update.price_selling ?? existingProduct.price_selling;
 
-        const isSameData = Object.keys(update).every(key => update[key] === existingProduct[key]);
-        if (isSameData) {
-            return { statusCode: 400, message: "Không có dữ liệu mới nào cần được cập nhật" };
+        // Kiểm tra nếu không có dữ liệu mới để cập nhật
+        if (Object.keys(update).length === 0) {
+            return { statusCode: 400, message: "Không có dữ liệu mới nào để cập nhật" };
         }
 
-        const duplicateCheck = update.name ? await this.Product.findOne({
-            _id: { $ne: new ObjectId(id) },
-            name: update.name
-        }) : null
-        if (duplicateCheck) {
-            return { statusCode: 409, message: "Tên sản phẩm đã được sử dụng." };
-        }
-        
-        const category = await this.Category.findOne({ _id: update.category_id });
-        if (!category) {
-            return { statusCode: 400, message: "Category không tồn tại" };
+        // Kiểm tra trùng lặp tên sản phẩm
+        if (update.name) {
+            const duplicate = await this.Product.findOne({ _id: { $ne: productId }, name: update.name });
+            if (duplicate) {
+                return { statusCode: 409, message: "Tên sản phẩm đã tồn tại." };
+            }
         }
 
-        const brand = await this.Brand.findOne({ _id: update.brand_id });
-        if (!brand) {
-            return { statusCode: 404, message: "Brand không tồn tại" };
+        // Kiểm tra danh mục hợp lệ
+        if (update.category_id && ObjectId.isValid(update.category_id)) {
+            const category = await this.Category.findOne({ _id: new ObjectId(update.category_id) });
+            if (!category) {
+                return { statusCode: 400, message: "Danh mục không tồn tại" };
+            }
         }
-    
-        if (update.discount_id !== existingProduct.discount_id) {
-            const discount = await this.Discount.findOne({ _id: update.discount_id });
+
+        // Kiểm tra thương hiệu hợp lệ
+        if (update.brand_id && ObjectId.isValid(update.brand_id)) {
+            const brand = await this.Brand.findOne({ _id: new ObjectId(update.brand_id) });
+            if (!brand) {
+                return { statusCode: 400, message: "Thương hiệu không tồn tại" };
+            }
+        }
+        const price_selling = update.price_selling ?? existingProduct.price_selling;
+        if (price_selling == null) {
+            return {statusCode: 400, message: "Giá bán không hợp lệ"}
+        }
+
+        // Kiểm tra khuyến mãi hợp lệ
+        if (update.discount_id && ObjectId.isValid(update.discount_id)) {
+            const discount = await this.Discount.findOne({ _id: new ObjectId(update.discount_id) });
             if (!discount) {
-                return { statusCode: 400, message: "Discount không tồn tại" };
+                return { statusCode: 400, message: "Khuyến mãi không tồn tại" };
             }
-            // console.log("Giá trị của discount.value: ", discount.value);
-            // console.log("Kiểu dữ liệu của discount.value: ",typeof discount.value);
-            // console.log("Giá trị của DiscountId cần truyền : ", update.discount_id);
-            // console.log("Giá trị của isActive và type: ", discount.isActive, discount.type);
-        
-            if (discount.isActive === "true") {
-                update.price_afterdiscount =
-                    discount.type === "percentage"
-                        ? ((update.price_selling) * (1 - discount.value / 100))
-                        : (update.price_selling - discount.value);
+
+            // Nếu discount còn hiệu lực, tính lại giá sau giảm
+            if (discount.isActive) {
+                update.price_afterdiscount = discount.type === "percentage"
+                    ? (update.price_selling || existingProduct.price_selling) * (1 - discount.value / 100)
+                    : (update.price_selling || existingProduct.price_selling) - discount.value;
+
                 update.price_afterdiscount = Math.max(0, update.price_afterdiscount);
+            } else {
+                update.price_afterdiscount = update.price_selling || existingProduct.price_selling;
             }
-            else {
-                update.price_afterdiscount = (update.price_selling);
-            }
-        }
-        else {
-                update.price_afterdiscount = update.price_afterdiscount;
         }
 
+        // Cập nhật sản phẩm trong MongoDB
         try {
-            const result = await this.Product.findOneAndUpdate(
-                filter,
-                { $set: update },
-                { returnDocument: "after" }
+            const result = await this.Product.updateOne(
+                { _id: productId },
+                {
+                    $set: update
+                }
             );
-
-            console.log("result nhận được: ", result);
-        
-            if (!result) {
-                return { statusCode: 400, message: "Không thể cập nhật Product" }
+            if (result.modifiedCount === 0) {
+                return { statusCode: 400, message: "Không có thay đổi nào được thực hiện" };
             }
-
-            return { statusCode: 200, message: "Discount cập nhật thành công", data: result };
-        }
-        catch (error) {
-            console.error("Lỗi khi cập nhật discount: ", error);
+            const updatedProduct = await this.Product.findOne({ _id: productId });
+            return { statusCode: 200, message: "Cập nhật thành công", data: updatedProduct }
+        } catch (error) {
+            console.error("Lỗi khi cập nhật sản phẩm:", error);
             return { statusCode: 500, message: "Lỗi server", error: error.message };
         }
-    };
-
-    async updateDiscountStatus(discountId, isActive) {
-        try {
-            
-            console.log("Cập nhật giá sản phẩm cho discount:", discountId, "Trạng thái:", isActive);
-
-            const discount = await this.Discount.findOne({ _id: new ObjectId(discountId) });
-
-            if (!discount) {
-                console.log("Không tìm thấy chương trình giảm giá!");
-                return;
-            }
-        
-            const discountValue = (isActive ? parseFloat(discount.value) : 0);
-          
-            //console.log("discount.type:", discount.type, "| Kiểu dữ liệu:", typeof discount.type);
-            // console.log("discount.value:", discount.value, "| Kiểu dữ liệu:", typeof discount.value);
-            // console.log("discountValue:", discountValue, "| Kiểu dữ liệu:", typeof discountValue);
-            // console.log("discountValue / 100:", discountValue / 100, "| Kiểu dữ liệu:", typeof (discountValue / 100));
-  
-            // Cập nhật tất cả sản phẩm có discount_id tương ứng
-            const result = await this.Product.updateMany(
-                { discount_id: new ObjectId(discountId) },
-                [
-                    {
-                        $set: {
-                            price_afterdiscount: {
-                                $cond: {
-                                    if: { $eq: [discount.type, "percentage"] },
-                                    then: { $multiply: [{$toDouble: "$price_selling"}, {$subtract: [1, {$toDouble: discountValue / 100}]}] },
-                                    else: { $subtract: [{$toDouble: "$price_selling"}, discountValue] }
-                                }
-                            }
-                        }
-                    }
-                ]
-            );
-
-            console.log(`Đã cập nhật ${result.modifiedCount} sản phẩm.`);
-        } catch (error) {
-            console.log("Lỗi khi cập nhật sản phẩm", error)
-        }
     }
+
 
     async delete(id) {
         const result = await this.Product.findOneAndDelete({

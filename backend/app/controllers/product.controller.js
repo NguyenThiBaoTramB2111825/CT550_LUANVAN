@@ -82,16 +82,16 @@ exports.update = async (req, res, next) => {
     try {
         const productService = new ProductService(MongoDB.client);
         const document = await productService.update(req.params.id, req.body);
-        if (document.statusCode && document.statusCode != 200) {
+        if (document.statusCode && document.statusCode !== 200) {
             return next(new ApiError(document.statusCode, document.message));
         }
         return res.send({
             message: "Product was updated successfully",
-            data: document.data
+            data: document.data || document
          });
     }
     catch (error) {
-        return next(new ApiError(500, `Lỗi cập nhật product với id=${req.params.id}`));
+        return next(new ApiError(500, `Error create cart : ${error.message}`));
     }
 
 };
