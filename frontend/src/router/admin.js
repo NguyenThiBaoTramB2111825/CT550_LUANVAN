@@ -168,6 +168,30 @@ const admin = [
         meta: {
           breadcrumb: 'Thêm'
         },
+      },
+      {
+        path: "image",
+        name: "image",
+        component: () => import("../pages/admin/image/index.vue"),
+        meta: {
+          breadcrumb: 'Quản lý hình ảnh'
+        },
+      },
+      {
+        path: "image-add",
+        name: "image-add",
+        component: () => import("../pages/admin/image/add.vue"),
+        meta: {
+          breadcrumb: 'Thêm'
+        },
+      },
+      {
+        path: "image-update",
+        name: "image-update",
+        component: () => import("../pages/admin/image/update.vue"),
+        meta: {
+          breadcrumb: 'Cập nhật'
+        },
       }
     ],
   },

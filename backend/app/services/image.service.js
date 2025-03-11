@@ -1,20 +1,17 @@
 const { ObjectId } = require("mongodb");
-const bcrypt = require("bcrypt");
-const jwt = require("jsonwebtoken");
-const config = require("../config/index");
 
 class imageService {
     constructor(client) {
         this.Image = client.db().collection("image");
         this.Product = client.db().collection("product");
     }
-    // Định nghĩa các phương thức truy xuất CSDL sử dụng mongodb API
+
     extractImageData(payload) {
         const image = {
             url: payload.url,
             product_id: ObjectId.isValid(payload.product_id) ? new ObjectId(payload.product_id) : undefined,
         };
-        // Remove undefined fields
+
         Object.keys(image).forEach(
             (key) => image[key] === undefined && delete image[key]
         );
@@ -41,6 +38,48 @@ class imageService {
         return {statusCode: 200, _id: result.insertedId, ...image };
     }
 
+    async createMany(payloads) {
+        if (!Array.isArray(payloads) || payloads.length === 0) {
+            return { statusCode: 400, message: "Dữ liệu đầu vào không hợp lệ" };
+        }
+        const images = payloads.map(this.extractImageData);
+        // Loại bỏ các ảnh bị thiếu URL hoặc product_id
+        const validImages = images.filter(img => img.url && img.product_id);
+        if (validImages.length === 0) {
+            return { statusCode: 400, message: "Không có hình ảnh hợp lệ để thêm" };
+        }
+        // Kiểm tra các product_id có tồn tại trong DB không
+        const productIds = [...new Set(validImages.map(img => img.product_id.toString()))];
+        const existingProducts = await this.Product.find({ _id: { $in: productIds.map(id => new ObjectId(id)) } }).toArray();
+        const existingProductIds = new Set(existingProducts.map(p => p._id.toString()));
+
+
+        const filteredImages = validImages.filter(img => existingProductIds.has(img.product_id.toString()));
+        if (filteredImages.length === 0) {
+            return { statusCode: 400, message: "Không có Product ID hợp lệ để thêm hình ảnh" };
+        }
+        // Kiểm tra ảnh trùng lặp trong database
+        const existingImages = await this.Image.find({
+            $or: filteredImages.map(img => ({ url: img.url, product_id: img.product_id }))
+        }).toArray();
+        const existingImageKeys = new Set(existingImages.map(img => `${img.url}-${img.product_id}`));
+
+        // Lọc ra những ảnh chưa tồn tại trong database
+        const newImages = filteredImages.filter(img => !existingImageKeys.has(`${img.url}-${img.product_id}`));
+
+        if (newImages.length === 0) {
+            return { statusCode: 400, message: "Tất cả hình ảnh đã tồn tại" };
+        }
+
+        // Chèn nhiều ảnh vào database
+        const result = await this.Image.insertMany(newImages);
+        return {
+            statusCode: 200,
+            message: `Thêm thành công ${result.insertedCount} hình ảnh`,
+            insertedIds: result.insertedIds
+        };
+    };
+
     async findOne(query) {
         try {
             const image = await this.Image.findOne(query);
@@ -59,14 +98,6 @@ class imageService {
         const cursor = await this.Image.find(filter);
         return await cursor.toArray();
     }
-
-    // findByName
-    // async findByName(name) {
-    //     return await this.findOne({
-    //         username: { $regex: new RegExp(username), $options: "i" },
-    //     });
-    // }
-
 
     // update
     async update(id, payload) {
@@ -151,6 +182,12 @@ class imageService {
     async delete(id) {
         const result = await this.Image.findOneAndDelete({
             _id: ObjectId.isValid(id) ? new ObjectId(id) : null,
+        });
+        return result;
+    }
+    async deleteByProductId(productId) {
+        const result = await this.Image.deleteMany({
+            product_id: ObjectId.isValid(productId) ? new ObjectId(productId) : null,
         });
         return result;
     }

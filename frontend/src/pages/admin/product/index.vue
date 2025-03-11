@@ -54,12 +54,13 @@
             </tbody>
         </table>
         <span>Tổng sản phẩm: {{totalProducts}}</span>
+<br>
 
-        <div class="text-end">
-            <button class="btn btn-info" @click="addProduct">
-                Thêm sản phẩm
-            </button>
+        <div class=" d-flex justify-content-between my-2">
+            <button class="btn btn-secondary" @click="toImageManager">Hình ảnh sản phẩm</button>
+            <button class="btn btn-info" @click="addProduct">Thêm sản phẩm</button>
         </div>
+
     </div>
 </template>
 <script>
@@ -180,11 +181,14 @@ export default {
         const addProduct = (id) => {
             router.push({name: "product-add"});
         }
+        const toImageManager = (id) => {
+            router.push({name: "image"});
+        }
 
         const totalProducts = computed(() => filterProducts.value.length);
         onMounted(fetchProduct);
 
-        return { products, BASE_URL, deleteProduct, goToUpdatePage, addProduct, inputsearch, totalProducts, filterProducts, filters, formatCurrency, fetchProduct };
+        return { products, BASE_URL, deleteProduct, goToUpdatePage, addProduct, inputsearch, totalProducts, filterProducts, filters, formatCurrency, fetchProduct, toImageManager };
     }
 }
 </script>

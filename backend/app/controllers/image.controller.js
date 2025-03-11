@@ -25,6 +25,31 @@ exports.create = [
         }
     }
 ]
+exports.createMany = [
+    upload.array('images', 5) // Dùng multer để upload ảnh
+    , async (req, res, next) => {
+        if (!req.body?.product_id) {
+            return next(new ApiError(400, "ProductId can not be empty"));
+        };
+        try {
+            const imageService = new ImageService(MongoDB.client);
+            if (!req.files || req.files.length === 0) {
+                return next(new ApiError(400, "No images uploaded"));
+            }
+            const imageList = req.files.map(file => ({
+                url: `/uploads/${file.filename}`,
+                product_id: req.body.product_id
+            }))
+            const document = await imageService.createMany(imageList);
+            if (document.statusCode !== 200) {
+                return res.status(document.statusCode).json({ message: document.message });
+            }
+            return res.status(201).json(document); 
+        } catch (error) {
+            return next(new ApiError(500, "An Error Occurred while creating the image"));
+        }
+    }
+]
 
 exports.findALL = async (req, res, next) => {
     let documents = [];
@@ -110,6 +135,21 @@ exports.delete = async (req, res, next) => {
     try {
         const imageService = new ImageService(MongoDB.client);
         const document = await imageService.delete(req.params.id);
+        if (!document) {
+            return next(new ApiError(404, "image not found"));
+        }
+        return res.send({ messgae: "image was deleted successfully" });
+    } catch (error) {
+        return next(
+            new ApiError(500, `Could not delete image with id=${req.params.id}`)
+        );
+    }
+};
+
+exports.deleteByProductId = async (req, res, next) =>{
+    try {
+        const imageService = new ImageService(MongoDB.client);
+        const document = await imageService.deleteByProductId(req.params.productId);
         if (!document) {
             return next(new ApiError(404, "image not found"));
         }

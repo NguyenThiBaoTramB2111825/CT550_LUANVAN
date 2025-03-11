@@ -65,6 +65,17 @@ export default {
             if (route.name === "product-add") {
                 crumbs.splice(1, 0, { path: "/admin/product", label: "Quản lý sản phẩm" });
             }
+            if (route.name === "image") {
+                crumbs.splice(1, 0, { path: "/admin/product", label: "Quản lý sản phẩm" });
+            }
+            if (route.name === "image-add") {
+                crumbs.splice(1, 0, {  path: "/admin/product", label: "Quản lý sản phảm" });
+                crumbs.splice(2, 0, {  path: "/admin/image", label: "Hình ảnh" });
+            }
+            if (route.name === "image-update") {
+                crumbs.splice(1, 0, {  path: "/admin/product", label: "Quản lý sản phảm" });
+                crumbs.splice(2, 0, {  path: "/admin/image", label: "Hình ảnh" });
+            }
 
             return crumbs;
 

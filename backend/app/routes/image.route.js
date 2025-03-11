@@ -9,8 +9,10 @@ router
     .delete(image.delete);
 router
     .route("/productId/:productId")
-    .get(image.findByProductId);
+    .get(image.findByProductId)
+    .delete(image.deleteByProductId);
     
+router.route("/upload-multiple").post(image.createMany);
 router
     .route("/")
     .get(image.findALL)
