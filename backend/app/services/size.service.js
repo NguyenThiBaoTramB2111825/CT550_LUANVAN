@@ -8,7 +8,8 @@ class SizeService{
 
     extractSizeData(payload) {
         const size = {
-            name: payload.name
+            name: payload.name,
+            note: payload.note
         };
         Object.keys(size).forEach(
             (key) => size[key] === undefined && delete size[key]
@@ -50,12 +51,11 @@ class SizeService{
     //     return await this.findOne({ name: { $regex: regex } });
     // }
 
-       async findByName(name) {
-        return await this.findOne({
-            name: { $regex: new RegExp(name), $options: "i" },
+    async findByName(name) {
+        return await this.find({
+           name: { $regex: new RegExp(`.*${name}.*`, "i") }
         });
     }
-
 
         // findById
     async findById(id) {

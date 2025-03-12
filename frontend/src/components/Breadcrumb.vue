@@ -35,34 +35,19 @@ export default {
                 label: r.meta.breadcrumb || r.name
             }));
 
-            if (route.name === "store-manager-update") {
+            if (route.name === "store-manager-update" || route.name === "store-manager-add") {
                 crumbs.splice(1, 0, { path: "/admin/store-manager", label: "Quản lý nhân viên cửa hàng" });
             }
-            if (route.name === "store-manager-add") {
-                crumbs.splice(1, 0, { path: "/admin/store-manager", label: "Quản lý nhân viên cửa hàng" });
-            }
-            if (route.name === "warehouse-manager-update") {
+            if (route.name === "warehouse-manager-update" || route.name === "warehouse-manager-add") {
                 crumbs.splice(1, 0, { path: "/admin/warehouse-manager", label: "Quản lý nhân viên kho" });
             }
-            if (route.name === "warehouse-manager-add") {
-                crumbs.splice(1, 0, { path: "/admin/warehouse-manager", label: "Quản lý nhân viên kho" });
-            }
-            if (route.name === "category-update") {
+            if (route.name === "category-update" || route.name === "category-add") {
                 crumbs.splice(1, 0, { path: "/admin/category", label: "Quản lý danh mục sản phẩm" });
             }
-            if (route.name === "category-add") {
-                crumbs.splice(1, 0, { path: "/admin/category", label: "Quản lý danh mục sản phẩm" });
-            }
-            if (route.name === "brand-update") {
+            if (route.name === "brand-update" || route.name === "brand-add") {
                 crumbs.splice(1, 0, { path: "/admin/brand", label: "Quản lý thương hiệu" });
             }
-            if (route.name === "brand-add") {
-                crumbs.splice(1, 0, { path: "/admin/brand", label: "Quản lý thương hiệu" });
-            }
-            if (route.name === "product-update") {
-                crumbs.splice(1, 0, { path: "/admin/product", label: "Quản lý sản phẩm" });
-            }
-            if (route.name === "product-add") {
+            if (route.name === "product-update" || route.name === "product-add") {
                 crumbs.splice(1, 0, { path: "/admin/product", label: "Quản lý sản phẩm" });
             }
             if (route.name === "image") {
@@ -72,9 +57,9 @@ export default {
                 crumbs.splice(1, 0, {  path: "/admin/product", label: "Quản lý sản phảm" });
                 crumbs.splice(2, 0, {  path: "/admin/image", label: "Hình ảnh" });
             }
-            if (route.name === "image-update") {
+            if (route.name === "size"|| route.name === "color") {
                 crumbs.splice(1, 0, {  path: "/admin/product", label: "Quản lý sản phảm" });
-                crumbs.splice(2, 0, {  path: "/admin/image", label: "Hình ảnh" });
+            
             }
 
             return crumbs;

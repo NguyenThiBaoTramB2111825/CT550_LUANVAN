@@ -186,13 +186,54 @@ const admin = [
         },
       },
       {
-        path: "image-update",
-        name: "image-update",
-        component: () => import("../pages/admin/image/update.vue"),
+        path: "supplier",
+        name: "supplier",
+        component: () => import("../pages/admin/supplier/index.vue"),
         meta: {
-          breadcrumb: 'Cập nhật'
+          breadcrumb: 'Nhà cung cấp'
         },
-      }
+      },
+      {
+        path: "supplier-add",
+        name: "supplier-add",
+        component: () => import("../pages/admin/supplier/add.vue"),
+        meta: {
+          breadcrumb: 'Thêm'
+        },
+      },
+      {
+        path: "supplier-update/:id",
+        name: "supplier-update",
+        component: () => import("../pages/admin/supplier/update.vue"),
+        meta: {
+          breadcrumb: 'Thêm'
+        },
+      },
+
+      {
+        path: "color",
+        name: "color",
+        component: () => import("../pages/admin/color/index.vue"),
+        meta: {
+          breadcrumb: 'Màu sắc'
+        },
+      },
+      {
+        path: "size",
+        name: "size",
+        component: () => import("../pages/admin/size/index.vue"),
+        meta: {
+          breadcrumb: 'Kích thước'
+        },
+      },
+      {
+        path: "productDetail",
+        name: "productDetail",
+        component: () => import("../pages/admin/productDetail/index.vue"),
+        meta: {
+          breadcrumb: 'Chi tiết sản phẩm'
+        },
+      },
     ],
   },
 ];

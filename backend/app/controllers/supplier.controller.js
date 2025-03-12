@@ -70,6 +70,23 @@ exports.findOne = async (req, res, next) => {
     
     try {
         const supplierService = new SupplierService(MongoDB.client);
+        const document = await supplierService.findById(req.params.id);
+        if (!document) {
+            return next(new ApiError(404, "Không tìm thấy nhà cung cấp"));
+        }
+        return res.send(document);
+    }
+    catch (error) {
+        return next(
+            new ApiError(500, "Lỗi truy xuất dữ liệu")
+        )
+    }
+    
+};
+exports.findByName = async (req, res, next) => {
+    
+    try {
+        const supplierService = new SupplierService(MongoDB.client);
         const document = await supplierService.findByName(req.params.name);
         if (!document) {
             return next(new ApiError(404, "Không tìm thấy nhà cung cấp"));

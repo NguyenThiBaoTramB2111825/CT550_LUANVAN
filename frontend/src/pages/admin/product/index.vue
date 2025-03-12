@@ -55,11 +55,28 @@
         </table>
         <span>Tổng sản phẩm: {{totalProducts}}</span>
 <br>
+        <div class="d-flex justify-content-between align-items-center my-2">
+            <button class="btn-custom" @click="toImageManager">
+                <i class="fas fa-image"></i> Hình ảnh sản phẩm
+            </button>
+            <button class="btn-custom" @click="toColorManager">
+                <i class="fas fa-palette"></i> Màu sắc sản phẩm
+            </button>
+            <button class="btn-custom" @click="toSizeManager">
+                <i class="fas fa-ruler"></i> Kích thước chung
+            </button>
+            <button class="btn-custom btn-add" @click="addProduct">
+                <i class="fas fa-plus-circle"></i> Thêm sản phẩm
+            </button>
+        </div>
 
+<!-- 
         <div class=" d-flex justify-content-between my-2">
             <button class="btn btn-secondary" @click="toImageManager">Hình ảnh sản phẩm</button>
+            <button class="btn btn-secondary" @click="toColorManager">Màu sắc sản phẩm</button>
+            <button class="btn btn-secondary" @click="toSizeManager">Kích thước chung </button>
             <button class="btn btn-info" @click="addProduct">Thêm sản phẩm</button>
-        </div>
+        </div> -->
 
     </div>
 </template>
@@ -184,11 +201,17 @@ export default {
         const toImageManager = (id) => {
             router.push({name: "image"});
         }
+        const toColorManager = (id) => {
+            router.push({name: "color"});
+        }
+        const toSizeManager = (id) => {
+            router.push({name: "size"});
+        }
 
         const totalProducts = computed(() => filterProducts.value.length);
         onMounted(fetchProduct);
 
-        return { products, BASE_URL, deleteProduct, goToUpdatePage, addProduct, inputsearch, totalProducts, filterProducts, filters, formatCurrency, fetchProduct, toImageManager };
+        return { products, BASE_URL, deleteProduct, goToUpdatePage, addProduct, inputsearch, totalProducts, filterProducts, filters, formatCurrency, fetchProduct, toImageManager, toColorManager, toSizeManager };
     }
 }
 </script>
@@ -210,4 +233,31 @@ export default {
         background-color: #f4f4f4;
         font-weight: bold;
     }
+
+    .btn-custom {
+    background-color: #6c757d; 
+    color: white;
+    border: none;
+    padding: 10px 15px;
+    border-radius: 8px;
+    font-size: 14px;
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    transition: all 0.3s;
+    }
+
+    .btn-custom:hover {
+        background-color: #5a6268;
+        transform: scale(1.05);
+    }
+
+    .btn-add {
+        background-color: #17a2b8;
+    }
+
+    .btn-add:hover {
+        background-color: #138496;
+    }
+
 </style>

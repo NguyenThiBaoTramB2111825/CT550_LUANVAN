@@ -27,8 +27,7 @@
                     <td  v-for="n in 5 - group.images.length" :key="'empty' + n"></td>
                     <td>
                         <button class="btn  btn-danger" @click="deleteImagesByProduct(group.product_id)">Xóa</button> 
-                        <button class="btn  btn-success mx-1" @click="goToUpdatePage(group.product_id)">Cập nhật</button> 
-                        
+
                     </td>
                     
                 </tr>
@@ -115,10 +114,7 @@ export default {
             }
         };
 
-        const goToUpdatePage = (id) => {
-            router.push({ name: 'image-update', params: { id } });
-        };
-
+        
         const addImage = (id) => {
             router.push({name: "image-add"});
         }
@@ -126,7 +122,7 @@ export default {
         const totalProducts = computed(() => groupedImages.value.length);
         onMounted(fetchImage);
 
-        return {fetchProducts, BASE_URL, images, goToUpdatePage, addImage, inputsearch, totalProducts, fetchImage, deleteImagesByProduct, groupedImages};
+        return {fetchProducts, BASE_URL, images, addImage, inputsearch, totalProducts, fetchImage, deleteImagesByProduct, groupedImages};
     }
 }
 </script>

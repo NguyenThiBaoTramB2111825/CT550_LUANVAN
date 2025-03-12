@@ -73,6 +73,20 @@ exports.findOne = async (req, res, next) => {
         );
     }
 };
+exports.findByName = async (req, res, next) => {
+    try {
+        const sizeService = new SizeService(MongoDB.client);
+        const documents = await sizeService.findByName(req.params.name);
+        if (!documents) {
+            return next(new ApiError(404, "Không tìm thấy size nào"));
+        }
+        return res.send(documents);
+    } catch (error) {
+        return next(
+            new ApiError(500, "Lỗi truy xuất dữ liệu của findOne")
+        );
+    }
+};
 
 
 exports.update = async (req, res, next) => {

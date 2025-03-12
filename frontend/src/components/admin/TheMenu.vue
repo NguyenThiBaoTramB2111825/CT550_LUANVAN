@@ -72,7 +72,17 @@ export default defineComponent({
                 title: "Quản lý sản phẩm",
                 icon: "fa-receipt",
                 route: "product"
-            }
+            },
+            {
+                title: "Quản lý nhà cung cấp",
+                icon: "fa-receipt",
+                route: "supplier"
+            },
+            {
+                title: "Quản lý chi tiết sản phẩm",
+                icon: "fa-receipt",
+                route: "productDetail"
+            },
             // Thêm các mục khác tương tự...
         ];
          const toggleSubmenu = (index) => {

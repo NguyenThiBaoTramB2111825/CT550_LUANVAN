@@ -9,7 +9,7 @@ class SupplierService{
     extractSupplierData(payload) {
         const supplier = {
             name: payload.name,
-            adress: payload.adress,
+            address: payload.address,
             email: payload.email,
             phone: payload.phone,
 
@@ -44,7 +44,7 @@ class SupplierService{
 
     async findByName(name) {
         return await this.find({
-            name: { $regex: new RegExp(name), $options: "i" },
+           name: { $regex: new RegExp(`.*${name}.*`, "i") }
         });
     }
 
