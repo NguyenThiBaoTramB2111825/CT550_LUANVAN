@@ -83,6 +83,11 @@ export default defineComponent({
                 icon: "fa-receipt",
                 route: "productDetail"
             },
+            {
+                title: "Quản lý chi tiết nhập",
+                icon: "fa-receipt",
+                route: "importDetail"
+            },
             // Thêm các mục khác tương tự...
         ];
          const toggleSubmenu = (index) => {

@@ -53,27 +53,34 @@ class ImportDetailService{
     }
 
     async create(payload) {
-        const importDetail = this.extractImportDetailData(payload);
-        console.log("Giá trị sau khi extract: ", importDetail);
-        const productDetailId = await this.ProductDetail.findOne({ _id: importDetail.productDetail_id });
-        if (!productDetailId) {
-           return { statusCode: 400, message: "ProductDetailId không tồn tại" }; 
-        } 
+        try {
+            const importDetail = this.extractImportDetailData(payload);
+            console.log("Giá trị sau khi extract: ", importDetail);
+            const productDetailId = await this.ProductDetail.findOne({ _id: importDetail.productDetail_id });
+            if (!productDetailId) {
+                return { statusCode: 400, message: "ProductDetailId không tồn tại" };
+            }
+            console.log("Giá trị của productDetailId sau khi được tìm thấy: ", productDetailId);
 
-        const supplierId = await this.Supplier.findOne({ _id: importDetail.supplier_id });
-        if (!supplierId) {
-            return { statusCode: 404, message: "SupplierId không tồn tại" };
+            const supplierId = await this.Supplier.findOne({ _id: importDetail.supplier_id });
+            if (!supplierId) {
+                return { statusCode: 404, message: "SupplierId không tồn tại" };
+            }
+            
+            console.log("Giá trị của supplierId sau khi được tìm thấy: ", supplierId);
+            // Cùng 1 chi tiết sản phẩm và cùng 1 nhà cung cấp thì có thể có nhiều chi tiết nhật
+
+            const result = await this.ImportDetail.insertOne(importDetail);
+            console.log("Thêm thành công ========================== ");
+            await this.ProductDetail.updateOne(
+                { _id: importDetail.productDetail_id },
+                { $inc: { stock: importDetail.quantity } }
+            );
+
+            return { statusCode: 200, _id: result.insertedId, ...importDetail };
+        } catch (error) {
+             throw new Error(`Lỗi truy vấn sản phẩm: ${error.message}`);
         }
-
-        // Cùng 1 chi tiết sản phẩm và cùng 1 nhà cung cấp thì có thể có nhiều chi tiết nhật
-
-        const result = await this.ImportDetail.insertOne(importDetail);
-        await this.ProductDetail.updateOne(
-            { _id: importDetail.productDetail_id },
-            { $inc: { stock: importDetail.quantity } }
-        );
-
-        return { statusCode: 200, _id: result.insertedId, ...importDetail };
     }
 
     //findByInfo
@@ -102,7 +109,6 @@ class ImportDetailService{
             _id: ObjectId.isValid(id) ? new ObjectId(id) : null,
         });
     }
-
     async findOne(query) {
         try {
             const importDetail = await this.ImportDetail.findOne(query);

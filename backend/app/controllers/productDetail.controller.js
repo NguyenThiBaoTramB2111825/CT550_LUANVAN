@@ -25,7 +25,7 @@ exports.create = async (req, res, next) => {
         if (document.statusCode !== 200) {
             return res.status(document.statusCode).json({ message: document.message });
         }
-          return res.status(201).json(document);  // 201 Create
+          return res.status(200).json(document);  // 201 Create
     }
     catch (error) {
         return next(new ApiError(500, "An error occured while creating the ProductDetail"), error.message);
@@ -86,7 +86,7 @@ exports.findByProductId = async (req, res, next) => {
 exports.findOne = async (req, res, next) => {
     try {
         const productDetailService = new ProductDetailService(MongoDB.client);
-        const documents = await productDetailService.findOne({ name: req.params.name });
+        const documents = await productDetailService.findOne({_id: req.params.id });
         if (!documents) {
             return next(new ApiError(404, "Không tìm thấy ProductDetail nào"));
         }

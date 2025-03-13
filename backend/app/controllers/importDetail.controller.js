@@ -16,9 +16,10 @@ exports.create = async (req, res, next) => {
         const importDetailService = new ImportDetailService(MongoDB.client);
         const document = await importDetailService.create(req.body);
         if (document.statusCode !== 200) {
-            return res.status(document.statusCode).json({ message: document.message });
-        }
-          return res.status(201).json(document);  // 201 Create
+            return next(new ApiError(document.statusCode, `Error create importDetail : ${error.message}`));
+        //     return res.status(document.statusCode).json({ message: document.message });
+         }
+          return res.status(200).json(document);  // 201 Create
     }
     catch (error) {
         return next(new ApiError(500, `Error create importDetail : ${error.message}`));
@@ -65,7 +66,7 @@ exports.findById = async (req, res, next) => {
 exports.findOne = async (req, res, next) => {
     try {
         const importDetailService = new ImportDetailService(MongoDB.client);
-        const documents = await importDetailService.findOne({ name: req.params.name });
+        const documents = await importDetailService.findOne({ _id: req.params.id });
         if (!documents) {
             return next(new ApiError(404, "Không tìm thấy product nào"));
         }

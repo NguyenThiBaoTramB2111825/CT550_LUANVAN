@@ -16,6 +16,7 @@
                     <th>Màu sắc</th>
                     <th>Kích thước</th>
                     <th>Số lượng kho</th>
+                    <th>Thao tác</th>
             
                 </tr>
             </thead>

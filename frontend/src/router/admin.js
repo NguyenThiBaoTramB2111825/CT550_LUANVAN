@@ -234,6 +234,14 @@ const admin = [
           breadcrumb: 'Chi tiết sản phẩm'
         },
       },
+      {
+        path: "importDate",
+        name: "importDetail",
+        component: () => import("../pages/admin/importDetail/index.vue"),
+        meta: {
+          breadcrumb: 'Chi tiết nhập hàng'
+        },
+      },
     ],
   },
 ];
