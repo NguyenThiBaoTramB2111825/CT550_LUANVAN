@@ -11,7 +11,13 @@
                 <label class="col-md-2"> Mô tả</label>
                 <input type="text"  v-model="category.description" class="form-control"  required>
             </div>
-
+            <div class="mb-3 d-flex">
+                <label class="col-md-2">Trạng thái</label>
+                <select v-model="category.isActive" class="form-control" required>
+                    <option value="true">Đang hoạt động</option>
+                    <option value="false">Đã xóa<a href=""></a></option>
+                </select>
+            </div>
         </form>
 
              
@@ -47,7 +53,7 @@ export default {
         const category = ref({
             name: '',
             description: '',
-
+            isActive: ''
         });
         const selectedFile = ref(null);
 
@@ -67,17 +73,14 @@ export default {
         const updateCategory = async () => {
 
             try {
-                const formData = new FormData();
-                formData.append("name", category.value.name);
-                formData.append("description", category.value.description);
-
 
                 const id = route.params.id;
                 console.log("Dữ liệu gửi lên API: ", category.value);
 
                 await axios.put(`http://127.0.0.1:3000/api/category/${id}`, {
                     name: category.value.name,
-                    description: category.value.description
+                    description: category.value.description,
+                    isActive: category.value.isActive,
                 });
 
 

@@ -128,10 +128,10 @@ exports.delete = async (req, res, next) => {
         if (!document) {
             return next(new ApiError(400, "Không tìm thấy thương hiệu"));
         }
-        return res.send({ message: "Thương hiệu đã được xóa thành công" });
+        return res.send({ message: document.message});
     }
     catch (error) {
-        new ApiError(500, `Không thể xóa thương hiệu với id=${res.params.id}`);
+        return res.send({ message: error.message });
     }
 };
 

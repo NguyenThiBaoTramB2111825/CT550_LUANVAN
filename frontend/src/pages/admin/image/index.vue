@@ -99,7 +99,7 @@ export default {
                 text: "Bạn có chắc chắn muốn xóa tất cả hình ảnh của sản phẩm này không?",
                 icon: 'warning',
                 showCancelButton: true,
-                confirButtonText: 'Xóa',
+                confirmButtonText: 'Xóa',
                 cancelButtonText: "Hủy" 
             })
             if (result.isConfirmed) {

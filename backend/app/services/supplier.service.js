@@ -3,6 +3,7 @@ const { ObjectId } = require("mongodb");
 class SupplierService{
     constructor(client) {
         this.Supplier = client.db().collection("supplier");
+        this.ImportDetail = client.db().collection("importDetail");
 
     }
 
@@ -12,6 +13,7 @@ class SupplierService{
             address: payload.address,
             email: payload.email,
             phone: payload.phone,
+            isActive:  payload.isActive !== undefined ? payload.isActive : true,
 
         };
         Object.keys(supplier).forEach(
@@ -69,11 +71,30 @@ class SupplierService{
         return result;
     }
 
-    async delete(id){
-        const result = await this.Supplier.findOneAndDelete({
-            _id: ObjectId.isValid(id) ? new ObjectId(id) : null,
-        });
-        return result;
+    async delete(id) {
+        if (!ObjectId.isValid(id)) return { message: "ID không hợp lệ" };
+
+        let result = null;
+        const filter = { _id: new ObjectId(id) };
+
+        // Tìm xem có sản phẩm nào thuộc thương hiệu này không
+        const checkImportDetail = await this.ImportDetail.find({ supplier_id: new ObjectId(id) }).toArray();
+
+        console.log("giá trị của checkImportDetail: ", checkImportDetail);
+
+        if (checkImportDetail.length > 0) {  // Nếu có sản phẩm thuộc brand này
+            console.log("Thực hiện update");
+            result = await this.Supplier.findOneAndUpdate(
+                filter,
+                { $set: { isActive: false } },
+                { returnDocument: "after" }
+            );
+            return { ...result, message: "Đã cập nhật trạng thái" };
+        } else {
+            console.log("thực hiện delete");
+            result = await this.Supplier.findOneAndDelete(filter);
+            return { ...result, message: "Đã xóa thành công" };
+        }
     }
 
     async deleteAll() {

@@ -16,6 +16,7 @@
                     <th>Địa chỉ </th>
                     <th>Email</th>
                     <th>Phone</th>
+                    <th>Trạng thái</th>
                     <th>Thao tác</th>
                 </tr>
             </thead>
@@ -28,6 +29,7 @@
                     <td>{{ supplier.address }}</td>
                     <td>{{ supplier.email }}</td>
                     <td>{{ supplier.phone }}</td>
+                    <td>{{ supplier.isActive  ? "Đang hoạt động" : "Đã xóa" }}</td>
                     <td>
                         <button class="btn  btn-danger" @click="deleleSupplier(supplier._id)">Xóa</button> 
                         <button class="btn  btn-success mx-1" @click="goToUpdatePage(supplier._id)">Cập nhật</button> 
@@ -111,14 +113,14 @@ export default {
                 text: "Bạn có chắc chắn muốn xóa nhà cung cấp này không?",
                 icon: 'warning',
                 showCancelButton: true,
-                confirButtonText: 'Xóa',
+                confirmButtonText: 'Xóa',
                 cancelButtonText: "Hủy"
             });
 
             if (result.isConfirmed) {
                 try {
-                    await axios.delete(`http://127.0.0.1:3000/api/supplier/${id}`);
-                    Swal.fire('Đã xóa!', 'nhãn hãng đã được xóa thành công', 'success');
+                    const response = await axios.delete(`http://127.0.0.1:3000/api/supplier/${id}`);
+                    Swal.fire('Thông báo!', response.data.message , 'success');
                     fetchSupplier();
                 } catch (error) {
                     Swal.fire('Lỗi!', 'Có lỗi khi xóa giảm giá', 'error')

@@ -14,6 +14,7 @@
                     <th>#</th>
                     <th>Tên</th>
                     <th>Mô tả</th>
+                    <th>Trạng thái</th>
                     <th>Thao tác</th>
                 </tr>
             </thead>
@@ -24,6 +25,7 @@
                     <td>{{ index + 1 }}</td>
                     <td>{{ category.name }}</td>
                     <td>{{ category.description }}</td>
+                    <td>{{ category.isActive ? "Đang hoạt động" : "Đã xóa" }}</td>
                     <td>
                         <button class="btn  btn-danger" @click="deleteCategory(category._id)">Xóa</button> 
                         <button class="btn  btn-success mx-1" @click="goToUpdatePage(category._id)">Cập nhật</button> 
@@ -91,14 +93,14 @@ export default {
                 text: "Bạn có chắc chắn muốn xóa danh mục này không?",
                 icon: 'warning',
                 showCancelButton: true,
-                confirButtonText: 'Xóa',
+                confirmButtonText: 'Xóa',
                 cancelButtonText: "Hủy"
             });
 
             if (result.isConfirmed) {
                 try {
-                    await axios.delete(`http://127.0.0.1:3000/api/category/${id}`);
-                    Swal.fire('Đã xóa!', 'danh mục đã được xóa thành công', 'success');
+                    const response = await axios.delete(`http://127.0.0.1:3000/api/category/${id}`);
+                    Swal.fire('Thông báo', response.data.message, 'success');
                     fetchUsers();
                 } catch (error) {
                     Swal.fire('Lỗi!', 'Có lỗi khi xóa danh mục', 'error')

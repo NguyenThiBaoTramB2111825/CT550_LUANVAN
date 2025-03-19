@@ -6,7 +6,6 @@
             <div class="d-flex flex-column align-items-center mx-auto mb-2 w-25 fs-15">
                 <input type="text" class=" mb-2 w-100 border-radius" v-model="filters.searchText" placeholder="Nhập tên sản phẩm">
                 <input type="text" class=" mb-2 w-100 border-radius" v-model="filters.searchCategory" placeholder="Nhập danh mục sản phẩm">
-                
                 <input type="text" class=" mb-2 w-100 border-radius" v-model="filters.searchBrand" placeholder="Nhập thương hiệu">
                 <input type="text" class=" mb-2 w-100 border-radius" v-model="filters.searchDiscount" placeholder="Nhập tên chương trình khuyến mãi">
                 <select class="border border-radius mb-2 w-100 " v-model="filters.status">
@@ -47,14 +46,26 @@
                     <td>
                         <button class="btn  btn-danger" @click="deleteProduct(product._id)">Xóa</button> 
                         <button class="btn  btn-success mx-1" @click="goToUpdatePage(product._id)">Cập nhật</button> 
-                        
+                        <button class="btn  btn-info mx-1" @click="openModal(product._id)">Xem ảnh</button> 
                     </td>
                     
                 </tr>
             </tbody>
         </table>
         <span>Tổng sản phẩm: {{totalProducts}}</span>
-<br>
+        
+        <br>
+
+        <div v-if="showModal" class="modal-overlay" @click="closeModal">
+            <div class="modal-content" @click.stop>
+                <h5 class="text-center"> {{ selectedProductName }}</h5>
+                <div class="image-container">
+                    <img v-for="(image, index) in selectedImages" :key="index" :src="`${BASE_URL}${image}`" class="product-image">
+                </div>
+                <button class="btn btn-secondary mt-3" @click="closeModal">Đóng</button>
+            </div>
+
+        </div>
         <div class="d-flex justify-content-between align-items-center my-2">
             <button class="btn-custom" @click="toImageManager">
                 <i class="fas fa-image"></i> Hình ảnh sản phẩm
@@ -69,30 +80,26 @@
                 <i class="fas fa-plus-circle"></i> Thêm sản phẩm
             </button>
         </div>
-
-<!-- 
-        <div class=" d-flex justify-content-between my-2">
-            <button class="btn btn-secondary" @click="toImageManager">Hình ảnh sản phẩm</button>
-            <button class="btn btn-secondary" @click="toColorManager">Màu sắc sản phẩm</button>
-            <button class="btn btn-secondary" @click="toSizeManager">Kích thước chung </button>
-            <button class="btn btn-info" @click="addProduct">Thêm sản phẩm</button>
-        </div> -->
-
     </div>
-</template>
-<script>
-import axios from 'axios';
-import { ref, onMounted, computed } from 'vue';
-import Breadcrumb from "@/components/Breadcrumb.vue";
-import Swal from "sweetalert2";
-import { useRouter } from 'vue-router';
 
-const  BASE_URL = "http://localhost:3000";
+</template>
+
+<script>
+    import axios from 'axios';
+    import { ref, onMounted, computed } from 'vue';
+    import Breadcrumb from "@/components/Breadcrumb.vue";
+    import Swal from "sweetalert2";
+    import { useRouter } from 'vue-router';
+
+    const  BASE_URL = "http://localhost:3000";
 export default {
-      components: {
+    components: {
         Breadcrumb
     },
     setup() {
+        const showModal = ref(false);
+        const selectedImages = ref([]);
+        const selectedProductName = ref('');
 
         const filters = ref({
             searchText: '',
@@ -127,12 +134,33 @@ export default {
             });
         });
 
+        const openModal = async (productId) => {
+            try {
+                console.log("Lấy hình ảnh sản phẩm: ", productId);
+                const response = await axios.get(`http://127.0.0.1:3000/api/image/productId/${productId}`);
+                selectedImages.value = response.data.map(img => img.url);
+                const product = products.value.find(p => p._id === productId);
+                selectedProductName.value = product ? product.name : "Sản phẩm";
+                showModal.value = true;
+
+            }
+            catch (error) {
+                console.error("Lỗi khi lấy sản phẩm: ", error.message);
+                selectedImages.value = [];
+            }
+        }
+
+        const closeModal = () => {
+            showModal.value = false;
+            selectedImages.value = [];
+        }
+
 
         const formatCurrency = (amount) => {
-        if (amount === undefined || amount === null) {
-            return "0"; // hoặc có thể trả về một chuỗi trống ""
-        }
-        return Number(amount).toLocaleString("vi-VN");
+            if (amount === undefined || amount === null) {
+                return "0"; // hoặc có thể trả về một chuỗi trống ""
+            }
+            return Number(amount).toLocaleString("vi-VN");
         };
 
         const router = useRouter();
@@ -141,32 +169,46 @@ export default {
 
         const fetchProduct = async () => {
             try {
+                console.log("Thực hiện fetch dữ liệu sản phẩm...");
                 const response = await axios.get("http://127.0.0.1:3000/api/product");
                 let productsData = response.data;
 
                 for (let product of productsData) {
-                    if (product.brand_id) {
-                        const brandRes = await axios.get(`http://127.0.0.1:3000/api/brand/${product.brand_id}`);
-                        product.brand_name = brandRes.data.name || "Không có thương hiệu";
-                    } 
-                    if (product.category_id) {
-                        const categoryRes = await axios.get(`http://127.0.0.1:3000/api/category/${product.category_id}`);
-                        product.category_name = categoryRes.data.name || "Không có danh mục";
+                    try {
+                        if (product.brand_id) {
+                            const brandRes = await axios.get(`http://127.0.0.1:3000/api/brand/${product.brand_id}`);
+                            product.brand_name = brandRes.data.name || "Không có thương hiệu";
+                        }
+                    } catch (error) {
+                        console.error("Lỗi khi lấy thương hiệu:", error);
                     }
 
-                    // Lấy thông tin giảm giá (Discount)
-                    if (product.discount_id) {
-                        const discountRes = await axios.get(`http://127.0.0.1:3000/api/discount/${product.discount_id}`);
-                        product.discount_name = discountRes.data.name || "Không có khuyến mãi";
+                    try {
+                        if (product.category_id) {
+                            const categoryRes = await axios.get(`http://127.0.0.1:3000/api/category/${product.category_id}`);
+                            product.category_name = categoryRes.data.name || "Không có danh mục";
+                        }
+                    } catch (error) {
+                        console.error("Lỗi khi lấy danh mục:", error);
+                    }
+
+                    try {
+                        if (product.discount_id) {
+                            const discountRes = await axios.get(`http://127.0.0.1:3000/api/discount/${product.discount_id}`);
+                            product.discount_name = discountRes.data.name || "Không có khuyến mãi";
+                        }
+                    } catch (error) {
+                        console.error("Lỗi khi lấy giảm giá:", error);
                     }
                 }
 
                 products.value = productsData;
-                console.log("Danh sách sản phẩm sau khi cập nhật thông tin: ", productsData);
+                console.log("Danh sách sản phẩm sau khi cập nhật:", productsData);
             } catch (error) {
                 console.error("Lỗi khi lấy danh sách sản phẩm:", error);
             }
-        };
+        }
+
         const deleteProduct = async (id) => {
 
             const result = await Swal.fire({
@@ -174,7 +216,7 @@ export default {
                 text: "Bạn có chắc chắn muốn xóa sản phẩm này không?",
                 icon: 'warning',
                 showCancelButton: true,
-                confirButtonText: 'Xóa',
+                confirmButtonText: 'Xóa',
                 cancelButtonText: "Hủy"
             });
 
@@ -196,22 +238,42 @@ export default {
         };
 
         const addProduct = (id) => {
-            router.push({name: "product-add"});
+            router.push({ name: "product-add" });
         }
         const toImageManager = (id) => {
-            router.push({name: "image"});
+            router.push({ name: "image" });
         }
         const toColorManager = (id) => {
-            router.push({name: "color"});
+            router.push({ name: "color" });
         }
         const toSizeManager = (id) => {
-            router.push({name: "size"});
+            router.push({ name: "size" });
         }
 
         const totalProducts = computed(() => filterProducts.value.length);
         onMounted(fetchProduct);
 
-        return { products, BASE_URL, deleteProduct, goToUpdatePage, addProduct, inputsearch, totalProducts, filterProducts, filters, formatCurrency, fetchProduct, toImageManager, toColorManager, toSizeManager };
+        return {
+            products,
+            BASE_URL,
+            deleteProduct,
+            goToUpdatePage,
+            addProduct,
+            inputsearch,
+            totalProducts,
+            filterProducts,
+            filters,
+            formatCurrency,
+            fetchProduct,
+            toImageManager,
+            toColorManager,
+            toSizeManager,
+            openModal,
+            closeModal,
+            showModal,
+            selectedProductName,
+            selectedImages
+        };
     }
 }
 </script>
@@ -235,16 +297,16 @@ export default {
     }
 
     .btn-custom {
-    background-color: #6c757d; 
-    color: white;
-    border: none;
-    padding: 10px 15px;
-    border-radius: 8px;
-    font-size: 14px;
-    display: flex;
-    align-items: center;
-    gap: 8px;
-    transition: all 0.3s;
+        background-color: #6c757d; 
+        color: white;
+        border: none;
+        padding: 10px 15px;
+        border-radius: 8px;
+        font-size: 14px;
+        display: flex;
+        align-items: center;
+        gap: 8px;
+        transition: all 0.3s;
     }
 
     .btn-custom:hover {
@@ -260,4 +322,37 @@ export default {
         background-color: #138496;
     }
 
+    .modal-overlay {
+        position: fixed;
+        top: 0;
+        left: 0;
+        width: 100%;
+        height: 100%;
+        background: rgba(0, 0, 0, 0.5);
+        display: flex;
+        align-items: center;
+        justify-content: center;
+    }
+
+    .modal-content {
+        background: white;
+        padding: 20px;
+        border-radius: 10px;
+        text-align: center;
+        max-width: 500px;
+    }
+
+    .image-container {
+        display: flex;
+        justify-content: center;
+        flex-wrap: wrap;
+        gap: 10px;
+    }
+
+    .product-image {
+        width: 100px;
+        height: 100px;
+        object-fit: cover;
+        border-radius: 5px;
+    }
 </style>

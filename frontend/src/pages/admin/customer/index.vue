@@ -113,7 +113,7 @@ export default {
                 text: "Bạn có chắc chắn muốn xóa khách hàng này không?",
                 icon: 'warning',
                 showCancelButton: true,
-                confirButtonText: 'Xóa',
+                confirmButtonText: 'Xóa',
                 cancelButtonText: "Hủy"
             });
 

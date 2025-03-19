@@ -1,39 +1,24 @@
 const customer = [
   {
-    path: "/customer",
+    path: "/",
     component: () => import("../layouts/customer.vue"),
     children: [
       {
         path: "",
-        name: "customer_user",
-        component: () => import("../pages/customer/test.vue"),
+        name: "home",
+        component: () => import("../pages/customer/Home.vue"),
       },
-    //   {
-    //     path: "",
-    //     name: "admin-books",
-    //     component: () => import("../pages/admin/books/index.vue"),
-    //   },
-    //   {
-    //     path: "books",
-    //     name: "admin-books-create",
-    //     component: () => import("../pages/admin/books/create.vue"),
-    //   },
-    //   {
-    //     path: "books/:id",
-    //     name: "admin-books-edit",
-    //     component: () => import("../pages/admin/books/edit.vue"),
-    //   },
-    //   {
-    //     path: "nxbs",
-    //     name: "admin-nxbs",
-    //     component: () => import("../pages/admin/nxbs/index.vue"),
-    //   },
-    //   {
-    //     path: "borrows",
-    //     name: "admin-borrows",
-    //     component: () => import("../pages/admin/borrows/index.vue"),
-    //   },
     ],
+  },
+      {
+    path: "/login",
+    name: "login",
+    component: () => import("../pages/customer/Login.vue"),
+  },
+  {
+    path: "/register",
+    name: "register",
+    component: () => import("../pages/customer/register.vue"),
   },
 ];
 

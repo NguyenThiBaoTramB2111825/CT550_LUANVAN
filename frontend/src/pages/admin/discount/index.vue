@@ -204,7 +204,7 @@ export default {
                 text: "Bạn có chắc chắn muốn xóa giảm giá này không?",
                 icon: 'warning',
                 showCancelButton: true,
-                confirButtonText: 'Xóa',
+                confirmButtonText: 'Xóa',
                 cancelButtonText: "Hủy"
             });
 

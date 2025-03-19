@@ -101,7 +101,7 @@ export default {
                 text: "Bạn có chắc chắn muốn xóa nhân viên này không?",
                 icon: 'warning',
                 showCancelButton: true,
-                confirButtonText: 'Xóa',
+                confirmButtonText: 'Xóa',
                 cancelButtonText: "Hủy"
             });
 

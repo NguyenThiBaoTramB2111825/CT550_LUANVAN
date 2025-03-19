@@ -15,6 +15,7 @@
                     <th>Tên</th>
                     <th>Mô tả</th>
                     <th>Website</th>
+                    <th>Trạng thái</th>
                     <th>Thao tác</th>
                 </tr>
             </thead>
@@ -26,6 +27,7 @@
                     <td>{{ brand.name }}</td>
                     <td>{{ brand.description }}</td>
                     <td>{{ brand.website }}</td>
+                    <td>{{ brand.isActive ? "Đang hoạt động" : "Đã xóa" }}</td>
                     <td>
                         <button class="btn  btn-danger" @click="deleteBrand(brand._id)">Xóa</button> 
                         <button class="btn  btn-success mx-1" @click="goToUpdatePage(brand._id)">Cập nhật</button> 
@@ -93,14 +95,14 @@ export default {
                 text: "Bạn có chắc chắn muốn xóa thương hiệu này không?",
                 icon: 'warning',
                 showCancelButton: true,
-                confirButtonText: 'Xóa',
+                confir,ButtonText: 'Xóa',
                 cancelButtonText: "Hủy"
             });
 
             if (result.isConfirmed) {
                 try {
-                    await axios.delete(`http://127.0.0.1:3000/api/brand/${id}`);
-                    Swal.fire('Đã xóa!', 'nhãn hãng đã được xóa thành công', 'success');
+                     const response = await axios.delete(`http://127.0.0.1:3000/api/brand/${id}`);
+                    Swal.fire('Thông báo', response.data.message, 'success');
                     fetchBrands();
                 } catch (error) {
                     Swal.fire('Lỗi!', 'Có lỗi khi xóa thương hiệu', 'error')

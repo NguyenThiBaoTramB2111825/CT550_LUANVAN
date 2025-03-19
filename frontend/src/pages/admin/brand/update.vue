@@ -15,7 +15,15 @@
                 <label class="col-md-2"> Website</label>
                 <input type="text"  v-model="brand.website" class="form-control"  required>
             </div>
+            
+            <div class="mb-3 d-flex">
+                <label class="col-md-2">Trạng thái</label>
+                <select v-model="brand.isActive" class="form-control" required>
+                    <option value="true">Đang hoạt động</option>
+                    <option value="false">Đã xóa<a href=""></a></option>
+                </select>
 
+            </div>
         </form>
 
              
@@ -52,6 +60,7 @@ export default {
             name: '',
             description: '',
             website: '',
+            isActive: '',
         });
 
         const fetchBrand = async () => {
@@ -77,6 +86,7 @@ export default {
                     name: brand.value.name,
                     description: brand.value.description,
                     website: brand.value.website,
+                    isActive: brand.value.isActive,
                 });
 
 

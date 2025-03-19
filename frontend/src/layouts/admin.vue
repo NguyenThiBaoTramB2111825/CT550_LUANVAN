@@ -33,15 +33,14 @@ export default {
         <Login/>
     </div>
 
-  <div v-else class="d-flex vh-100">
-        <!-- Sidebar luôn hiển thị trên desktop -->
-        <aside class="border-end bg-light sidebar"  :class="{'collapsed': !menuStore.isMenuVisible }">
+  <div v-else class="d-flex vh-100 row">
+        <aside class="border-end" :class="{ 'collapsed': !menuStore.isMenuVisible}" :style="{width: menuStore.isMenuVisible ? '250px': '80px'}" >
             <TheMenu />
         </aside>
 
-        <div class="d-flex flex-grow-1  flex-column">
+        <div class="d-flex flex-grow-1  flex-column content-wrapper"  :class="{ 'col-md-10': menuStore.isMenuVisible, 'col-md-11': !menuStore.isMenuVisible }">
             <TheHeader />
-            <main class="flex-grow-1 p-3">
+            <main class="flex-grow-1 content">
                 <router-view />
             </main>
         </div>
@@ -50,19 +49,20 @@ export default {
 </template>
 
 <style scoped>
-.sidebar {
-    width: 250px;
-    padding: 5px;
-    transition: width 0.3s ease;
-    overflow: hidden;
-    white-space: nowrap;
 
-}
+    /* content-wrapper{
+        max-width: 1286px;
+        flex-grow: 1;
+        display: flex;
+        flex-direction: column;
+        min-width: 0;
+    } */
 
-.sidebar.collapsed {
-    width: 0;
-    padding: 0;
-    border: none;
-}
+    .content{
+        flex-grow: 1;
+        max-width: 100%;
+        min-width: 0;
+        overflow: auto;
+    }
 
 </style>

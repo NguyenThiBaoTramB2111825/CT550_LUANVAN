@@ -3,6 +3,7 @@ const { ObjectId, ReturnDocument } = require("mongodb");
 class CategoryService{
     constructor(client) {
         this.Category = client.db().collection("category");
+        this.Product = client.db().collection("product");
 
     }
 
@@ -10,6 +11,7 @@ class CategoryService{
         const category = {
             name: payload.name,
             description: payload.description,
+            isActive:  payload.isActive !== undefined ? payload.isActive : true,
 
         };
         Object.keys(category).forEach(
@@ -61,6 +63,7 @@ class CategoryService{
         };
 
         const update = this.extractCategoryData(payload);
+        console.log("Giá trị sau khi được extract: ", update);
         const result = await this.Category.findOneAndUpdate(
             filter,
             { $set: update },
@@ -69,10 +72,25 @@ class CategoryService{
         return result;
     }
 
-    async delete(id){
-        const result = await this.Category.findOneAndDelete({
-            _id: ObjectId.isValid(id) ? new ObjectId(id) : null,
-        });
+    async delete(id) {
+        let result = null;
+        const filter = { _id: new ObjectId(id) };
+        const checkCategory = await this.Product.find({ category_id: new ObjectId(id) }).toArray();
+        if (checkCategory.length > 0) {  // Nếu có sản phẩm thuộc category này
+            result = await this.Category.findOneAndUpdate(
+                filter,
+                { $set: { isActive: false } },
+                { returnDocument: "after" },
+                
+            );
+            result.message ="Đã cập nhật trạng thái"
+        }
+        else {
+             result = await this.Category.findOneAndDelete({
+                _id: ObjectId.isValid(id) ? new ObjectId(id) : null,
+             });
+            result.message ="Đã xóa thành công"
+        }
         return result;
     }
 

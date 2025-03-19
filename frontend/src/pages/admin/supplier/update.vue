@@ -25,6 +25,13 @@
                     <span v-if="!isValidPhone && supplier.phone" class="text-danger">Số điện thoại không hợp lệ!</span>
                 </div>
             </div>     
+            <div class="mb-3 d-flex">
+                <label class="col-md-2">Trạng thái</label>
+                <select v-model="supplier.isActive" class="form-control" required>
+                    <option value="true">Đang hoạt động</option>
+                    <option value="false">Đã xóa<a href=""></a></option>
+                </select>
+            </div>     
             <div class=" d-flex justify-content-center text-center">
                 <button type="submit" class="btn btn-success">
                     Thêm mới
@@ -59,7 +66,8 @@ export default {
             name: '',
             address: '',
             email: '',
-            phone: ''
+            phone: '',
+            isActive: ''
         });
         const isValidEmail = computed(() => {
             const emailRegex = /^[a-zA-Z0-9._%+-]+@[a-zA-Z0-9.-]+\.[a-zA-Z]{2,}$/;
@@ -102,6 +110,7 @@ export default {
                     address: supplier.value.address,
                     email: supplier.value.email,
                     phone: supplier.value.phone,
+                    isActive: supplier.value.isActive
                 });
 
 

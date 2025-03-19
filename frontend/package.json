@@ -9,15 +9,23 @@
     },
     "dependencies": {
         "@fortawesome/fontawesome-free": "^6.7.2",
+        "@fortawesome/free-brands-svg-icons": "^6.7.2",
+        "@fortawesome/free-regular-svg-icons": "^6.7.2",
+        "@fortawesome/free-solid-svg-icons": "^6.7.2",
+        "@fortawesome/vue-fontawesome": "^3.0.8",
+        "autoprefixer": "^10.4.21",
         "axios": "^1.5.0",
         "boostrap": "^2.0.0",
         "bootstrap": "^5.3.3",
+        "bootstrap-icons": "^1.11.3",
         "dayjs": "^1.11.13",
         "js-cookie": "^3.0.5",
         "pinia": "^3.0.1",
+        "postcss": "^8.5.3",
         "sweetalert2": "^11.17.2",
+        "tailwindcss": "^4.0.14",
         "vue": "^3.4.21",
-        "vue-router": "^4.2.5"
+        "vue-router": "^4.5.0"
     },
     "devDependencies": {
         "@vitejs/plugin-vue": "^5.0.0",
