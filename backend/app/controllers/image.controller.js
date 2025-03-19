@@ -138,11 +138,9 @@ exports.delete = async (req, res, next) => {
         if (!document) {
             return next(new ApiError(404, "image not found"));
         }
-        return res.send({ messgae: "image was deleted successfully" });
+        return res.send({ message: "image was deleted successfully" });
     } catch (error) {
-        return next(
-            new ApiError(500, `Could not delete image with id=${req.params.id}`)
-        );
+        return res.send( error.message);
     }
 };
 

@@ -1,5 +1,4 @@
 <template>
-    <Breadcrumb  class="text-end" />
         <div class="m-4 ">
             <h5 class="text-center">Danh sách sản phẩm</h5>
             <br>
@@ -44,9 +43,9 @@
                     <td>{{ formatCurrency(product.price_afterdiscount) }}</td>
                     <td>{{ product.status }}</td>
                     <td>
-                        <button class="btn  btn-danger" @click="deleteProduct(product._id)">Xóa</button> 
-                        <button class="btn  btn-success mx-1" @click="goToUpdatePage(product._id)">Cập nhật</button> 
-                        <button class="btn  btn-info mx-1" @click="openModal(product._id)">Xem ảnh</button> 
+                        <button class="btn  btn-danger m-1" @click="deleteProduct(product._id)">Xóa</button> 
+                        <button class="btn  btn-success m-1" @click="goToUpdatePage(product._id)">Cập nhật</button> 
+                        <button class="btn  btn-info m-1" @click="openModal(product._id)">Xem ảnh</button> 
                     </td>
                     
                 </tr>
@@ -58,14 +57,28 @@
 
         <div v-if="showModal" class="modal-overlay" @click="closeModal">
             <div class="modal-content" @click.stop>
-                <h5 class="text-center"> {{ selectedProductName }}</h5>
-                <div class="image-container">
-                    <img v-for="(image, index) in selectedImages" :key="index" :src="`${BASE_URL}${image}`" class="product-image">
+                <h5 class="text-center m-4"> {{ selectedProduct?.name }}</h5>
+                <div class="image-container m-4">
+                    <div v-for="(image, index) in selectedImages" :key="image.id" class="image-wrapper">
+                        <img :src="`${BASE_URL}${image.url}`" class="product-image">
+                        <button class="delete-btn" @click="removeImage(image.id)">
+                            <i class="fa-solid fa-xmark"></i>
+                        </button>
+                    </div>
                 </div>
-                <button class="btn btn-secondary mt-3" @click="closeModal">Đóng</button>
-            </div>
 
+                <form @submit.prevent="uploadImages">
+                            <input ref="fileInput" type="file" multiple hidden @change="handleFileUpload">
+                    <div class=" justify-content-center align-items-center d-flex">
+                        <button type="button" class="btn btn-info mx-4" @click="triggerFileInput">Chọn ảnh tải lên</button>
+                        <button type="submit" class="btn btn-info">Tải lên</button>
+                    </div>
+
+                </form>
+                <button class="btn btn-danger mt-3" @click="closeModal"><span>Đóng</span></button>
+            </div>
         </div>
+
         <div class="d-flex justify-content-between align-items-center my-2">
             <button class="btn-custom" @click="toImageManager">
                 <i class="fas fa-image"></i> Hình ảnh sản phẩm
@@ -80,8 +93,7 @@
                 <i class="fas fa-plus-circle"></i> Thêm sản phẩm
             </button>
         </div>
-    </div>
-
+        </div>
 </template>
 
 <script>
@@ -97,9 +109,13 @@ export default {
         Breadcrumb
     },
     setup() {
+        const existingImages = ref([]);
+        const files = ref([]);
+        const MAX_IMAGES = 5;
         const showModal = ref(false);
         const selectedImages = ref([]);
-        const selectedProductName = ref('');
+        const selectedProduct = ref([]);
+        const fileInput = ref(null);
 
         const filters = ref({
             searchText: '',
@@ -134,13 +150,30 @@ export default {
             });
         });
 
+        // Đảm bảo ref đã gán giá trị sau khi component được render
+        onMounted(() => {
+            console.log("Component đã mount, fileInput:", fileInput.value);
+        });
+
+        const triggerFileInput = () => {
+            if (fileInput.value) {
+                fileInput.value.click();
+            }
+            else {
+                console.error("Lỗi: fileInput chưa được gán trị");
+            }
+        };
+
         const openModal = async (productId) => {
             try {
                 console.log("Lấy hình ảnh sản phẩm: ", productId);
                 const response = await axios.get(`http://127.0.0.1:3000/api/image/productId/${productId}`);
-                selectedImages.value = response.data.map(img => img.url);
+                selectedImages.value = response.data.map(img => ({
+                    id: img._id,
+                    url: img.url
+                }));
                 const product = products.value.find(p => p._id === productId);
-                selectedProductName.value = product ? product.name : "Sản phẩm";
+                selectedProduct.value =  product || null;
                 showModal.value = true;
 
             }
@@ -155,10 +188,95 @@ export default {
             selectedImages.value = [];
         }
 
+        const removeImage = async (imageId) => {
+            console.log("Giá trị của imageId cần xóa: ", imageId);
+            try {
+                await axios.delete(`http://127.0.0.1:3000/api/image/${imageId}`);
+                Swal.fire('Thông báo', 'Xóa hình ảnh thành công', 'success');
+                selectedImages.value = selectedImages.value.filter(image => image.id !== imageId);
+            } catch (error) {
+                Swal.fire('Lỗi!', 'Có lỗi khi xóa hình ảnh', 'error')
+                console.error(error);
+            }
+        }
+
+        const checkImageLimit = async (productId) => {
+            try {
+                const response = await axios.get(`http://127.0.0.1:3000/api/image/productId/${productId}`);
+                existingImages.value = response.data;
+
+                if (existingImages?.value?.length >= MAX_IMAGES) {
+                    Swal.fire({
+                        title: "Cảnh báo",
+                        text: "Sản phẩm này đã có đủ 5 ảnh, không thể thêm mới!",
+                        icon: "warning",
+                        confirmButtonText: "OK"
+                    }).then(() => {
+                        openModal(selectedProduct.value._id);
+                    });
+                    return false;
+                }
+                return true;
+            }
+            catch (error) {
+                console.log("Lỗi khi kiểm tra số lượng ảnh: ", error);
+                return false;
+            }
+        };
+
+        const handleFileUpload = async (event) => {
+            const selectedFiles = Array.from(event.target.files);
+            console.log("File đã chọn: ", selectedFiles);
+            if (!selectedProduct.value) {
+                Swal.fire("Lỗi", "Vui lòng chọn sản phẩm trước!", "error");
+                return;
+            }
+            const canAdd = await checkImageLimit(selectedProduct.value._id);
+            if (!canAdd) return;
+            const totalImages = existingImages.value.length + selectedFiles.length;
+            if (totalImages > MAX_IMAGES) {
+                Swal.fire({
+                    title: "Cảnh báo",
+                    text: `Sản phẩm này chỉ có thể có tối đa ${MAX_IMAGES} ảnh!`,
+                    icon: "warning",
+                    confirmButtonText: "OK"
+                }).then(() => {
+                    openModal(selectedProduct.value._id);
+                });
+                return false;
+            }
+ 
+            files.value = selectedFiles;
+        };
+
+
+        const uploadImages = async () => {
+            console.log("Đang tải ảnh lên...");
+            if (!selectedProduct.value || files.value.length === 0) {
+                Swal.fire("Lỗi", "Vui lòng chọn sản phẩm và tải lên ít nhất một hình ảnh", "error");
+                openModal(selectedProduct.value._id);;
+            }
+            const formData = new FormData();
+            formData.append("product_id", selectedProduct.value._id);
+            files.value.forEach(file => formData.append("images", file));
+
+            try {
+                const response = await axios.post("http://127.0.0.1:3000/api/image/upload-multiple", formData, {
+                    headers: { "Content-Type": "multipart/form-data" }
+                });
+                Swal.fire("Thành công", "Hình ảnh đã được tải lên", "success");
+                openModal(selectedProduct.value._id);
+                // router.push({ name: "product" });
+            } catch (error) {
+                Swal.fire("Lỗi", error.response?.data?.message || "Có lỗi xảy ra", "error");
+                openModal(selectedProduct.value._id);
+                console.error(error);
+            }
+        };
 
         const formatCurrency = (amount) => {
             if (amount === undefined || amount === null) {
-                return "0"; // hoặc có thể trả về một chuỗi trống ""
+                return "0"; 
             }
             return Number(amount).toLocaleString("vi-VN");
         };
@@ -240,7 +358,7 @@ export default {
         const addProduct = (id) => {
             router.push({ name: "product-add" });
         }
-        const toImageManager = (id) => {
+        const toImageManager = () => {
             router.push({ name: "image" });
         }
         const toColorManager = (id) => {
@@ -271,8 +389,14 @@ export default {
             openModal,
             closeModal,
             showModal,
-            selectedProductName,
-            selectedImages
+            selectedProduct,
+            selectedImages,
+            removeImage,
+            uploadImages,
+            handleFileUpload, 
+            existingImages,
+            triggerFileInput,
+            fileInput,
         };
     }
 }
@@ -339,10 +463,11 @@ export default {
         padding: 20px;
         border-radius: 10px;
         text-align: center;
-        max-width: 500px;
+        max-width: 900px;
     }
 
     .image-container {
+        margin: 2px;
         display: flex;
         justify-content: center;
         flex-wrap: wrap;
@@ -350,9 +475,74 @@ export default {
     }
 
     .product-image {
-        width: 100px;
-        height: 100px;
+        width: 150px;
+        height: 150px;
         object-fit: cover;
         border-radius: 5px;
     }
+    .image-wrapper {
+        position: relative;
+        display: inline-block;
+    }
+
+    .delete-btn {
+        position: absolute;
+        top: 5px;
+        right: 5px;
+        background: rgba(255, 0, 0, 0.7);
+        color: white;
+        border: none;
+        border-radius: 50%;
+        width: 20px;
+        height: 20px;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        cursor: pointer;
+        font-size: 12px;
+    }
+
+    .delete-btn:hover {
+        background: rgba(255, 0, 0, 1);
+    }
+
+    .upload-box {
+        border: 2px dashed #ccc;
+        padding: 20px;
+        text-align: center;
+        border-radius: 10px;
+        cursor: pointer;
+        background-color: #f9f9f9;
+    }
+    .upload-box:hover {
+        border-color: #28a745;
+    }
+    .upload-box .upload-btn {
+        color: #007bff;
+        font-weight: bold;
+        cursor: pointer;
+    }
+    .file-input {
+        display: none;
+    }
+    .preview-container {
+        display: flex;
+        flex-wrap: wrap;
+        gap: 10px;
+        justify-content: center;
+        margin-top: 10px;
+    }
+    .preview-item img {
+        width: 100px;
+        height: 100px;
+        object-fit: cover;
+        border-radius: 10px;
+        border: 2px solid #ddd;
+    }
 </style>
+
+
+
+
+
+
