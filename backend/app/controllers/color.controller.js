@@ -113,13 +113,14 @@ exports.update = async (req, res, next) => {
             return next(new ApiError(404, "Không tìm thấy màu sắc"));
 
         }
-        return res.send({ message: "màu sắc được cập nhật thành công" });
+        return res.send({ message: "Màu sắc được cập nhật thành công" });
     }
     catch (error) {
         return next(new ApiError(500, `Lỗi cập nhật màu sắc với id=${req.params.id}`));
     }
 
 };
+
 
 exports.delete = async (req, res, next) => {
     try {
@@ -128,10 +129,10 @@ exports.delete = async (req, res, next) => {
         if (!document) {
             return next(new ApiError(400, "Không tìm thấy màu sắc"));
         }
-        return res.send({ message: "màu sắc đã được xóa thành công" });
+        return res.send({ message: document.message });
     }
     catch (error) {
-        new ApiError(500, `Không thể xóa màu sắc với id=${res.params.id}`);
+        return res.send({ message: error.message });
     }
 };
 

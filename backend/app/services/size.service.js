@@ -3,13 +3,15 @@ const { ObjectId, ReturnDocument } = require("mongodb");
 class SizeService{
     constructor(client) {
         this.Size = client.db().collection("size");
+        this.ProductDetail = client.db().collection("productDetail");
 
     }
 
     extractSizeData(payload) {
         const size = {
             name: payload.name,
-            note: payload.note
+            note: payload.note,
+            isActive:  payload.isActive !== undefined ? payload.isActive : true,
         };
         Object.keys(size).forEach(
             (key) => size[key] === undefined && delete size[key]
@@ -92,10 +94,25 @@ class SizeService{
         return result;
     }
 
-    async delete(id){
-        const result = await this.Size.findOneAndDelete({
-            _id: ObjectId.isValid(id) ? new ObjectId(id) : null,
-        });
+    async delete(id) {
+        let result = null;
+        const filter = { _id: new ObjectId(id) };
+        const checkSize = await this.ProductDetail.find({ size_id: new ObjectId(id) }).toArray();
+        if (checkSize.length > 0) {  // Nếu có sản phẩm thuộc category này
+            result = await this.Size.findOneAndUpdate(
+                filter,
+                { $set: { isActive: false } },
+                { returnDocument: "after" },
+                
+            );
+            result.message = "Đã cập nhật trạng thái"
+        }
+        else {
+            result = await this.Size.findOneAndDelete({
+                _id: ObjectId.isValid(id) ? new ObjectId(id) : null,
+            });
+            result.message = "Đã xóa thành công"
+        }
         return result;
     }
 

@@ -24,7 +24,8 @@
                     <td v-for="(img, imgIndex) in group.images.slice(0, 5) " :key="imgIndex">
                         <img :src="`${BASE_URL}${img}`" alt="Product Image" class="img-thumnail" width="80">
                     </td>
-                    <td  v-for="n in 5 - group.images.length" :key="'empty' + n"></td>
+             
+                    <td v-for="n in Math.max(0, 5 - (group?.images?.length || 0))" :key="'empty' + n"></td>
                     <td>
                         <button class="btn  btn-danger" @click="deleteImagesByProduct(group.product_id)">Xóa</button> 
 
@@ -42,6 +43,7 @@
         </div>
     </div>
 </template>
+
 <script>
 import axios from 'axios';
 import { ref, onMounted, computed } from 'vue';
@@ -51,34 +53,40 @@ import { useRouter } from 'vue-router';
 
 const  BASE_URL = "http://localhost:3000";
 export default {
-      components: {
+    components: {
         Breadcrumb
     },
     setup() {
+
+        console.log("Bắt đầu fetch dữ liệu/.....");
         const router = useRouter();
         const inputsearch = ref('');
         const images = ref([]);
         const products = ref([]);
+        console.log("Trước khi fetch ");
 
         const fetchProducts = async () => {
             try {
                 const response = await axios.get("http://127.0.0.1:3000/api/product");
-                products.value = response.data;
+                console.log("Giá trị của response sau khi fetchProducts: ", response);
+                products.value = Array.isArray(response?.data) ? response.data : []; 
             } catch (error) {
-                console.error("Lỗi khi lấy danh sách sản phẩm:", error);
+                console.error(error.message);
             }
         };
         const fetchImage = async () => {
             try {
                 const response = await axios.get("http://127.0.0.1:3000/api/image");
-                images.value = response.data;
+                console.log("Giá trị của response sau khi fetchImage: ", response);
+                images.value = Array.isArray(response?.data) ? response.data : [];
                 await fetchProducts();
             } catch (error) {
-                console.error("Lỗi khi lấy danh sách sản phẩm:", error);
+                console.error(error.message);
             }
         };
 
         const groupedImages = computed(() => {
+            if (!Array.isArray(images.value) || images.value.length === 0) return [];
             const grouped = {};
             images.value.forEach(img => {
                 if (!grouped[img.product_id]) {
@@ -90,6 +98,7 @@ export default {
                     }
                 }
                 grouped[img.product_id].images.push(img.url);
+                console.log("Giá trị của grouped qua từng lần lặp: ", grouped);
             });
             return Object.values(grouped);
         })
@@ -100,7 +109,7 @@ export default {
                 icon: 'warning',
                 showCancelButton: true,
                 confirmButtonText: 'Xóa',
-                cancelButtonText: "Hủy" 
+                cancelButtonText: "Hủy"
             })
             if (result.isConfirmed) {
                 try {
@@ -109,20 +118,20 @@ export default {
                     fetchImage();
                 } catch (error) {
                     Swal.fire('Lỗi!', 'Có lỗi khi xóa sản phẩm', 'error')
-                    console.error(error);
+                    console.error(response?.data?.message);
                 }
             }
         };
 
-        
+
         const addImage = (id) => {
-            router.push({name: "image-add"});
+            router.push({ name: "image-add" });
         }
 
         const totalProducts = computed(() => groupedImages.value.length);
         onMounted(fetchImage);
 
-        return {fetchProducts, BASE_URL, images, addImage, inputsearch, totalProducts, fetchImage, deleteImagesByProduct, groupedImages};
+        return { fetchProducts, BASE_URL, images, addImage, inputsearch, totalProducts, fetchImage, deleteImagesByProduct, groupedImages };
     }
 }
 </script>

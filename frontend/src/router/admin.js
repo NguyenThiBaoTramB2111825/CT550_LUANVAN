@@ -235,7 +235,7 @@ const admin = [
         },
       },
       {
-        path: "importDate",
+        path: "importDetail",
         name: "importDetail",
         component: () => import("../pages/admin/importDetail/index.vue"),
         meta: {

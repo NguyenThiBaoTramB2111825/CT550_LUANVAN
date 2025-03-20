@@ -3,13 +3,14 @@ const { ObjectId, ReturnDocument } = require("mongodb");
 class ColorService{
     constructor(client) {
         this.Color = client.db().collection("color");
-
+        this.ProductDetail = client.db().collection("productDetail");
     }
 
     extractColorData(payload) {
         const color = {
             name: payload.name,
             hexCode: payload.hexCode,
+            isActive:  payload.isActive !== undefined ? payload.isActive : true,
 
         };
         Object.keys(color).forEach(
@@ -67,12 +68,28 @@ class ColorService{
         return result;
     }
 
-    async delete(id){
-        const result = await this.Color.findOneAndDelete({
-            _id: ObjectId.isValid(id) ? new ObjectId(id) : null,
-        });
+    async delete(id) {
+        let result = null;
+        const filter = { _id: new ObjectId(id) };
+        const checkColor = await this.ProductDetail.find({ color_id: new ObjectId(id) }).toArray();
+        if (checkColor.length > 0) {  // Nếu có sản phẩm thuộc category này
+            result = await this.Color.findOneAndUpdate(
+                filter,
+                { $set: { isActive: false } },
+                { returnDocument: "after" },
+                
+            );
+            result.message = "Đã cập nhật trạng thái"
+        }
+        else {
+            result = await this.Color.findOneAndDelete({
+                _id: ObjectId.isValid(id) ? new ObjectId(id) : null,
+            });
+            result.message = "Đã xóa thành công"
+        }
         return result;
     }
+
 
     async deleteAll() {
         const result = await this.Color.deleteMany({});

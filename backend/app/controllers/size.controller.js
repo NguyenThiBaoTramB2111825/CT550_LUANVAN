@@ -116,10 +116,10 @@ exports.delete = async (req, res, next) => {
         if (!document) {
             return next(new ApiError(400, "Không tìm thấy size"));
         }
-        return res.send({ message: "size đã được xóa thành công" });
+        return res.send({ message: document.message });
     }
     catch (error) {
-        new ApiError(500, `Không thể xóa size với id=${res.params.id}`);
+        return res.send({ message: error.message });
     }
 };
 

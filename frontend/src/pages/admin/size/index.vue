@@ -14,6 +14,7 @@
                     <th>#</th>
                     <th>Tên</th>
                     <th>Ghi chú</th>
+                    <th>Trạng thái</th>
                     <th>Thao tác</th>
                 </tr>
             </thead>
@@ -22,6 +23,7 @@
                     <td>{{ index + 1 }}</td>
                     <td>{{ size.name }}</td>
                     <td>{{ size.note }}</td>
+                    <td>{{ size.isActive ? "Đang hoạt động" : "Đã xóa" }}</td>
                     <td>
                         <button class="btn btn-danger" @click="deleteSize(size._id)">Xóa</button>
                         <button class="btn btn-success mx-1" @click="openModal(size)">Cập nhật</button>
@@ -42,13 +44,21 @@
             <h5 class="text-center">{{ isEditing ? 'Cập nhật kích thước' : 'Thêm kích thước' }}</h5>
             <div class="mb-3">
                 <label>Tên màu</label>
-                <input type="text" v-model="currentSize.name" class="form-control" required>
+                <input type="text" v-model="currentSize.name" class="form-control text-center" required>
             </div>
-            <div class="mb-3">
+            <div class="mb-3 text-center">
                 <label>Ghi chú</label>
-                <input type="text" v-model="currentSize.note" class="form-control" required>
+                <input type="text" v-model="currentSize.note" class="form-control text-center" required>
             </div>
-            <div class="text-center">
+
+            <div class="mb-3 text-center">
+                <label >Trạng thái</label>
+                <select v-model="currentSize.isActive" class="form-control text-center" required>
+                    <option value="true">Đang hoạt động</option>
+                    <option value="false">Đã xóa</option>
+                </select>
+            </div>
+            <div class="text-center text-center">
                 <button class="btn btn-success" @click="saveSize">{{ isEditing ? 'Cập nhật' : 'Thêm' }}</button>
                 <button class="btn btn-secondary mx-2" @click="closeModal">Hủy</button>
             </div>
@@ -70,7 +80,7 @@ export default {
         const inputsearch = ref('');
         const showModal = ref(false);
         const isEditing = ref(false);
-        const currentSize = ref({ name: '', note: '', _id: null });
+        const currentSize = ref({ name: '', note: '', isActive: '', _id: null });
 
         const fetchSizes = async () => {
             try {
@@ -106,8 +116,8 @@ export default {
 
             if (result.isConfirmed) {
                 try {
-                    await axios.delete(`${BASE_URL}/api/size/${id}`);
-                    Swal.fire('Đã xóa!', 'kích thước đã được xóa thành công', 'success');
+                    const response = await axios.delete(`${BASE_URL}/api/size/${id}`);
+                    Swal.fire('Thông báo!',  response.data.message, 'success');
                     fetchSizes();
                 } catch (error) {
                     Swal.fire('Lỗi!', 'Có lỗi khi xóa kích thước', 'error');
@@ -120,7 +130,7 @@ export default {
                 currentSize.value = { ...size };
                 isEditing.value = true;
             } else {
-                currentSize.value = { name: '', note: '', _id: null };
+                currentSize.value = { name: '', note: '', isActive: '', _id: null };
                 isEditing.value = false;
             }
             showModal.value = true;
