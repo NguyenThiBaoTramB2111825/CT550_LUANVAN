@@ -28,7 +28,7 @@ exports.create = async (req, res, next) => {
           return res.status(200).json(document);  // 201 Create
     }
     catch (error) {
-        return next(new ApiError(500, "An error occured while creating the ProductDetail"), error.message);
+        return res.send(error.message);
     }
 };
 
@@ -129,11 +129,10 @@ exports.delete = async (req, res, next) => {
         if (document.statusCode == 404) {
             return next(new ApiError(document.statusCode, document.message));
         }
-        return res.send({ message: "ProductDetail đã được xóa thành công" });
+        return res.send({message: document.message});
     }
     catch (error) {
-        return next(
-        new ApiError(500, `Không thể xóa productDetail`));
+        return res.send({ message: error.message });
     }
 };
 

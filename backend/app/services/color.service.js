@@ -20,7 +20,9 @@ class ColorService{
     }
 
     async create(payload) {
+        console.log("Giá trị của payload được gửi: ", payload);
         const color = this.extractColorData(payload);
+        console.log("Giá trị color sau khi được extract: ", color);
         const result = await this.Color.insertOne(color);
         if (result.acknowledged) {
             return { _id: result.insertedId, ...color };  // Trả về dữ liệu đúng

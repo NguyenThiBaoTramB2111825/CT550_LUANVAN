@@ -1,6 +1,6 @@
 <template>
        <Breadcrumb  class="text-end" />
-        <h5 class="text-center">Cập nhật thương hiệu</h5>
+        <h5 class="text-center">Cập nhật nhà cung cấp</h5>
         <form class="col-md-8 offset-md-2 " @submit.prevent="updateSupplier">
             <div class="mb-3 d-flex">
                 <label class="col-md-2"> Tên nhà cung cấp</label>
@@ -34,7 +34,7 @@
             </div>     
             <div class=" d-flex justify-content-center text-center">
                 <button type="submit" class="btn btn-success">
-                    Thêm mới
+                    Cập nhật
                 </button>
                 <button class="btn btn-danger mx-2 " @click="back" >
                     Hủy

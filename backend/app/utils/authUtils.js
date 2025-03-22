@@ -16,6 +16,7 @@ const authenticateToken = (req, res, next) => {
     try {
         const verfied = jwt.verify(token, config.jwt.secret);
         req.user = verfied; // Lưu thông tin user (bao gồm role) vào request user
+         console.log("User sau khi decode token:", req.user);
         return next();
     }
     catch (error) {

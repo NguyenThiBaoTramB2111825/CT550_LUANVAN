@@ -5,6 +5,13 @@ const ImportDetailService = require("../services/importDetail.service");
 const { ObjectId } = require("mongodb");
 
 exports.create = async (req, res, next) => {
+    
+    console.log("Giá trị của header nhận được: ", req.headers.authorization); 
+    if (Object.keys(req.body).length == 0) {
+        return next(new ApiError(400, "Dữ liệu cần cập nhật không được để trống"));
+    }
+
+    
     if (!req.body?.productDetail_id) {
         return next(new ApiError(400, "Không thể để trống productDetail_id"));
     }
@@ -14,7 +21,7 @@ exports.create = async (req, res, next) => {
 
     try {
         const importDetailService = new ImportDetailService(MongoDB.client);
-        const document = await importDetailService.create(req.body);
+        const document = await importDetailService.create(req, req.body);
         if (document.statusCode !== 200) {
             return next(new ApiError(document.statusCode, `Error create importDetail : ${error.message}`));
         //     return res.status(document.statusCode).json({ message: document.message });
@@ -22,7 +29,8 @@ exports.create = async (req, res, next) => {
           return res.status(200).json(document);  // 201 Create
     }
     catch (error) {
-        return next(new ApiError(500, `Error create importDetail : ${error.message}`));
+        return res.send(error.message);
+        // return next(new ApiError(500, `Error create importDetail : ${error.message}`));
     }
 };
 
@@ -109,22 +117,25 @@ exports.findByProductDetailId = async (req, res, next) => {
 
 
 exports.update = async (req, res, next) => {
+
+    console.log("Giá trị của header nhận được: ", req.headers.authorization); 
     if (Object.keys(req.body).length == 0) {
         return next(new ApiError(400, "Dữ liệu cần cập nhật không được để trống"));
     }
     try {
         const importDetailService = new ImportDetailService(MongoDB.client);
-        const document = await importDetailService.update(req.params.id, req.body);
+        const document = await importDetailService.update(req.params.id, req.body, req);
         if (document.statusCode && document.statusCode !== 200) {
             return next(new ApiError(document.statusCode, document.message));
         }
         return res.send({
-            message: "Product was updated successfully",
+            message:document.message,
             data: document.data
          });
     }
     catch (error) {
-        return next(new ApiError(500, `Lỗi cập nhật product với id=${req.params.id}: ${error.message}`));
+        return res.send(error.message);
+        // return next(new ApiError(500, `Lỗi cập nhật product với id=${req.params.id}: ${error.message}`));
     }
 
 };

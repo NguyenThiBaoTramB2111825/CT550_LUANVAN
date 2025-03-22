@@ -51,11 +51,11 @@
                 <input type="text" v-model="currentSize.note" class="form-control text-center" required>
             </div>
 
-            <div class="mb-3 text-center">
+            <div v-if="isEditing" class="mb-3 text-center">
                 <label >Trạng thái</label>
                 <select v-model="currentSize.isActive" class="form-control text-center" required>
-                    <option value="true">Đang hoạt động</option>
-                    <option value="false">Đã xóa</option>
+                    <option :value="true">Đang hoạt động</option>
+                    <option :value="false">Đã xóa</option>
                 </select>
             </div>
             <div class="text-center text-center">
@@ -80,12 +80,16 @@ export default {
         const inputsearch = ref('');
         const showModal = ref(false);
         const isEditing = ref(false);
-        const currentSize = ref({ name: '', note: '', isActive: '', _id: null });
+        const currentSize = ref({ name: '', note: '', isActive: true, _id: null });
 
         const fetchSizes = async () => {
             try {
                 const response = await axios.get(`${BASE_URL}/api/size`);
                 sizes.value = response.data;
+
+                sizes.value.forEach(size => {
+                    console.log(`Tên: ${size.name}, isActive: ${size.isActive}, Kiểu: ${typeof size.isActive}`);
+                });
             } catch (error) {
                 console.error("Lỗi khi lấy danh sách kích thước:", error);
             }
@@ -130,7 +134,7 @@ export default {
                 currentSize.value = { ...size };
                 isEditing.value = true;
             } else {
-                currentSize.value = { name: '', note: '', isActive: '', _id: null };
+                currentSize.value = { name: '', note: '', isActive: true, _id: null };
                 isEditing.value = false;
             }
             showModal.value = true;
@@ -159,7 +163,7 @@ export default {
         const totalSizes = computed(() => sizes.value.length);
         onMounted(fetchSizes);
 
-        return { sizes, inputsearch, searchSize, deleteSize, openModal, closeModal, saveSize, showModal, isEditing, currentSize, totalSizes };
+        return { sizes, inputsearch, searchSize, deleteSize, openModal, closeModal, saveSize, showModal, isEditing, currentSize, totalSizes, fetchSizes };
     }
 }
 </script>

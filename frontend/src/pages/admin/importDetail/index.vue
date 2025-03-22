@@ -17,6 +17,8 @@
                     <th>Số lượng nhập</th>
                     <th>Giá nhập</th>
                     <th>Ngày nhập</th>
+                    <th>Nhân viên thêm</th>
+                    <th>Nhân viên cập nhật</th>
                     <th>Thao tác</th>
             
                 </tr>
@@ -29,6 +31,8 @@
                     <td>{{ importDetail.quantity }}</td>
                     <td>{{ formatCurrency(importDetail.price_import) }}</td>
                     <td>{{ formatDate(importDetail.importDate)}}</td>
+                    <td>{{ importDetail.employee_name}}</td>
+                    <td>{{ importDetail.employee_name_update}}</td>
                     <td>
                         <button class="btn btn-danger" @click="deleteImportDetails(importDetail._id)">Xóa</button>
                         <button class="btn btn-success mx-1" @click="openModal(importDetail)">Cập nhật</button>
@@ -106,10 +110,13 @@ import Breadcrumb from "@/components/Breadcrumb.vue";
 import Swal from "sweetalert2";
 const BASE_URL = "http://localhost:3000";
 import dayjs from "dayjs";
+import Cookies from 'js-cookie';
 
 export default {
     components: { Breadcrumb },
     setup() {
+        const token = Cookies.get('accessToken');
+        console.log("Giá trị của token được bắt: ", token);
 
         const productDetails = ref([]);
         const suppliers = ref([]);
@@ -161,8 +168,6 @@ export default {
                     pd.supplier_name = suppliers[index]?.data?.name || "Không có nhà cung cấp";
                     pd.product_name = products[index]?.name || "Không có tên sản phẩm";
                 });
-
-         
 
                 importDetails.value = importDetailsData;
             } catch (error) {
@@ -229,20 +234,61 @@ export default {
             showModal.value = false;
         };
 
+        // const saveImportDetails = async () => {
+        //     try {
+        //         if (isEditing.value) {
+        //             await axios.put(`${BASE_URL}/api/importDetail/${currentImportDetail.value._id}`, currentImportDetail.value,
+        //                 {
+        //                     headers: {
+        //                         "Authorization": `Bearer ${token}` // Gửi token vào header
+        //                     }
+        //                 });
+        //         } else {
+        //             await axios.post(`${BASE_URL}/api/importDetail/`,
+        //                 currentImportDetail.value,
+        //                 {
+        //                     headers: {
+        //                         "Authorization": `Bearer ${token}` // Gửi token vào header
+        //                     }
+        //                 }
+        //             );
+        //         }
+        //         await fetchImportDetails();
+        //         Swal.fire('Thành công', isEditing.data ? 'Cập nhật chi tiết nhập hàng thành công' : 'Thêm chi tiết nhập hàng thành công', 'success');
+        //         closeModal();
+        //     } catch (error) {
+        //         Swal.fire('Lỗi!', error.response?.data?.message || 'Có lỗi xảy ra', 'error');
+        //     }
+        // };
+
         const saveImportDetails = async () => {
             try {
+                const config = {
+                    headers: {
+                        "Authorization": `Bearer ${token}` // Gửi token vào header
+                    }
+                };
+
                 if (isEditing.value) {
-                    await axios.put(`${BASE_URL}/api/importDetail/${currentImportDetail.value._id}`, currentImportDetail.value);
+                    await axios.put(`${BASE_URL}/api/importDetail/${currentImportDetail.value._id}`,
+                        currentImportDetail.value,
+                        config
+                    );
                 } else {
-                    await axios.post(`${BASE_URL}/api/importDetail/`, currentImportDetail.value);
+                    await axios.post(`${BASE_URL}/api/importDetail/`,
+                        currentImportDetail.value,
+                        config
+                    );
                 }
+
                 await fetchImportDetails();
-                Swal.fire('Thành công', isEditing.data ? 'Cập nhật chi tiết nhập hàng thành công' : 'Thêm chi tiết nhập hàng thành công', 'success');
+                Swal.fire('Thành công', isEditing.value ? 'Cập nhật chi tiết nhập hàng thành công' : 'Thêm chi tiết nhập hàng thành công', 'success');
                 closeModal();
             } catch (error) {
+                console.error("Lỗi khi lưu chi tiết nhập hàng:", error);
                 Swal.fire('Lỗi!', error.response?.data?.message || 'Có lỗi xảy ra', 'error');
             }
-        };
+        }; 
 
         const formatCurrency = (amount) => {
             if (amount === undefined || amount === null) {

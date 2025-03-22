@@ -206,7 +206,7 @@ const admin = [
         name: "supplier-update",
         component: () => import("../pages/admin/supplier/update.vue"),
         meta: {
-          breadcrumb: 'Thêm'
+          breadcrumb: 'Cập nhật'
         },
       },
 

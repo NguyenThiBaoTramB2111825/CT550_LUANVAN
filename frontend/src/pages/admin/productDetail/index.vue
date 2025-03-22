@@ -16,6 +16,7 @@
                     <th>Màu sắc</th>
                     <th>Kích thước</th>
                     <th>Số lượng kho</th>
+                    <th>Trạng thái</th>
                     <th>Thao tác</th>
             
                 </tr>
@@ -27,8 +28,9 @@
                     <td>{{ productDetail.color_name }}</td>
                     <td>{{ productDetail.size_name }}</td>
                     <td>{{ productDetail.stock }}</td>
+                    <td>{{ productDetail.isActive ? "Đang hoạt động" : "Đã xóa" }}</td>
                     <td>
-                        <button class="btn btn-danger" @click="deleteProductDetail(productDetail._id)">Xóa</button>
+                        <button class="btn btn-danger m-2" @click="deleteProductDetail(productDetail._id)">Xóa</button>
                         <button class="btn btn-success mx-1" @click="openModal(productDetail)">Cập nhật</button>
                     </td>
                 </tr>
@@ -75,8 +77,17 @@
 
             <div class="mb-3">
                 <label>Số lượng kho</label>
-                <input type="number" v-model="currentProductDetail.stock" class="form-control" required>
+                <input type="number" v-model="currentProductDetail.stock" class="form-control text-center" required>
             </div>
+
+            <div v-if="isEditing" class="mb-3">
+                <label class="col-md-2">Trạng thái</label>
+                <select v-model="currentProductDetail.isActive" class="form-control text-center" >
+                    <option :value="true">Đang hoạt động</option>
+                    <option :value="false">Đã xóa</option>
+                </select>
+            </div>
+
             <div class="text-center">
                 <button class="btn btn-success" @click="saveProductDetail">{{ isEditing ? 'Cập nhật' : 'Thêm' }}</button>
                 <button class="btn btn-secondary mx-2" @click="closeModal">Hủy</button>
@@ -103,7 +114,7 @@ export default {
     const inputsearch = ref("");
     const showModal = ref(false);
     const isEditing = ref(false);
-    const currentProductDetail = ref({ product_id: '', color_id: '', size_id: '', _id: null });
+    const currentProductDetail = ref({ product_id: '', color_id: '', size_id: '', isActive: true, _id: null });
 
 
     const fetchProducts = async () => {
@@ -177,8 +188,8 @@ export default {
 
       if (result.isConfirmed) {
         try {
-          await axios.delete(`${BASE_URL}/api/productDetail/${id}`);
-          Swal.fire('Đã xóa!', 'chi tiết sản phẩm đã được xóa thành công', 'success');
+          const response = await axios.delete(`${BASE_URL}/api/productDetail/${id}`);
+          Swal.fire('Thông báo!', response?.data?.message , 'success');
           fetchProductDetails();
         } catch (error) {
           Swal.fire('Lỗi!', 'Có lỗi khi xóa chi tiết sản phẩm', 'error');
@@ -191,7 +202,7 @@ export default {
         currentProductDetail.value = { ...productDetail };
         isEditing.value = true;
       } else {
-        currentProductDetail.value = { product_id: '', color_id: '', size_id: '', _id: null };
+        currentProductDetail.value = { product_id: '', color_id: '', size_id: '', isActive: true, _id: null };
         isEditing.value = false;
       }
       showModal.value = true;

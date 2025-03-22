@@ -4,6 +4,8 @@ import TheMenu from '../components/admin/TheMenu.vue';
 import Cookies from 'js-cookie';
 import { useMenu } from '../store/use-menu';
 import Login from '../components/admin/Login.vue';
+import { jwtDecode } from 'jwt-decode';
+import Swal from "sweetalert2";
 
 export default {
     components: {
@@ -15,11 +17,40 @@ export default {
         const token = Cookies.get('accessToken');
         console.log("Current token:", token);
 
+        if (token) {
+            const decoded = jwtDecode(token);
+            const expiresInMs  = decoded.exp * 1000 - Date.now(); // So sánh với thời gian hiện tại
+            if (expiresInMs <= 0)// Token hết hạn
+            {
+                Swal.fire({
+                    title: 'Thông báo!',
+                    text: 'Phiên đăng nhập hết hạn, vui lòng đăng nhập lại',
+                    icon: 'error',
+                    timer: 3000, // Hiển thị trong 3 giây
+                    showConfirmButton: false
+                }).then(() => {
+                    Cookies.remove('accessToken');
+                    window.location.href = '/admin';
+
+                });
+            }
+            else {
+                setTimeout(() => {
+                    Swal.fire({
+                        title: 'Thông báo!',
+                        text: 'Phiên đăng nhập hết hạn, vui lòng đăng nhập lại',
+                        icon: 'error',
+                        timer: 3000,
+                        showConfirmButton: false
+                    }).then(() => {
+                        Cookies.remove('accessToken');
+                        window.location.href = '/admin';
+                    });
+                }, expiresInMs);
+            }
+        }
+
         const menuStore = useMenu();
-        // const logout = () => {
-        //     Cookies.remove('accessToken');
-        //     window.location.href = '/admin';
-        // }
         return {
             token,menuStore
         }

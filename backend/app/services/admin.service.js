@@ -9,13 +9,12 @@ class adminService {
     constructor(client) {
         this.Admin = client.db().collection("admin");
     }
-    // Định nghĩa các phương thức truy xuất CSDL sử dụng mongodb API
     extractAdminData(payload) {
         const admin = {
             username: payload.username,
             password: payload.password
         };
-        // Remove undefined fields
+
         Object.keys(admin).forEach(
             (key) => admin[key] === undefined && delete admin[key]
         );
@@ -59,29 +58,30 @@ class adminService {
         const token = jwt.sign(
             {
                 id: admin._id,
-                username: admin.username,
+                name: admin.username,
                 role: "admin"
             },
             config.jwt.secret,  // Chuỗi bí mật từ file config
-            { expiresIn: "1h" }
+            { expiresIn: "2h" }
         );
         
         const refreshToken = jwt.sign(
             {
                 id: admin._id,
                 role: "admin",
-                username: admin.username
+                name: admin.username
             },
             config.jwt.refreshSecret,
             { expiresIn: '7d' }
         );
 
         console.log("Giá trị của refreshToken: ", refreshToken);
+        
+        const decodedToken = jwt.decode(token);  // Giải mã token
+        console.log("Giá trị của id và name thu được: ", decodedToken.id, decodedToken.name);
 
         return { token, refreshToken, admin: { id: admin._id, username: admin.username } };
     }
-
-
 
     async findOne(query) {
         try {

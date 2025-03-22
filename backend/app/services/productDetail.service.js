@@ -8,6 +8,7 @@ class ProductDetailService{
         this.ProductDetail = client.db().collection("productDetail");
         this.Color = client.db().collection("color");
         this.Size = client.db().collection("size");
+        this.ImportDetail = client.db().collection("importDetail");
     }
 
     extractProductDetailData (payload) {
@@ -16,6 +17,7 @@ class ProductDetailService{
             product_id: ObjectId.isValid(payload.product_id) ? new ObjectId(payload.product_id) : undefined,
             color_id: ObjectId.isValid(payload.color_id) ? new ObjectId(payload.color_id) : undefined,
             size_id: ObjectId.isValid(payload.size_id) ? new ObjectId(payload.size_id) : undefined,
+            isActive: payload.isActive !== undefined ? payload.isActive : true,
         };
 
         Object.keys(productDetail).forEach(
@@ -163,13 +165,31 @@ class ProductDetailService{
         }
     };
 
-
     async delete(id) {
-        const result = await this.ProductDetail.findOneAndDelete({
-            _id: ObjectId.isValid(id) ? new ObjectId(id) : null,
-        });
-        return result;
+        if (!ObjectId.isValid(id)) return { message: "ID không hợp lệ" };
+
+        let result = null;
+        const filter = { _id: new ObjectId(id) };
+
+        const checkImportDetail = await this.ImportDetail.find({ productDetail_id: new ObjectId(id) }).toArray();
+
+        console.log("giá trị của productDetail_id: ", checkImportDetail);
+
+        if (checkImportDetail.length > 0) {
+            console.log("thực hiện update");
+            result = await this.ProductDetail.findOneAndUpdate(
+                filter,
+                { $set: { isActive: false } },
+                { returnDocument: "after" }
+            );
+            return { ...result, message: "Đã cập nhật trạng thái" };
+        } else {
+            console.log("Thực hiện delete");
+            result = await this.ProductDetail.findOneAndDelete(filter);
+            return { ...result, message: "Đã xóa thành công" };
+        }
     }
+
     async deleteAll() {
         const result = await this.ProductDetail.deleteMany({});
         return result.deletedCount;

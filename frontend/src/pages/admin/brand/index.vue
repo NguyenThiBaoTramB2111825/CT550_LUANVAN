@@ -95,7 +95,7 @@ export default {
                 text: "Bạn có chắc chắn muốn xóa thương hiệu này không?",
                 icon: 'warning',
                 showCancelButton: true,
-                confir,ButtonText: 'Xóa',
+                confirmButtonText: 'Xóa',
                 cancelButtonText: "Hủy"
             });
 

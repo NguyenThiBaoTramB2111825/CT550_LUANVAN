@@ -43,6 +43,10 @@ class ImportDetailService{
             importDate: this.parseDate(payload.importDate) || undefined,
             quantity: payload.quantity ? parseFloat(payload.quantity) : undefined,
             price_import: payload.price_import ? parseFloat(payload.price_import) : undefined,
+            employee_id: ObjectId.isValid(payload.employee_id) ? new ObjectId(payload.employee_id) : undefined,
+            employee_name: payload.employee_name || null,
+            employee_id_update: ObjectId.isValid(payload.employee_id) ? new ObjectId(payload.employee_id) : undefined,
+            employee_name_update: payload.employee_name || null,
          
         };
 
@@ -52,7 +56,7 @@ class ImportDetailService{
         return importDetail;
     }
 
-    async create(payload) {
+    async create(req, payload) {
         try {
             const importDetail = this.extractImportDetailData(payload);
             console.log("Giá trị sau khi extract: ", importDetail);
@@ -66,9 +70,12 @@ class ImportDetailService{
             if (!supplierId) {
                 return { statusCode: 404, message: "SupplierId không tồn tại" };
             }
-            
+                
             console.log("Giá trị của supplierId sau khi được tìm thấy: ", supplierId);
             // Cùng 1 chi tiết sản phẩm và cùng 1 nhà cung cấp thì có thể có nhiều chi tiết nhật
+
+            importDetail.employee_id = req.user.id;
+            importDetail.employee_name = req.user.name;
 
             const result = await this.ImportDetail.insertOne(importDetail);
             console.log("Thêm thành công ========================== ");
@@ -121,7 +128,13 @@ class ImportDetailService{
         }
     }
 
-    async update(id, payload) {
+    async update(id, payload, req) {
+
+        console.log("User info:", req.user); // Kiểm tra xem req.user có giá trị không
+
+        if (!req.user) {
+            return { statusCode: 401, message: "Unauthorized: Người dùng chưa được xác thực" };
+        }
         console.log("id và pay load nhận được: ", id, payload);
         const filter = {
             _id: ObjectId.isValid(id) ? new ObjectId(id) : null,
@@ -164,11 +177,20 @@ class ImportDetailService{
 
         const diff = update.quantity - existingImportDetail.quantity;
 
+
         // Cập nhật số lượng tồn kho
         await this.ProductDetail.updateOne(
             { _id: existingImportDetail.productDetail_id },
-            { $inc: { stock: diff } } // Cộng/trừ theo chênh lệch
+            {
+                $inc: { stock: diff },// Cộng/trừ theo chênh lệch
+            } 
         );
+
+        update.employee_id_update =  new ObjectId(req.user.id);
+        console.log("Giá trị của update.employee_id_update", update.employee_id_update);
+        update.employee_name_update = req.user.name;
+        console.log("Giá trị của  update.employee_name_update",  update.employee_name_update);
+        
 
         try {
             const result = await this.ImportDetail.findOneAndUpdate(
@@ -183,56 +205,13 @@ class ImportDetailService{
                 return { statusCode: 400, message: "Không thể cập nhật ImportDetail" }
             }
 
-            return { statusCode: 200, message: "Discount cập nhật thành công", data: result };
+            return { statusCode: 200, message: "Discount cập nhật thành công", data: update };
         }
         catch (error) {
             console.error("Lỗi khi cập nhật importDetail: ", error);
             return { statusCode: 500, message: "Lỗi server", error: error.message };
         }
     };
-
-    // async updateDiscountStatus(discountId, isActive) {
-    //     try {
-            
-    //         console.log("Cập nhật giá sản phẩm cho discount:", discountId, "Trạng thái:", isActive);
-
-    //         const discount = await this.Discount.findOne({ _id: new ObjectId(discountId) });
-
-    //         if (!discount) {
-    //             console.log("Không tìm thấy chương trình giảm giá!");
-    //             return;
-    //         }
-        
-    //         const discountValue = (isActive ? parseFloat(discount.value) : 0);
-          
-    //         //console.log("discount.type:", discount.type, "| Kiểu dữ liệu:", typeof discount.type);
-    //         // console.log("discount.value:", discount.value, "| Kiểu dữ liệu:", typeof discount.value);
-    //         // console.log("discountValue:", discountValue, "| Kiểu dữ liệu:", typeof discountValue);
-    //         // console.log("discountValue / 100:", discountValue / 100, "| Kiểu dữ liệu:", typeof (discountValue / 100));
-  
-    //         // Cập nhật tất cả sản phẩm có discount_id tương ứng
-    //         const result = await this.ImportDetail.updateMany(
-    //             { discount_id: new ObjectId(discountId) },
-    //             [
-    //                 {
-    //                     $set: {
-    //                         price_afterdiscount: {
-    //                             $cond: {
-    //                                 if: { $eq: [discount.type, "percentage"] },
-    //                                 then: { $multiply: [{$toDouble: "$price_selling"}, {$subtract: [1, {$toDouble: discountValue / 100}]}] },
-    //                                 else: { $subtract: [{$toDouble: "$price_selling"}, discountValue] }
-    //                             }
-    //                         }
-    //                     }
-    //                 }
-    //             ]
-    //         );
-
-    //         console.log(`Đã cập nhật ${result.modifiedCount} sản phẩm.`);
-    //     } catch (error) {
-    //         console.log("Lỗi khi cập nhật sản phẩm", error)
-    //     }
-    // }
 
     async delete(id) {
         const result = await this.ImportDetail.findOneAndDelete({

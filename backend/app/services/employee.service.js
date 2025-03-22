@@ -78,7 +78,7 @@ class employeeService{
                 role: "employee"
             },
             config.jwt.secret,
-            {expiresIn: "1h"}
+            {expiresIn: "24h"}
         )
         return {
             token, employee: {

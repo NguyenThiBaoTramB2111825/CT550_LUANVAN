@@ -49,11 +49,11 @@
                 <label>Hexcode</label>
                 <input type="text" v-model="currentColor.hexCode" class="form-control text-center" required>
             </div>
-            <div class="mb-3">
+            <div v-if="isEditing" class="mb-3" >
                 <label >Trạng thái</label>
-                <select v-model="currentColor.isActive" class="form-control text-center" required>
-                    <option value="true">Đang hoạt động</option>
-                    <option value="false">Đã xóa</option>
+                <select v-model="currentColor.isActive" class="form-control text-center">
+                    <option :value="true">Đang hoạt động</option>
+                    <option :value="false">Đã xóa</option>
                 </select>
             </div>
             <div class="text-center">
@@ -78,12 +78,23 @@ export default {
         const inputsearch = ref('');
         const showModal = ref(false);
         const isEditing = ref(false);
-        const currentColor = ref({ name: '', hexCode: '', isActive: '', _id: null });
+        const currentColor = ref({ name: '', hexCode: '', isActive: true, _id: null });
 
         const fetchColors = async () => {
             try {
                 const response = await axios.get(`${BASE_URL}/api/color`);
+                // colors.value = response.data.map(color => ({
+                //     ...color,
+                //     isActive: color.isActive === "true" || color.isActive === true // Chuyển về boolean
+                // })
+                // );
                 colors.value = response.data;
+
+                console.log("Giá trị của Color khi được fetch: ", colors);
+
+                colors.value.forEach(color => {
+                    console.log(`Màu: ${color.name}, isActive: ${color.isActive}, Kiểu: ${typeof color.isActive}`);
+                });
             } catch (error) {
                 console.error("Lỗi khi lấy danh sách màu sắc:", error);
             }
@@ -117,6 +128,7 @@ export default {
                     const response = await axios.delete(`${BASE_URL}/api/color/${id}`);
                     Swal.fire('Thông báo!',  response.data.message, 'success');
                     fetchColors();
+                    window.location.href();
                 } catch (error) {
                     Swal.fire('Lỗi!', 'Có lỗi khi xóa màu sắc', 'error');
                 }
@@ -125,10 +137,14 @@ export default {
 
         const openModal = (color = null) => {
             if (color) {
-                currentColor.value = { ...color };
+                currentColor.value = {
+                    ...color, 
+                    // isActive: color.isActive === "true" || color.isActive === true
+                 };
+                console.log("Giá trị sau khi mở modal: ", currentColor.value);
                 isEditing.value = true;
             } else {
-                currentColor.value = { name: '', hexCode: '', isActive: '', _id: null };
+                currentColor.value = { name: '', hexCode: '',isActive: true, _id: null };
                 isEditing.value = false;
             }
             showModal.value = true;
@@ -139,6 +155,7 @@ export default {
         };
 
         const saveColor = async () => {
+            console.log("Giá trị được truyền từ modal: ", currentColor);
             try {
                 if (isEditing.value) {
                     await axios.put(`${BASE_URL}/api/color/${currentColor.value._id}`, currentColor.value);
@@ -157,7 +174,7 @@ export default {
         const totalColors = computed(() => colors.value.length);
         onMounted(fetchColors);
 
-        return { colors, inputsearch, searchColor, deleteColor, openModal, closeModal, saveColor, showModal, isEditing, currentColor, totalColors };
+        return { colors, inputsearch, searchColor, deleteColor, openModal, closeModal, saveColor, showModal, isEditing, currentColor, totalColors , fetchColors};
     }
 }
 </script>
