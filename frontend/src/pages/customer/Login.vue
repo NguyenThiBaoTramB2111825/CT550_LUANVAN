@@ -1,4 +1,3 @@
-
 <template>
   <section class="vh-100 d-flex align-items-center justify-content-center">
     <div class="container">
@@ -9,18 +8,20 @@
               <div class="text-center mb-4">
                 <h1 class="fw-bold">Fashion Shop</h1>
                 <p class="text-muted">Đăng nhập vào tài khoản của bạn</p>
+                <p>------------------------------------</p>
               </div>
-              <form @submit.prevent="loginCustomer">
-                <div class="mb-3">
+              <form @submit.prevent="loginCustomer" class="align-items-center justify-content-center">
+                <div class="mb-3 text-center">
                   <label class="form-label">Tên đăng nhập</label>
                   <input v-model="customer.name" type="text" class="form-control form-control-lg" required />
                 </div>
-                <div class="mb-3">
+                <div class="mb-5 text-center">
                   <label class="form-label">Mật khẩu</label>
                   <input v-model="customer.password" type="password" class="form-control form-control-lg" required />
                 </div>
                 <div class="d-grid">
-                  <button type="submit" class="btn btn-primary btn-lg">Đăng nhập</button>
+                  <button type="submit" class="btn btn-primary btn-lg mb-3">Đăng nhập</button>
+                  <button type="button"  @click="cancel" class="btn btn-danger btn-lg">Hủy</button>
                 </div>
               </form>
               <div class="text-center mt-3">
@@ -65,8 +66,11 @@ export default {
     };
 
     const gotoregisterPage = () => router.push({ name: 'register' });
+    const cancel = () => {
+      router.push({ name: 'home' });
+    }
 
-    return { loginCustomer, customer, gotoregisterPage };
+    return { loginCustomer, customer, gotoregisterPage, cancel };
   },
 };
 </script> 

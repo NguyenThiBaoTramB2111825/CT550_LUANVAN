@@ -183,6 +183,9 @@ class ProductService{
                 update.price_afterdiscount = update.price_selling || existingProduct.price_selling;
             }
         }
+        else {
+            update.price_afterdiscount = update.price_selling || existingProduct.price_selling;
+        }
 
         // Cập nhật sản phẩm trong MongoDB
         try {

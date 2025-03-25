@@ -19,19 +19,19 @@ export default {
         TheHeader,
   
     },
-    setup() {
-        const router = useRouter();
-        const token = Cookies.get("accessToken");
+    // setup() {
+    //     const router = useRouter();
+    //     const token = Cookies.get("accessToken");
 
-        onMounted(() => {
-            if (!token) {
-                console.log("Không có token, chuyển hướng đến login");
-                router.push({ name: "login" });
-            }
-        });
+    //     onMounted(() => {
+    //         if (!token) {
+    //             console.log("Không có token, chuyển hướng đến login");
+    //             router.push({ name: "login" });
+    //         }
+    //     });
 
-        return {token};
-    }
+    //     return {token};
+    // }
 }
 </script>
 

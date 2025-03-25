@@ -1,71 +1,70 @@
-
-
 <template>
-  <section class="vh-100">
-    <div class="container py-5 h-100">
-      <div class="row d-flex justify-content-center align-items-center h-100">
-        <div class="col col-xl-10">
-          <div class="card border border-secondary" style="border-radius: 1rem">
-            <div class="col-md-6 col-lg-7 mx-auto d-flex align-items-center">
-              <div class="card-body p-4 p-lg-5 text-black">
+  <section class="d-flex align-items-center justify-content-center">
+    <div class="container my-5">
+      <div class="row justify-content-center">
+        <div class="col-md-8 col-lg-6">
+          <div class="card shadow-lg borde" style="border-radius: 1rem">
+              <div class="card-body p-5">
+                <div class="text-center mb-4">
+                  <h1 class="fw-bold">Fashion Shop</h1>
+                  <p class="text-muted">Đăng ký tài khoản mới</p> 
+                  <p>------------------------------------</p>
+                </div>
                 <form @submit.prevent="registerCustomer">
-                  <div class="d-flex align-items-center justify-content-center text-center mx-auto mb-3 pb-1">
-                    <span class="h1 fw-bold mb-0">Fashion Shop</span>
-                  </div>
-
-                  <h5 class="fw-normal d-flex align-items-center justify-content-center text-center mb-3 pb-3" style="letter-spacing: 1px">
-                    Đăng ký tài khoản mới
-                  </h5>
-
-                  <div class="form-outline mb-4">
-                    <input v-model="customer.name" type="text" class="form-control form-control-lg" required />
+    
+                  <div class="mb-2">
                     <label class="form-label">Họ và tên</label>
+                    <input v-model="customer.name" type="text" class="form-control form-control-lg" required />
                   </div>
 
-                  <div class="form-outline mb-4">
+                  <div class="mb-2">
+                    <label class="form-label">Email</label>  
                     <input v-model="customer.email" type="email" class="form-control form-control-lg" required />
-          
-                    <label class="form-label">Email</label>
+                           
                   </div>
 
-                  <div class="form-outline mb-4">
-                    <input v-model="customer.phone" type="text" class="form-control form-control-lg" required />
+                  <div class="mb-2">
                     <label class="form-label">Số điện thoại</label>
+                    <input v-model="customer.phone" type="text" class="form-control form-control-lg" required />
                   </div>
 
-                  <div class="form-outline mb-4">
-                    <select v-model="customer.gender" class="form-control form-control-lg">
-                      <option value="" disabled>Chọn giới tính</option>
+                  <div class="mb-2">
+                  <label class="form-label">Giới tính</label>
+                    <select v-model="customer.gender" class="form-control form-control-lg" required>
+                      <!-- <option value="" disabled>--Chọn giới tính--</option> -->
                       <option value="Nam">Nam</option>
                       <option value="Nữ">Nữ</option>
-                      <option value="Khác">Khác</option>
                     </select>
-                    <label class="form-label">Giới tính</label>
                   </div>
 
-                  <div class="form-outline mb-4">
+                  <div class="mb-2">
+                     <label class="form-label">Địa chỉ</label>
                     <input v-model="customer.address" type="text" class="form-control form-control-lg" />
-                    <label class="form-label">Địa chỉ</label>
                   </div>
 
-                  <div class="form-outline mb-4">
-                    <input v-model="customer.password" type="password" class="form-control form-control-lg" required />
+                  <div class="mb-2">
                     <label class="form-label">Mật khẩu</label>
+                    <input v-model="customer.password" type="password" class="form-control form-control-lg" required />
                   </div>
 
                   <!-- Upload ảnh đại diện -->
-                  <div class="form-outline mb-4 text-center">
+                  <div class=" mb-5">
+                     <label class="form-label">Ảnh đại diện</label>
                     <input type="file" @change="handleImageUpload" class="form-control" accept="image/*" />
-                    <label class="form-label">Ảnh đại diện</label>
+                   
                     <div v-if="previewImage" class="mt-3">
                       <img :src="previewImage" alt="Ảnh đại diện" class="rounded-circle" width="120" height="120" />
                     </div>
                   </div>
 
                   <div class="d-flex align-items-center justify-content-center text-center pt-1 mb-4">
+                    <button  type="reset" class="btn btn-success text-white btn-lg btn-block mx-5">
+                      Hủy
+                    </button>
                     <button type="submit" class="btn btn-primary text-white btn-lg btn-block">
                       Đăng ký
                     </button>
+            
                   </div>
 
                   <p class="mb-5 pb-lg-2 text-center" style="color: #393f81">
@@ -81,7 +80,6 @@
           </div>
         </div>
       </div>
-    </div>
   </section>
 </template>
 
@@ -167,16 +165,20 @@ export default {
             }
         };
 
-        const gotoLoginPage = () => {
-            router.push({ name: "login" });
-        };
+    const gotoLoginPage = () => {
+      router.push({ name: "login" });
+    };
+    const back = () => {
+      router.push({ name: 'login' });
+    }
 
         return {
             customer,
             previewImage,
             handleImageUpload,
             registerCustomer,
-            gotoLoginPage,
+          gotoLoginPage,
+            back,
             // isValidEmail,
             // isValidPhone
         };
