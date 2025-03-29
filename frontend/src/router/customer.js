@@ -8,6 +8,11 @@ const customer = [
         name: "home",
         component: () => import("../pages/customer/Home.vue"),
       },
+      {
+        path: "/productDetail/:id",
+        name: "productDetail2",
+        component: () => import("../pages/customer/productDetail.vue"),
+      },
     ],
   },
       {
@@ -20,6 +25,8 @@ const customer = [
     name: "register",
     component: () => import("../pages/customer/register.vue"),
   },
+
+
 ];
 
 export default customer;

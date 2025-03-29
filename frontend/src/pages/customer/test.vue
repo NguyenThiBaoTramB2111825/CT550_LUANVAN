@@ -1,579 +1,112 @@
 <template>
   <div class="container mt-4">
-    <div id="carouselExample" class="carousel slide mb-5" data-bs-ride="carousel" data-bs-interval="3000">
-      <div class="carousel-inner">
-        <div class="carousel-item active">
-          <img src="/src/assets/images/slider.jpg" class="d-block w-100" alt="Image 1">
-        </div>
-        <div class="carousel-item">
-          <img src="/src/assets/images/slider2.jpg" class="d-block w-100" alt="Image 2">
-        </div>
-        <div class="carousel-item">
-          <img src="/src/assets/images/slider3.jpg" class="d-block w-100" alt="Image 3">
-        </div>
-        <div class="carousel-item">
-          <img src="/src/assets/images/slider4.jpg" class="d-block w-100" alt="Image 4">
-        </div>
+    <div class="row" style="width: 1200px;">
+
+      <div class="col-md-2 d-flex flex-column align-items-center">
+        <img 
+          v-for="(image, index) in productDetail?.[0]?.images || []"
+          :key="index" 
+          :src="image" 
+          class="img-thumbnail mb-2 thumbnail-img"
+          :class="{ 'selected-thumbnail': selectedImage === image }"
+          @click="selectedImage = image"
+        />
       </div>
 
-    <!-- Nút điều hướng -->
-      <button class="carousel-control-prev" type="button" data-bs-target="#carouselExample" data-bs-slide="prev">
-        <span class="carousel-control-prev-icon"></span>
-      </button>
-      <button class="carousel-control-next" type="button" data-bs-target="#carouselExample" data-bs-slide="next">
-        <span class="carousel-control-next-icon"></span>
-      </button>
-    </div>
-    <div class="col-md-12 d-flex align-item-center justify-content-between mb-4">
-
-      <router-link to="/category/skirt" class="circle-wrapper">
-        <div class="circle">
-            <img src="/src/assets/images/skirt.png" alt="Category Icon">
-        </div>
-        <span class="category-label">Váy dài</span>
-      </router-link> 
-
-      <router-link to="" class="circle-wrapper">
-        <div class="circle">
-            <img src="/src/assets/images/maxi-dress.png" alt="Category Icon">
-        </div>
-        <span class="category-label">Váy maxi</span>
-      </router-link> 
-
-      <router-link to="" class="circle-wrapper">
-        <div class="circle">
-            <img src="/src/assets/images/midi-dress.png" alt="Category Icon">
-        </div>
-        <span class="category-label">Váy midi</span>
-      </router-link> 
-
-      <router-link to="" class="circle-wrapper">
-        <div class="circle">
-            <img src="/src/assets/images/skirt_short.png" alt="Category Icon">
-        </div>
-        <span class="category-label">Váy ngắn</span>
-      </router-link> 
-
-      <router-link to="" class="circle-wrapper">
-        <div class="circle">
-            <img src="/src/assets/images/tshirt.png" alt="Category Icon">
-        </div>
-        <span class="category-label">Áo phông</span>
-      </router-link> 
-
-      <router-link to="" class="circle-wrapper">
-        <div class="circle">
-            <img src="/src/assets/images/women.png" alt="Category Icon">
-        </div>
-        <span class="category-label">Áo kiểu</span>
-      </router-link> 
-    </div>
-
-    <div class="col-md-12 d-flex align-item-center justify-content-between mb-5 ">
-      <router-link to="" class="circle-wrapper">
-          <div class="circle">
-              <img src="/src/assets/images/sport_pant.png" alt="Category Icon">
-          </div>
-          <span class="category-label">Quần thể thao</span>
-      </router-link> 
-
-      <router-link to="" class="circle-wrapper">
-          <div class="circle">
-              <img src="/src/assets/images/jeans_pant.png" alt="Category Icon">
-          </div>
-          <span class="category-label">Quần jean</span>
-      </router-link> 
-
-      <router-link to="" class="circle-wrapper">
-          <div class="circle">
-              <img src="/src/assets/images/short.png" alt="Category Icon">
-          </div>
-          <span class="category-label">Quần short</span>
-      </router-link> 
-
-      <router-link to="" class="circle-wrapper">
-          <div class="circle">
-              <img src="/src/assets/images/dress-shirt.png" alt="Category Icon">
-          </div>
-          <span class="category-label">Áo sơ mi</span>
-      </router-link> 
-
-      <router-link to="" class="circle-wrapper">
-          <div class="circle">
-              <img src="/src/assets/images/pijama (1).png" alt="Category Icon">
-          </div>
-          <span class="category-label">Đồ bộ</span>
-      </router-link> 
-
-      <router-link to="" class="circle-wrapper">
-          <div class="circle">
-              <img src="/src/assets/images/jacket.png" alt="Category Icon">
-          </div>
-          <span class="category-label">Áo khoác</span>
-      </router-link>
-    </div>
-
-    <div class="col-md-12 mb-5 d-block">
-      <div class="border rounded-2" style="background-color: antiquewhite;">
-        <h5>Sale off 15%</h5>
-        <h5>Sale off 10%</h5>
-        <h5>Sale off 20%</h5>
+      <div class="col-md-5 text-center">
+        <img :src="selectedImage" class="img-fluid main-image" />
       </div>
-      <div class="list-card d-flex">
-      <div class="card">
-        <img src="" alt="">
-        <div class="card-body"></div>
+      
+      <div class="col-md-5">
+        <h4 class="fw-bold">{{productDetail.product_name}}</h4>
+        <p class="text-danger fs-5 fw-bold">{{ productDetail.price }} VND</p>
 
-      </div>
-      </div>
-
-    </div>
-    <hr>
-
-
-    <div class="row d-fex justify-content-between">
-        <!-- Brand -->
-        <div class=" col-md-3 filter-section ">
-            <h5>Brand</h5>
-            <!-- <div v-for="brand in brands" :key="brand.name">
-                <input type="checkbox" :id="brand.name" v-model="selectedBrands" :value="brand.name">
-                <label :for="brand.name"> {{ brand.name }} ({{ brand.count }})</label>
-            </div> -->
-
-            <h5 class="mt-3">Product Type</h5>
-            <!-- <div v-for="type in productTypes" :key="type.name">
-                <input type="checkbox" :id="type.name" v-model="selectedTypes" :value="type.name">
-                <label :for="type.name"> {{ type.name }} ({{ type.count }})</label>
-            </div> -->
-        </div>
-
-    <!-- Thanh tìm kiếm -->
-    <div class="col-md-9 justify-content-between">
-      <div class="mx-auto mb-4" style="width: 700px;">
-        <input type="text" class="form-control" placeholder="Search for products in this collection" v-model="searchQuery">
-      </div>
-
-        <div class="d-flex justify-content-between mb-3">
-          <div>
-            <span>View as:</span>
-            <button class="btn btn-light mx-1"><i class="bi bi-grid"></i></button>
-            <button class="btn btn-light"><i class="bi bi-list"></i></button>
-          </div>
-          <span>{{ filteredProducts.length }} products</span>
-          <div>
-            <label>SORT BY:</label>
-            <select class="form-select d-inline-block w-auto" v-model="sortBy">
-              <option value="new">Newly Listed</option>
-              <option value="price_low">Price: Low to High</option>
-              <option value="price_high">Price: High to Low</option>
-            </select>
+        <!-- Chọn màu sắc -->
+        <div>
+          <p class="fw-bold m-0">Màu sắc:</p>
+          <div class="d-flex flex-wrap gap-2">
+            <span
+              v-for="color in productDetail.colors" 
+              :key="color.id"
+              class="border rounded-circle p-2 color-item"
+              :class="{ 'selected': selectedColor === color.id }"
+              @click="selectColor(color.id)"
+            >
+              {{ color.name }}
+            </span>
           </div>
         </div>
 
-        <!-- Hiển thị sản phẩm -->
-        <div class="row mb-3">
-          <div v-for="productDetail in productDetails" :key="productDetail.id" class="col-md-4 mb-4">
-          <!-- <div v-for="product in sortedProducts" :key="product.id" class="col-md-4 mb-4"> -->
-            <div class="card">
-              <img :src="`${BASE_URL}${productDetail.image}`" class="card-img-top" alt="Product">
-              <div class="card-body">
-                <h6 class="card-title">{{ productDetail.product_name }}</h6>
-                <p class="text-muted">{{ productDetail.size_name }}</p>
-                <p class="fw-bold price-container">
-                    <span v-if="productDetail.sale" class="old-price">${{ productDetail.price_selling }}</span>
-                    <span class="new-price mx-2">${{ productDetail.price_afterdiscount }}</span>
-                </p>
-                   <span v-if="productDetail.sale" class="badge bg-danger">SALE</span>
-
-              </div>
-            </div>
+        <!-- Chọn kích cỡ -->
+        <div class="mt-3">
+          <p class="fw-bold m-0">Kích cỡ:</p>
+          <div class="d-flex flex-wrap gap-2">
+            <span
+              v-for="size in productDetail.sizes"
+              :key="size.id"
+              class="border rounded-circle p-2 size-item"
+              :class="{ 'selected': selectedSize === size.id }"
+              @click="selectSize(size.id)"
+            >
+              {{ size.name }}
+            </span>
           </div>
         </div>
-      </div>
-    </div>
-  </div>
-</template>
-<script>
-import axios from 'axios';
-import { ref, onMounted, computed } from 'vue';
 
-const BASE_URL = "http://localhost:3000";
-
-export default {
-    setup() {
-        const searchQuery = ref('');
-        const sortBy = ref('new');
-        const selectedBrands = ref([]);
-        const selectedTypes = ref([]);
-        const brands = ref([]);
-        const productTypes = ref([]);
-        const products = ref([]);
-        const productDetails = ref([]);
-
-
-        // Fetch dữ liệu từ API khi component được mount
-    const fetchProductDetails = async () => {
-      try {
-        const response = await axios.get(`${BASE_URL}/api/productDetail`);
-        let productDetailsData = response.data;
-
-        const colorRequests = productDetailsData.map(pd =>
-          axios.get(`${BASE_URL}/api/color/${pd.color_id}`).catch(() => null)
-        );
-        const sizeRequests = productDetailsData.map(pd =>
-          axios.get(`${BASE_URL}/api/size/${pd.size_id}`).catch(() => null)
-        );
-        const productRequests = productDetailsData.map(pd =>
-          axios.get(`${BASE_URL}/api/product/${pd.product_id}`).catch(() => null)
-          );
-          const imageRequests = productDetailsData.map(pd =>
-              axios.get(`${BASE_URL}/api/image/productId/${pd.product_id}`).catch(() => null)
-          );
-
-        const colors = await Promise.all(colorRequests);
-        const sizes = await Promise.all(sizeRequests);
-        const products = await Promise.all(productRequests);
-        const images = await Promise.all(imageRequests);
-
-        productDetailsData.forEach((pd, index) => {
-          pd.color_name = colors[index]?.data?.name || "Không có màu sắc";
-          pd.size_name = sizes[index]?.data?.name || "Không có kích cỡ";
-          pd.product_name = products[index]?.data?.name || "Không có sản phẩm";
-          pd.price_afterdiscount = products[index]?.data?.price_afterdiscount || "Không có sản phẩm";
-          pd.price_selling = products[index]?.data?.price_selling || "Không có sản phẩm";
-            pd.image = images[index]?.data?.length ? images[index].data[0].url : "Không có hình ảnh sản phẩm";
-            if (pd.price_afterdiscount != pd.price_selling) {
-                pd.sale = true;
-         }
-        });
-
-
-        productDetails.value = productDetailsData;
-      } catch (error) {
-        console.error("Lỗi khi lấy danh sách chi tiết sản phẩm:", error);
-      }
-    };
-
-        // Lọc sản phẩm theo search và brand
-        const filteredProducts = computed(() => {
-            let results = products.value.filter(p =>
-                p.name.toLowerCase().includes(searchQuery.value.toLowerCase())
-            );
-
-            if (selectedBrands.value.length) {
-                results = results.filter(p => selectedBrands.value.includes(p.brand));
-            }
-
-            return results;
-        });
-
-        // Sắp xếp sản phẩm theo giá hoặc mới nhất
-        const sortedProducts = computed(() => {
-            let sorted = [...filteredProducts.value];
-
-            if (sortBy.value === "price_low") {
-                sorted.sort((a, b) => a.price - b.price);
-            } else if (sortBy.value === "price_high") {
-                sorted.sort((a, b) => b.price - a.price);
-            }
-
-            return sorted;
-        });
-
-    onMounted(async () => {
-      await fetchProductDetails(),
-      await fetchProducts(),
-      await fetchSizes(),
-      await fetchColors()
-    });
-
-
-        return { 
-            BASE_URL,
-            searchQuery, 
-            sortBy, 
-            selectedBrands, 
-            selectedTypes, 
-            brands, 
-            productTypes, 
-            products, 
-            filteredProducts, 
-            sortedProducts,
-            productDetails
-        };
-    }
-};
-</script>
-
-<style scoped>
-     .filter-section {
-        border-right: 1px solid #f3d0c8;
-        padding-right: 5px;
-    } 
-    .card img {
-        height: 200px;
-        object-fit: cover;
-    }
-    .card-body {
-        text-align: center;
-    }
-    .badge {
-        position: absolute;
-        top: 10px;
-        right: 10px;
-    }
-
-
-    .price-container {
-  /* display: flex; */
-  /* align-items:; */
-  gap: 8px;
-}
-
-  .old-price {
-    text-decoration: line-through;
-    color: gray;
-    font-size: 14px;
-  }
-
-  .new-price {
-    font-size: 18px;
-    font-weight: bold;
-    color: red;
-  }
-
-  .badge-sale {
-    background-color: red;
-    color: white;
-    font-size: 12px;
-    padding: 3px 6px;
-    border-radius: 5px;
-    font-weight: bold;
-  }
-
-.circle-wrapper {
-    display: flex;
-    flex-direction: column;
-    align-items: center; /* Căn giữa theo chiều ngang */
-    text-align: center;
-    text-decoration: none;
-}
-
-    .circle {
-        width: 100px;
-        height: 100px;
-        border-radius: 50%;
-        background-color: #f6d6d6; /* Màu nền của vòng tròn */
-        /* background-color: #f2f2f2; Màu nền của vòng tròn */
-        display: flex;
-        justify-content: center;
-        align-items: center;
-    }
-
-    .circle img {
-        max-width: 60%; /* Để hình ảnh nằm gọn trong vòng tròn */
-        height: auto;
-    }
-
-    .category-label {
-        margin-top: 8px; /* Khoảng cách giữa vòng tròn và chữ */
-        font-size: 14px;
-        font-weight: bold;
-        text-decoration: none ;
-        color: #000;
-    }
-
-
-</style>
-
-
-
-
-
-
-
-
----- bảng fetchProductDetails
-<template>
-  <div class="container mt-4">
-    <div id="carouselExample" class="carousel slide mb-5" data-bs-ride="carousel" data-bs-interval="3000">
-      <div class="carousel-inner">
-        <div class="carousel-item active">
-          <img src="/src/assets/images/slider.jpg" class="d-block w-100" alt="Image 1">
-        </div>
-        <div class="carousel-item">
-          <img src="/src/assets/images/slider2.jpg" class="d-block w-100" alt="Image 2">
-        </div>
-        <div class="carousel-item">
-          <img src="/src/assets/images/slider3.jpg" class="d-block w-100" alt="Image 3">
-        </div>
-        <div class="carousel-item">
-          <img src="/src/assets/images/slider4.jpg" class="d-block w-100" alt="Image 4">
-        </div>
-      </div>
-
-    <!-- Nút điều hướng -->
-      <button class="carousel-control-prev" type="button" data-bs-target="#carouselExample" data-bs-slide="prev">
-        <span class="carousel-control-prev-icon"></span>
-      </button>
-      <button class="carousel-control-next" type="button" data-bs-target="#carouselExample" data-bs-slide="next">
-        <span class="carousel-control-next-icon"></span>
-      </button>
-    </div>
-    <div class="col-md-12 d-flex align-item-center justify-content-between mb-4">
-
-      <router-link to="/category/skirt" class="circle-wrapper">
-        <div class="circle">
-            <img src="/src/assets/images/skirt.png" alt="Category Icon">
-        </div>
-        <span class="category-label">Váy dài</span>
-      </router-link> 
-
-      <router-link to="" class="circle-wrapper">
-        <div class="circle">
-            <img src="/src/assets/images/maxi-dress.png" alt="Category Icon">
-        </div>
-        <span class="category-label">Váy maxi</span>
-      </router-link> 
-
-      <router-link to="" class="circle-wrapper">
-        <div class="circle">
-            <img src="/src/assets/images/midi-dress.png" alt="Category Icon">
-        </div>
-        <span class="category-label">Váy midi</span>
-      </router-link> 
-
-      <router-link to="" class="circle-wrapper">
-        <div class="circle">
-            <img src="/src/assets/images/skirt_short.png" alt="Category Icon">
-        </div>
-        <span class="category-label">Váy ngắn</span>
-      </router-link> 
-
-      <router-link to="" class="circle-wrapper">
-        <div class="circle">
-            <img src="/src/assets/images/tshirt.png" alt="Category Icon">
-        </div>
-        <span class="category-label">Áo phông</span>
-      </router-link> 
-
-      <router-link to="" class="circle-wrapper">
-        <div class="circle">
-            <img src="/src/assets/images/women.png" alt="Category Icon">
-        </div>
-        <span class="category-label">Áo kiểu</span>
-      </router-link> 
-    </div>
-
-    <div class="col-md-12 d-flex align-item-center justify-content-between mb-5 ">
-      <router-link to="" class="circle-wrapper">
-          <div class="circle">
-              <img src="/src/assets/images/sport_pant.png" alt="Category Icon">
-          </div>
-          <span class="category-label">Quần thể thao</span>
-      </router-link> 
-
-      <router-link to="" class="circle-wrapper">
-          <div class="circle">
-              <img src="/src/assets/images/jeans_pant.png" alt="Category Icon">
-          </div>
-          <span class="category-label">Quần jean</span>
-      </router-link> 
-
-      <router-link to="" class="circle-wrapper">
-          <div class="circle">
-              <img src="/src/assets/images/short.png" alt="Category Icon">
-          </div>
-          <span class="category-label">Quần short</span>
-      </router-link> 
-
-      <router-link to="" class="circle-wrapper">
-          <div class="circle">
-              <img src="/src/assets/images/dress-shirt.png" alt="Category Icon">
-          </div>
-          <span class="category-label">Áo sơ mi</span>
-      </router-link> 
-
-      <router-link to="" class="circle-wrapper">
-          <div class="circle">
-              <img src="/src/assets/images/pijama (1).png" alt="Category Icon">
-          </div>
-          <span class="category-label">Đồ bộ</span>
-      </router-link> 
-
-      <router-link to="" class="circle-wrapper">
-          <div class="circle">
-              <img src="/src/assets/images/jacket.png" alt="Category Icon">
-          </div>
-          <span class="category-label">Áo khoác</span>
-      </router-link>
-    </div>
-        <!-- <div class="card mb-4" v-for="product in discountGroup.products" :key="product.product_id">
-          <div class="product-image">
-            <img v-if="product.images.length > 0" :src="`${BASE_URL}${product.images[0]}`" class="default-img">
-            <img v-if="product.images.length > 1" :src="`${BASE_URL}${product.images[1]}`" class="hover-img">
-          </div>
-          <div class="card-body">
-            <span class="new-price">{{ formatCurrency(product.price_afterdiscount) }} VNĐ</span>
-          </div>
-        </div> -->
-
-    <div class="col-md-12 mb-5">
-      <div class="d-flex justify-content-between align-items-center mb-2" style="background-color: #fac3aa8c;">
-        <p v-for="discountGroup in productSortByDiscount" 
-          :key="discountGroup.discount_id"
-          class="discount-name fs-5 mx-5 pt-3 " 
-          @click="showProduct(discountGroup.discount_id)"
-          :class="{ 'text-black fw-bold  text-decoration-underline': selectedDiscountId === discountGroup.discount_id }" 
-          style="cursor: pointer; color: dimgray;">
-          {{ discountGroup.discount_name }}
-        </p>
-      </div>
-
-      <div class="col-md-12 d-flex justify-content-between align-items-center w-100">
-        <div class="card mb-3" v-for="product in filteredProducts " :key="product.product_id">
-          <div class="product-image" style="height: 291px; width: 219px;">
-            <img v-if="product.images.length > 0" :src="`${BASE_URL}${product.images[0]}`" class="default-img">
-            <img v-if="product.images.length > 1" :src="`${BASE_URL}${product.images[1]}`" class="hover-img">
-          </div>
-          <div class="card-body">
-            <span class="new-price">{{ formatCurrency(product.price_afterdiscount) }} VNĐ</span>
+        <!-- Thêm vào giỏ hàng + Yêu thích -->
+        <div class="d-flex justify-content-center flex-wrap gap-3 mt-4">
+          <button class="btn btn-success text-white fw-bold p-2">Thêm vào giỏ hàng</button>
+          <div 
+            class="border rounded-circle favorite-icon" 
+            :class="{ 'favorite': isFavorite }"
+            @click="toggleFavorite"
+          >
+            <i class="fa-regular fa-heart p-3"></i>
           </div>
         </div>
-      </div>
-    </div>
 
-        <!-- Hiển thị sản phẩm -->
-    <div class="row mb-3">
-      <div v-for="product in productDetails" :key="product.product_id" style="width: 270px;">
-        <div class="card mb-4">
-          <div class="product-image" style="height: 335px;">
-            <img :src="`${BASE_URL}${product.images[0]}`" class="default-img">
-            <img :src="`${BASE_URL}${product.images[1]}`" class="hover-img">
-          </div>
-          <div class="card-body">
-            <h6 class="card-title">{{ product.product_name }}</h6>
+        <!-- Thông tin chi tiết -->
+        <div class="mt-4">
+          <h5 class="text-center">Thông tin chi tiết sản phẩm</h5>
 
-            <p class="price-container">
-              <div v-if="product.sale" class="price-wrapper">
-                <div class="price-text">
-                  <span class="old-price">{{ formatCurrency(product.price_selling) }}</span>
-                  <span class="new-price">{{ formatCurrency(product.price_afterdiscount) }} VNĐ</span>
-                </div>
-                <div class="cart-icon">
-                  <i class="fa-solid fa-cart-plus"></i>
-                </div>
-              </div>
-
-              <div v-if="!product.sale" class="price-wrapper">
-                <span>{{ formatCurrency(product.price_selling) }} VNĐ</span>
-                <div class="cart-icon">
-                  <i class="fa-solid fa-cart-plus"></i>
-                </div>
-              </div>
+          <div class="info-section">
+            <p class="fw-bold m-0 d-flex justify-content-between">
+              Mô tả sản phẩm
+              <button @click="toggleSection('description')" class="btn-toggle">
+                {{ isOpen.description ? '-' : '+' }}
+              </button>
             </p>
-            <span v-if="product.sale" class="badge bg-danger">SALE</span>
-          
+            <span v-if="isOpen.description">{{ productDetail[0].product_description }}</span>
+          </div>
+
+          <div class="info-section">
+            <p class="fw-bold m-0 d-flex justify-content-between">
+              Danh mục sản phẩm
+              <button @click="toggleSection('category')" class="btn-toggle">
+                {{ isOpen.category ? '-' : '+' }}
+              </button>
+            </p>
+            <span v-if="isOpen.category">{{ productDetail.category_description }}</span>
+          </div>
+
+          <div class="info-section">
+            <p class="fw-bold m-0 d-flex justify-content-between">
+              Về thương hiệu sản phẩm
+              <button @click="toggleSection('brand')" class="btn-toggle">
+                {{ isOpen.brand ? '-' : '+' }}
+              </button>
+            </p>
+            <span v-if="isOpen.brand">{{ productDetail.brand_description }}</span>
+          </div>
+
+          <div v-if="productDetail.sale" class="info-section">
+            <p class="fw-bold m-0 d-flex justify-content-between">
+              Chương trình giảm giá
+              <button @click="toggleSection('discount')" class="btn-toggle">
+                {{ isOpen.discount ? '-' : '+' }}
+              </button>
+            </p>
+            <span v-if="isOpen.discount">{{ productDetail.discount_description }}</span>
           </div>
         </div>
       </div>
@@ -581,83 +114,107 @@ export default {
   </div>
 </template>
 
-
 <script>
 import axios from 'axios';
-import { ref, onMounted, computed } from 'vue';
+import { ref, onMounted, computed, isProxy } from 'vue';
+import { useRouter, useRoute } from 'vue-router';
+import Swal from "sweetalert2";
 
 const BASE_URL = "http://localhost:3000";
 
 export default {
   setup() {
+    const product = ref([]);
+    const router = useRouter();
+    const route = useRoute();
+    const product_id = route.params.id;
+
+    const isFavorite = ref(false);
+    const selectedSize = ref(null);
+    const selectedColor = ref(null);
+    const productDetail = ref([]);
+    const productSortByDiscount = ref([]);
+    const selectedImage = ref(null);
+  
+    const isOpen = ref({
+      description: false,
+      category: false,
+      brand: false,
+      discount: false,
+    })
+    const toggleSection = (section) => {
+      isOpen.value[section] = !isOpen.value[section];
+    }
+
+    const toggleFavorite = () => {
+      isFavorite.value = !isFavorite.value;
+    }
+    const selectColor = (colorId) => {
+      selectedColor.value = colorId;
+    }
+    const selectSize = (sizeId) => {
+      selectedSize.value = sizeId;
+    }
+
     const formatCurrency = (amount) => {
-        if (amount === undefined || amount === null) {
-            return "0"; 
-        }
-        return Number(amount).toLocaleString("vi-VN");
+      if (amount === undefined || amount === null) {
+        return "0";
+      }
+      return Number(amount).toLocaleString("vi-VN");
     };
 
-    const currentIndex = ref(0);
-    const itemsPerPage = 6;
-    const hoverImages = ref([]);
-    const productDetails = ref([]);
-    const productSortByDiscount = ref([]);
-    const show = ref(false);
-    const selectedDiscountId = ref(null);
 
-
-    const showProduct = (discountId) => {
-      selectedDiscountId.value = discountId;
-    }
-
-    const filteredProducts = computed(() => {
-      if (!selectedDiscountId.value && productSortByDiscount.value.length > 0) {
-        return productSortByDiscount.value[0].products; // mặc định hiển thị các sản phẩm đầu tiên
-      }
-
-      const selectedGroup = productSortByDiscount.value.find(d => d.discount_id === selectedDiscountId.value);
-      return selectedGroup ? selectedGroup.products : [];
-    })
-
-    const visibleProducts = computed(() => {
-      return filteredProducts.value.slice(currentIndex.value, currentIndex.value + itemsPerPage);
-
-    })
-
-    const nextSlide = () => {
-      if (currentIndex.value + itemsPerPage < filteredProducts.value.length) {
-        currentIndex.value += itemsPerPage;
-      }
-    }
-    const prevSlide = () => {
-      if (currentIndex.value >0) {
-        currentIndex.value -= itemsPerPage;
-      }
-    }
-
-    const fetchProductDetails = async () => {
+    const fetchProductDetail = async () => {
       try {
+        const response = await axios.get(`${BASE_URL}/api/productDetail/productId/${product_id}`);
+        const productDetails = response.data; // Dữ liệu trả về từ API
+        console.log("Giá trị của productDetails được fetch: ", productDetails);
 
-        const response = await axios.get(`${BASE_URL}/api/productDetail`);
-        let productDetailsData = response.data;
+        const colorsRes = await Promise.all(
+          productDetails.map(pd =>
+            axios.get(`${BASE_URL}/api/color/${pd.color_id}`)
+              .then(res => ({ id: pd.color_id, name: res.data.name }))
+              .catch(error => {
+                console.error("Lỗi lấy ColorId: ", error);
+              }),
+          ));
 
-        const [productsResponse, colorsResponse, sizesResponse, imagesResponse, discountsResponse] = await Promise.all([
-          axios.get(`${BASE_URL}/api/product`),  // Lấy toàn bộ sản phẩm
-          axios.get(`${BASE_URL}/api/color`),    // Lấy toàn bộ màu sắc
-          axios.get(`${BASE_URL}/api/size`),     // Lấy toàn bộ size
-          axios.get(`${BASE_URL}/api/image`),    // Lấy toàn bộ hình ảnh
-          axios.get(`${BASE_URL}/api/discount`)  // Lấy toàn bộ discount
+        const SizesRes = await Promise.all(
+          productDetails.map(pd =>
+            axios.get(`${BASE_URL}/api/size/${pd.size_id}`)
+              .then(res => ({
+                id: pd.size_id,
+                name: res.data.name
+              }))
+              .catch(error => {
+                console.error("Lỗi lấy sizeId: ", error);
+              }),
+          ));
+
+        console.log("Giá trị của colorsRes: ", colorsRes);
+        console.log("Giá trị của SizesRes: ", SizesRes);
+
+
+        let [imageData, productData] = await Promise.all([
+          axios.get(`${BASE_URL}/api/image/productId/${product_id}`),
+          axios.get(`${BASE_URL}/api/product/${product_id}`)
         ]);
 
-        const products = productsResponse.data;
-        const colors = colorsResponse.data;
-        const sizes = sizesResponse.data;
-        const images = imagesResponse.data;
-        const discounts = discountsResponse.data;
+        const images = imageData.data;
+        const product = productData.data;
+        console.log("Giá trị của product: ", product);
 
-        const productMap = new Map(products.map(p => [p._id, p]));
-        const colorMap = new Map(colors.map(c => [c._id, c.name]));
-        const sizeMap = new Map(sizes.map(s => [s._id, s.name]));
+        const [categoryData, brandData, discountData] = await Promise.all([
+          axios.get(`${BASE_URL}/api/category/${product.category_id}`),
+          axios.get(`${BASE_URL}/api/brand/${product.brand_id}`),
+          axios.get(`${BASE_URL}/api/discount/${product.discount_id}`)
+        ]);
+
+        const category = categoryData.data;
+        const brand = brandData.data;
+        const discount = discountData.data;
+
+        const productMap = new Map();
         const imageMap = new Map();
 
         images.forEach(img => {
@@ -667,92 +224,78 @@ export default {
           imageMap.get(img.product_id).push(img.url);
         })
 
-        const discountMap = new Map(discounts.map(d => [d._id, d]));
+        productDetails.forEach((detail, index) => {
 
-        let groupedByDiscount = new Map();
-        let groupByProducts = new Map();
-
-        productDetailsData.forEach(pd => {
-          const product = productMap.get(pd.product_id);
-          if (!product) return;
-
-          const discount = discountMap.get(product.discount_id);
-          const imageUrls = imageMap.get(pd.product_id);
-          const colorName = colorMap.get(pd.color_id);
-          const sizeName = sizeMap.get(pd.size_id);
-
-          if (!groupByProducts.has(pd.product_id)) {
-            groupByProducts.set(pd.product_id, {
-              product_id: pd.product_id,
+          if (!productMap.has(detail.product_id)) {
+            productMap.set(detail.product_id, {
+              product_id: detail.product_id,
               product_name: product.name,
-              price_selling: product.price_selling,
-              price_afterdiscount: product.price_afterdiscount || product.price_selling,
-              images: imageUrls || [],
-              colors: new Set(), // Dùng Set để tránh trùng lặp
-              sizes: new Set(),
-              sale: product.price_selling !== product.price_afterdiscount,
-            })
-          }
-
-          const productData = groupByProducts.get(pd.product_id);
-          if (colorName) productData.colors.add(colorName);
-          if (sizeName) productData.sizes.add(sizeName);
-
-        });
-
-        //Chuyển set thành mảng
-        const productList = Array.from(groupByProducts.values()).map(product => ({
-          ...product,
-          colors: Array.from(product.colors),
-          sizes: Array.from(product.sizes),
-        }));
-
-        productList.forEach(product => {
-          const discount = discountMap.get(productMap.get(product.product_id)?.discount_id);
-          if (!discount) {
-            return;
-          }
-          if (!groupedByDiscount.has(discount._id)) {
-            groupedByDiscount.set(discount._id, {
+              category_name: category.name,
+              category_description: category.description,
+              brand_name: brand.name,
+              brand_description: brand.description,
+              brand_website: brand.website,
               discount_id: discount._id,
               discount_name: discount.name,
-              products: new Set(),
+              discount_value: discount.value,
+              discount_description: discount.description,
+              colors: [],
+              sizes: [],
+              images: imageMap.get(detail.product_id) || [],
+              stock: detail.stock,
+              price_selling: product.price_selling,
+              price_afterdiscount: product.price_afterdiscount,
+              product_desciption: product.description,
+              product_status: product.status,
+              sale: product.price_afterdiscount !== product.price_selling,
             });
           }
-            groupedByDiscount.get(discount._id).products.add(product.product_id);
+          const productData = productMap.get(detail.product_id);
+
+          if (detail.color_id) {
+            productData.colors.push({
+              id: colorsRes[index].id,
+              name: colorsRes[index].name
+            });
           }
-        )
+          if (detail.size_id) {
+            productData.sizes.push({
+              id: SizesRes[index].id,
+              name: SizesRes[index].name
+            });
+          }
+        });
 
-        productDetails.value = productList;
-        productSortByDiscount.value = Array.from(groupedByDiscount.values()).map(discount => ({
-          ...discount,
-          products: productList.filter(p=> discount.products.has(p.product_id)), // chỉ lấy các product_id duy nhất
-        }));
-
-        console.log("Giá trị của productList: ", productDetails);
-        console.log("Giá trị của productSortByDiscount:  ", productSortByDiscount);
+        productDetail.value = Array.from(productMap.values());
+        console.log("Chi tiết sản phẩm đã xử lý:", productDetail);
 
       } catch (error) {
-        console.error("Lỗi khi lấy danh sách chi tiết sản phẩm:", error);
+        console.error("Lỗi khi fetch chi tiết sản phẩm:", error);
       }
     }
-    onMounted(async () => {
-      await fetchProductDetails()
 
-    });
+    onMounted(
+      fetchProductDetail
+    );
 
     return {
       formatCurrency,
       BASE_URL,
-      productDetails, 
-      hoverImages,
+      fetchProductDetail,
       productSortByDiscount,
-      showProduct,
-      show, 
-      filteredProducts,
-      selectedDiscountId
-
-    };
+      product,
+      product_id,
+      productDetail,
+      selectColor,
+      selectedColor,
+      selectSize,
+      selectedSize,
+      toggleFavorite,
+      isFavorite,
+      isOpen,
+      toggleSection, 
+      selectedImage
+    }
   }
 }
 </script>
@@ -762,7 +305,6 @@ export default {
         border-right: 1px solid #f3d0c8;
         padding-right: 5px;
     } 
-
     .card{
       border: none;
     }
@@ -833,6 +375,7 @@ export default {
     width: 100%;
     height: 100%;
     overflow: hidden;
+    border-radius: 4px;
   }
 
   .product-image img {
@@ -875,13 +418,13 @@ export default {
 .old-price {
   text-decoration: line-through;
   color: gray;
-  font-size: 14px;
+  font-size: 15px;
   font-style: italic;
 }
 
 .new-price {
   color: red;
-  font-size: 14px;
+  font-size: 22px;
   font-weight: bold;
 }
 
@@ -897,4 +440,627 @@ export default {
   color: red;
 }
 
+  .product-slider {
+    display: flex;
+    overflow: hidden; /* Ẩn các sản phẩm dư */
+    width: 100%; /* Giới hạn chiều rộng hiển thị */
+  }
+
+  .prev-btn, .next-btn {
+
+    position: absolute;
+    top: 50%;
+    transform: translateY(-50%);
+    background-color: hsla(0, 0%, 100%, .6); /* Màu nền */
+    color: black;
+    font-size: 20px;
+    padding: 7px;
+    cursor: pointer;
+    border-radius: 50%; /* Làm bo tròn */
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    z-index: 10;
+    border: none;
+
+  }
+
+    .prev-btn:hover, .next-btn:hover{
+          background-color: white;
+    }
+
+  .prev-btn { left: 20px; }
+  .next-btn { right: 20px; }
+
+/* 
+  .color-item, .size-item {
+    cursor: pointer;
+    transition: all 0.3s ease;
+  }
+
+  .color-item.selected,   .size-item.selected{
+  border: 2px solid black !important; /* Viền đậm hơn 
+  font-weight: bold;
+  box-shadow: 0 0 5px rgba(0, 0, 0, 0.5); 
+  } */
+
+  .btn-toggle {
+    background: none;
+    border: none;
+    font-size: 18px;
+    font-weight: bold;
+    cursor: pointer;
+    transition: 0.3s;
+  }
+  .btn-toggle:hover {
+    color: red;
+  }
+
+/* Ảnh sản phẩm */
+.thumbnail-img {
+  width: 80px;
+  cursor: pointer;
+}
+
+.selected-thumbnail {
+  border: 2px solid red;
+}
+
+.main-image {
+  max-width: 100%;
+}
+
+/* Chọn màu & kích cỡ */
+.color-item, .size-item {
+  cursor: pointer;
+  transition: all 0.3s ease;
+}
+
+.color-item.selected, .size-item.selected {
+  border: 2px solid black;
+  font-weight: bold;
+  box-shadow: 0 0 5px rgba(0, 0, 0, 0.5);
+}
+
+/* Yêu thích */
+.favorite-icon {
+  cursor: pointer;
+}
+
+.favorite {
+  background-color: red;
+}
+
+/* Chi tiết sản phẩm */
+.info-section {
+  border-bottom: 1px solid #ddd;
+  padding: 10px 0;
+}
+
+.btn-toggle {
+  background: none;
+  border: none;
+  font-size: 18px;
+  font-weight: bold;
+  cursor: pointer;
+}
+</style>
+
+
+
+
+
+
+
+---- bảng fetchProductDetails trong productDetail
+<template>
+  <div class="container  d-flex justify-content-center mt-3 mx-auto">
+    <div class="d-flex" style="width: 1200px;">
+      <div class="col-md-1 text-end mx-1" v-if="productDetail.length">
+        <div v-if="productDetail[0].images.length">
+          <div v-for="(image, index) in productDetail[0].images" :key="image" @click="showImageIndex(index)" >
+            <img style="width: 60px; height: 77px; cursor: pointer; border: 2px solid transparent"
+             :src="`${BASE_URL}${image}`" class="mb-1 p-1" :class="{ 'border-dark' : index === selectedImageIndex }">
+          </div>
+        </div>
+      </div>
+
+      <div class="col-md-7 mx-auto" v-if="productDetail.length">
+        <img style="width: 700px; height: 850px;" v-if="productDetail[0].images.length" :src="`${BASE_URL}${productDetail[0].images[selectedImageIndex]}`">
+      </div>
+
+      <div class="col-md-3 m-2" v-if="productDetail.length">
+        <p class="m-1" style="font-family:'Franklin Gothic Medium', 'Arial Narrow', Arial, sans-serif; font-size: 15px;">{{ productDetail[0]. product_name}}</p>
+        <div v-if="productDetail[0].sale">
+          <div class="d-flex justify-content-rounded flex-wrap gap-2">
+            <p class="old-price m-1">{{ formatCurrency(productDetail[0].price_selling) }} VND</p>
+            <span class="m-1 text-white fs-15" style="background-color: #fa6338; border-radius: 2px;">{{ -productDetail[0].discount_value }}%</span>
+          </div>
+          <p class="new-price m-1">{{formatCurrency( productDetail[0].price_afterdiscount) }} VND</p> 
+        </div>
+
+        <p class="m-1" v-else style="font-family: Arial, Helvetica, sans-serif; font-weight: 700; font-size: 30px;" >{{ formatCurrency(productDetail[0].price_selling) }} VND</p>
+
+        <p class="m-1">Kho: {{ productDetail[0].stock }}</p>
+        <hr>
+        
+        <span class="m-1 fw-bold">Màu sắc sản phẩm: </span>
+        <div class="d-flex justify-content-center flex-wrap gap-2">
+          <span class="border rounded-circle p-2 m-1 color-item" 
+            :class="{'selected': selectedColor === color.id}"
+            v-for="color in productDetail[0].colors" 
+            :key="color.id"
+            @click="selectColor(color.id)">
+            {{ color.name }}
+          </span>
+        </div>
+        <span class="m-1 fw-bold">Kích cỡ: </span>
+        <div  class="d-flex justify-content-center flex-wrap gap-2">
+          <span v-for="size in productDetail[0].sizes" :key="size.id" 
+          class=" border rounded-circle  p-2 size-item" 
+          :class="{'selected': selectedSize === size.id}"
+          @click="selectSize(size.id)"
+          >
+          {{ size.name }}
+        </span>
+        </div>
+
+        <div class="d-flex justify-content-center flex-wrap gap-3 mt-4">
+          <button type="submit" class="btn border border-radius-2 fs-6 p-2 bg-success fw-bold text-white">Thêm vào giỏ hàng</button>
+            <div 
+          class="border rounded-circle" 
+          @click="toggleFavorite"
+          :class="{'border-3 border-danger': isFavorite, 'border-1 border-dark': !isFavorite}">
+          <i class="fa-heart p-3 align-items-center"
+            :class="{'fa-solid text-danger': isFavorite, 'fa-regular text-dark': !isFavorite}">
+          </i>
+        </div>
+
+        </div>
+        <hr>
+        <h5 class="justify-content-center mb-2">Thông tin chi tiết sản phẩm</h5>
+        <div>
+          <p class="fw-bold m-0 d-flex justify-content-between align-items-center">
+            Mô tả sản phẩm
+            <button @click="toggleSection('description')" class="btn-toggle">
+              {{ isOpen.description ? '-' : '+' }}
+            </button>
+          </p>
+          <span v-if="isOpen.description" class="m-1"> {{ productDetail[0].product_desciption }}</span>
+        </div>
+
+        <div>
+          <p class="fw-bold m-0 d-flex justify-content-between align-items-center">
+            Danh mục sản phẩm
+            <button @click="toggleSection('category')" class="btn-toggle">
+              {{ isOpen.category ? '-' : '+' }}
+            </button>
+          </p>
+          <div v-if="isOpen.category" >
+            <span class="m-1">{{ productDetail[0].category_description }}</span>
+            <br>
+            <span class="m-1 text-decoration-underline">Xem các sản phẩm có cùng danh mục</span>
+          </div  >
+
+        </div>
+
+        <div>
+          <p class="fw-bold m-0 d-flex justify-content-between align-items-center">
+            Về thương hiệu
+            <button @click="toggleSection('brand')" class="btn-toggle">
+              {{ isOpen.brand ? '-' : '+' }}
+            </button>
+          </p>
+          <div  v-if="isOpen.brand" >
+            <span class="m-1">{{ productDetail[0].brand_description }}</span>
+            <span class="m-1">{{ productDetail[0].brand_website }}</span>
+            <br>
+            <span class="m-1 text-decoration-underline">Xem các sản phẩm có cùng thương hiệu</span>
+          </div>
+        </div>
+
+        <div v-if="productDetail[0].sale">
+          <p class="fw-bold m-0 d-flex justify-content-between align-items-center">
+            Chương trình giảm giá
+            <button @click="toggleSection('discount')" class="btn-toggle">
+              {{ isOpen.discount ? '-' : '+' }}
+            </button>
+          </p>
+          <span v-if="isOpen.discount" class="m-1">{{ productDetail[0].discount_description }}</span>
+        </div>
+      </div>
+    </div>
+  </div>
+</template>
+
+<script>
+import axios from 'axios';
+import { ref, onMounted, computed, isProxy } from 'vue';
+import { useRouter, useRoute } from 'vue-router';
+import Swal from "sweetalert2";
+
+const BASE_URL = "http://localhost:3000";
+
+export default {
+  setup() {
+    const product = ref([]);
+    const router = useRouter();
+    const route = useRoute();
+    const product_id = route.params.id;
+
+    const isFavorite = ref(false);
+    const selectedSize = ref(null);
+    const selectedColor = ref(false);
+    const currentIndex = ref(0);
+    const itemsPerPage = 6;
+    const productDetail = ref([]);
+    const productSortByDiscount = ref([]);
+    const selectedImageIndex = ref(0);
+
+
+    const isOpen = ref({
+      description: false,
+      category: false,
+      brand: false,
+      discount: false,
+    })
+    const toggleSection = (section) => {
+      isOpen.value[section] = !isOpen.value[section];
+    }
+
+    const toggleFavorite = () => {
+      isFavorite.value = !isFavorite.value;
+    }
+    const selectColor = (colorId) => {
+      selectedColor.value = colorId;
+    }
+    const selectSize = (sizeId) => {
+      selectedSize.value = sizeId;
+    }
+
+    const showImageIndex = (index) => {
+      selectedImageIndex.value = index;
+      console.log("Giá trị của showImageIndex: ", selectedImageIndex.value);
+    }
+
+    const formatCurrency = (amount) => {
+      if (amount === undefined || amount === null) {
+        return "0";
+      }
+      return Number(amount).toLocaleString("vi-VN");
+    };
+
+
+    const fetchProductDetail = async () => {
+      try {
+        const response = await axios.get(`${BASE_URL}/api/productDetail/productId/${product_id}`);
+        const productDetails = response.data; // Dữ liệu trả về từ API
+        console.log("Giá trị của productDetails được fetch: ", productDetails);
+
+        const colorsRes = await Promise.all(
+          productDetails.map(pd =>
+            axios.get(`${BASE_URL}/api/color/${pd.color_id}`)
+              .then(res => ({ id: pd.color_id, name: res.data.name }))
+              .catch(error => {
+                console.error("Lỗi lấy ColorId: ", error);
+              }),
+          ));
+
+        const SizesRes = await Promise.all(
+          productDetails.map(pd =>
+            axios.get(`${BASE_URL}/api/size/${pd.size_id}`)
+              .then(res => ({
+                id: pd.size_id,
+                name: res.data.name
+              }))
+              .catch(error => {
+                console.error("Lỗi lấy sizeId: ", error);
+              }),
+          ));
+
+        console.log("Giá trị của colorsRes: ", colorsRes);
+        console.log("Giá trị của SizesRes: ", SizesRes);
+
+
+        let [imageData, productData] = await Promise.all([
+          axios.get(`${BASE_URL}/api/image/productId/${product_id}`),
+          axios.get(`${BASE_URL}/api/product/${product_id}`)
+        ]);
+
+        const images = imageData.data;
+        const product = productData.data;
+        console.log("Giá trị của product: ", product);
+
+        const [categoryData, brandData, discountData] = await Promise.all([
+          axios.get(`${BASE_URL}/api/category/${product.category_id}`),
+          axios.get(`${BASE_URL}/api/brand/${product.brand_id}`),
+          axios.get(`${BASE_URL}/api/discount/${product.discount_id}`)
+        ]);
+
+        const category = categoryData.data;
+        const brand = brandData.data;
+        const discount = discountData.data;
+
+        const productMap = new Map();
+        const imageMap = new Map();
+
+        images.forEach(img => {
+          if (!imageMap.has(img.product_id)) {
+            imageMap.set(img.product_id, [])
+          }
+          imageMap.get(img.product_id).push(img.url);
+        })
+
+        productDetails.forEach((detail, index) => {
+
+          if (!productMap.has(detail.product_id)) {
+            productMap.set(detail.product_id, {
+              product_id: detail.product_id,
+              product_name: product.name,
+              category_name: category.name,
+              category_description: category.description,
+              brand_name: brand.name,
+              brand_description: brand.description,
+              brand_website: brand.website,
+              discount_id: discount._id,
+              discount_name: discount.name,
+              discount_value: discount.value,
+              discount_description: discount.description,
+              colors: [],
+              sizes: [],
+              images: imageMap.get(detail.product_id) || [],
+              stock: detail.stock,
+              price_selling: product.price_selling,
+              price_afterdiscount: product.price_afterdiscount,
+              product_desciption: product.description,
+              product_status: product.status,
+              sale: product.price_afterdiscount !== product.price_selling,
+            });
+          }
+          const productData = productMap.get(detail.product_id);
+
+          if (detail.color_id) {
+            productData.colors.push({
+              id: colorsRes[index].id,
+              name: colorsRes[index].name
+            });
+          }
+          if (detail.size_id) {
+            productData.sizes.push({
+              id: SizesRes[index].id,
+              name: SizesRes[index].name
+            });
+          }
+        });
+
+        productDetail.value = Array.from(productMap.values());
+        console.log("Chi tiết sản phẩm đã xử lý:", productDetail);
+
+      } catch (error) {
+        console.error("Lỗi khi fetch chi tiết sản phẩm:", error);
+      }
+    }
+
+    onMounted(
+      fetchProductDetail
+    );
+
+    return {
+      formatCurrency,
+      BASE_URL,
+      fetchProductDetail,
+      productSortByDiscount,
+      product,
+      product_id,
+      productDetail,
+      showImageIndex,
+      selectedImageIndex,
+      selectColor,
+      selectedColor,
+      selectSize,
+      selectedSize,
+      toggleFavorite,
+      isFavorite,
+      isOpen,
+      toggleSection
+    }
+  }
+}
+</script>
+
+<style scoped>
+     .filter-section {
+        border-right: 1px solid #f3d0c8;
+        padding-right: 5px;
+    } 
+    .card{
+      border: none;
+    }
+
+    .card img {
+        height: 200px;
+        object-fit: cover;
+    }
+    .card-body {
+      padding: 0px;
+      text-align: center;
+      margin-right: 0px;
+    }
+    .card-title {
+      white-space: nowrap;        /* Không cho xuống dòng */
+      overflow: hidden;           /* Ẩn nội dung bị tràn */
+      text-overflow: ellipsis;    /* Hiển thị dấu "..." */
+      max-width: 100%;            /* Đảm bảo không vượt quá khung */
+    }
+    .badge {
+        position: absolute;
+        top: 10px;
+        right: 10px;
+    }
+
+  .badge-sale {
+    background-color: red;
+    color: white;
+    font-size: 12px;
+    padding: 3px 6px;
+    border-radius: 5px;
+    font-weight: bold;
+  }
+
+  .circle-wrapper {
+      display: flex;
+      flex-direction: column;
+      align-items: center; /* Căn giữa theo chiều ngang */
+      text-align: center;
+      text-decoration: none;
+  }
+
+    .circle {
+        width: 100px;
+        height: 100px;
+        border-radius: 50%;
+        background-color: #f6d6d6; /* Màu nền của vòng tròn */
+        /* background-color: #f2f2f2; Màu nền của vòng tròn */
+        display: flex;
+        justify-content: center;
+        align-items: center;
+    }
+
+  .circle img {
+      max-width: 60%; /* Để hình ảnh nằm gọn trong vòng tròn */
+      height: auto;
+  }
+
+  .category-label {
+      margin-top: 8px; /* Khoảng cách giữa vòng tròn và chữ */
+      font-size: 14px;
+      font-weight: bold;
+      text-decoration: none ;
+      color: #000;
+  }
+  .product-image {
+    position: relative;
+    width: 100%;
+    height: 100%;
+    overflow: hidden;
+    border-radius: 4px;
+  }
+
+  .product-image img {
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
+    position: absolute;
+    transition: opacity 0.6s ease-in-out;
+  }
+
+  .default-img {
+    opacity: 1;
+  }
+
+  .hover-img {
+    opacity: 0;
+  }
+
+  .product-image:hover .default-img {
+    opacity: 0;
+  }
+
+  .product-image:hover .hover-img {
+    opacity: 1;
+  }
+
+  .price-wrapper {
+  display: flex;
+  justify-content: space-between;
+  align-items: center; /* Giúp các phần tử thẳng hàng */
+  width: 100%;
+}
+
+.price-text {
+  display: flex;
+  align-items: center;
+  gap: 10px; /* Khoảng cách giữa giá gốc và giá giảm */
+}
+
+.old-price {
+  text-decoration: line-through;
+  color: gray;
+  font-size: 15px;
+  font-style: italic;
+}
+
+.new-price {
+  color: red;
+  font-size: 22px;
+  font-weight: bold;
+}
+
+.cart-icon {
+  cursor: pointer;
+  font-size: 18px;
+  color: #333;
+  transition: transform 0.2s ease-in-out;
+}
+
+.cart-icon:hover {
+  transform: scale(1.1);
+  color: red;
+}
+
+  .product-slider {
+    display: flex;
+    overflow: hidden; /* Ẩn các sản phẩm dư */
+    width: 100%; /* Giới hạn chiều rộng hiển thị */
+  }
+
+  .prev-btn, .next-btn {
+
+    position: absolute;
+    top: 50%;
+    transform: translateY(-50%);
+    background-color: hsla(0, 0%, 100%, .6); /* Màu nền */
+    color: black;
+    font-size: 20px;
+    padding: 7px;
+    cursor: pointer;
+    border-radius: 50%; /* Làm bo tròn */
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    z-index: 10;
+    border: none;
+
+  }
+
+    .prev-btn:hover, .next-btn:hover{
+          background-color: white;
+    }
+
+  .prev-btn { left: 20px; }
+  .next-btn { right: 20px; }
+
+
+  .color-item, .size-item {
+    cursor: pointer;
+    transition: all 0.3s ease;
+  }
+
+  .color-item.selected,   .size-item.selected{
+  border: 2px solid black !important; /* Viền đậm hơn */
+  font-weight: bold; /* Chữ in đậm */
+  box-shadow: 0 0 5px rgba(0, 0, 0, 0.5); /* Hiệu ứng nổi bật */
+  }
+
+  .btn-toggle {
+    background: none;
+    border: none;
+    font-size: 18px;
+    font-weight: bold;
+    cursor: pointer;
+    transition: 0.3s;
+  }
+  .btn-toggle:hover {
+    color: red;
+  }
 </style>

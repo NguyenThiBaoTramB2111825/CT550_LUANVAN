@@ -19,8 +19,8 @@
             <div class="mb-3 d-flex">
                 <label class="col-md-2">Trạng thái</label>
                 <select v-model="brand.isActive" class="form-control" required>
-                    <option value="true">Đang hoạt động</option>
-                    <option value="false">Đã xóa<a href=""></a></option>
+                    <option :value="true">Đang hoạt động</option>
+                    <option :value="false">Đã xóa<a href=""></a></option>
                 </select>
 
             </div>
@@ -60,7 +60,7 @@ export default {
             name: '',
             description: '',
             website: '',
-            isActive: '',
+            isActive: null,
         });
 
         const fetchBrand = async () => {

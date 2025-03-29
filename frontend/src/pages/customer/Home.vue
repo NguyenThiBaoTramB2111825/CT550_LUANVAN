@@ -26,7 +26,7 @@
     </div>
     <div class="col-md-12 d-flex align-item-center justify-content-between mb-4">
 
-      <router-link to="/category/skirt" class="circle-wrapper">
+      <router-link to="" class="circle-wrapper">
         <div class="circle">
             <img src="/src/assets/images/skirt.png" alt="Category Icon">
         </div>
@@ -145,7 +145,7 @@
         <!-- Hiển thị sản phẩm -->
     <div class="row mb-3">
       <div v-for="product in productDetails" :key="product.product_id" style="width: 270px;">
-        <div class="card mb-4">
+        <div class="card mb-4"  @click="gotoProductDetail(product.product_id)" >
           <div class="product-image" style="height: 335px;">
             <img :src="`${BASE_URL}${product.images[0]}`" class="default-img">
             <img :src="`${BASE_URL}${product.images[1]}`" class="hover-img">
@@ -184,16 +184,25 @@
 <script>
 import axios from 'axios';
 import { ref, onMounted, computed } from 'vue';
+import { useRouter } from 'vue-router';
 
 const BASE_URL = "http://localhost:3000";
 
 export default {
   setup() {
+    const router = useRouter();
+
     const formatCurrency = (amount) => {
-        if (amount === undefined || amount === null) {
-            return "0"; 
-        }
-        return Number(amount).toLocaleString("vi-VN");
+      if (amount === undefined || amount === null) {
+        return "0";
+      }
+      return Number(amount).toLocaleString("vi-VN");
+    };
+
+
+    const gotoProductDetail = (id) => {
+      console.log("Giá trị id được truyền: ", id);
+      router.push({ name: 'productDetail2', params: { id } });
     };
 
     const currentIndex = ref(0);
@@ -215,7 +224,7 @@ export default {
       }
 
       const selectedGroup = productSortByDiscount.value.find(d => d.discount_id === selectedDiscountId.value);
-        currentIndex.value = 0;
+      currentIndex.value = 0;
       return selectedGroup ? selectedGroup.products : [];
     })
 
@@ -229,7 +238,7 @@ export default {
       }
     }
     const prevSlide = () => {
-      if (currentIndex.value >0) {
+      if (currentIndex.value > 0) {
         currentIndex.value -= 1;
       }
     }
@@ -317,14 +326,14 @@ export default {
               products: new Set(),
             });
           }
-            groupedByDiscount.get(discount._id).products.add(product.product_id);
-          }
+          groupedByDiscount.get(discount._id).products.add(product.product_id);
+        }
         )
 
         productDetails.value = productList;
         productSortByDiscount.value = Array.from(groupedByDiscount.values()).map(discount => ({
           ...discount,
-          products: productList.filter(p=> discount.products.has(p.product_id)), // chỉ lấy các product_id duy nhất
+          products: productList.filter(p => discount.products.has(p.product_id)), // chỉ lấy các product_id duy nhất
         }));
 
         console.log("Giá trị của productList: ", productDetails);
@@ -342,19 +351,19 @@ export default {
     return {
       formatCurrency,
       BASE_URL,
-      productDetails, 
+      productDetails,
       hoverImages,
       productSortByDiscount,
       showProduct,
-      show, 
+      show,
       filteredProducts,
-      selectedDiscountId, 
-      visibleProducts, 
-      nextSlide, 
+      selectedDiscountId,
+      visibleProducts,
+      nextSlide,
       prevSlide,
-      currentIndex
-
-    };
+      currentIndex,
+      gotoProductDetail
+    }
   }
 }
 </script>

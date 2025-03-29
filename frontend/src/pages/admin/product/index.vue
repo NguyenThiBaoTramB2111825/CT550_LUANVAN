@@ -397,7 +397,7 @@ export default {
             existingImages,
             triggerFileInput,
             fileInput,
-        };
+        }
     }
 }
 </script>

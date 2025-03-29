@@ -69,6 +69,8 @@ export default {
             try {
                 const response = await axios.get("http://127.0.0.1:3000/api/brand");
                 brands.value = response.data;
+
+                console.log("Giá trị của brands sau khi fetch: ", brands);
             } catch (error) {
                 console.error("Lỗi khi lấy danh sách người dùng:", error);
             }

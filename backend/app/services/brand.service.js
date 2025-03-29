@@ -1,4 +1,5 @@
 const { ObjectId, ReturnDocument } = require("mongodb");
+const { io } = require("socket.io");
 
 class BrandService{
     constructor(client) {
@@ -13,7 +14,6 @@ class BrandService{
             description: payload.description,
             website: payload.website,
             isActive:  payload.isActive !== undefined ? payload.isActive : true, // Sửa lỗi ở đây
-
         };
         Object.keys(brand).forEach(
             (key) => brand[key] === undefined && delete brand[key]

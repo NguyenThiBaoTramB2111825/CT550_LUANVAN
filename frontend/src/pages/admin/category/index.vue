@@ -29,9 +29,7 @@
                     <td>
                         <button class="btn  btn-danger" @click="deleteCategory(category._id)">Xóa</button> 
                         <button class="btn  btn-success mx-1" @click="goToUpdatePage(category._id)">Cập nhật</button> 
-                        
                     </td>
-                    
                 </tr>
             </tbody>
         </table>
@@ -67,6 +65,8 @@ export default {
             try {
                 const response = await axios.get("http://127.0.0.1:3000/api/category");
                 categorys.value = response.data;
+
+                console.log("Giá trị của category sau khi fetch: ", categorys);
             } catch (error) {
                 console.error("Lỗi khi lấy danh sách người dùng:", error);
             }

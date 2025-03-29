@@ -25,53 +25,76 @@
           </div>
 
           <div class="col-md-3 ms-auto justify-content-end align-items-center  d-flex">      
-              <a href="#" class="btn btn-outline-dark me-2"><i class="bi bi-heart"></i></a>
-
+            <a href="#" class="btn btn-outline-dark me-2"><i class="bi bi-heart"></i></a>
             <div class="dropdown">
-            <button type="button" id="userDropdown" class="btn btn-outline-dark me-2 dropdown-toggle"
-              @click="toggleDropdown">
-              <i class="bi bi-person"></i>
-            </button>
-              <ul class="dropdown-menu" :class="{ 'show': isDropdownOpen }" aria-labelledby="userDropdown">
-                  <li v-if="token" ><a class="dropdown-item" @click="logout">Đăng Xuất</a></li>
-                  <li v-if="token" ><a class="dropdown-item" @click="information">Trang thông tin cá nhân</a></li>
-                  <li v-if="!token" ><a class="dropdown-item" @click="login">Đăng nhập</a></li>
-              </ul>
+              <button type="button" id="userDropdown" class="btn btn-outline-dark me-2 dropdown-toggle"
+                @click="toggleDropdown">
+                <i class="bi bi-person"></i>
+              </button>
+                <ul class="dropdown-menu" :class="{ 'show': isDropdownOpen }" aria-labelledby="userDropdown">
+                    <li v-if="token" ><a class="dropdown-item" @click="logout">Đăng Xuất</a></li>
+                    <li v-if="token" ><a class="dropdown-item" @click="information">Trang thông tin cá nhân</a></li>
+                    <li v-if="!token" ><a class="dropdown-item" @click="login">Đăng nhập</a></li>
+                </ul>
           </div>
-
           <div>
             <a href="#" class="btn btn-outline-dark">
               <i class="bi bi-cart"></i> (0)
             </a>
           </div>
-          </div>
+
         </div>
-
-        <div class="row w-70">
-          <div class="collapse navbar-collapse " id="navbarNav">
-            <ul class="navbar-nav d-flex justify-content-around w-70">
-              <li class="nav-item"><a class="nav-link" href="#">Sản phẩm mới</a></li>
-              <li class="nav-item dropdown">
-                  <a class="nav-link dropdown-toggle" href="#" id="giftsDropdown" data-bs-toggle="dropdown">Đầm, váy</a>
-                  <ul class="dropdown-menu" >
-                    <li><a class="dropdown-item" href="#">Gift Cards</a></li>
-                    <li><a class="dropdown-item" href="#">Special Offers</a></li>
-                  </ul>
-                </li>
-              <li class="nav-item"><a class="nav-link" href="#">Áo cardigan & áo len</a></li>
-              <li class="nav-item"><a class="nav-link" href="#">Áo khoác</a></li>
-              <li class="nav-item"><a class="nav-link" href="#">Áo sơ mi</a></li>
-              <li class="nav-item"><a class="nav-link" href="#">Áo kiểu</a></li>
-              <li class="nav-item"><a class="nav-link" href="#">Quần jean</a></li>
-              <li class="nav-item"><a class="nav-link" href="#">Chân váy</a></li>
-              <li class="nav-item"><a class="nav-link" href="#">Sale</a></li>
-              <li class="nav-item"><a class="nav-link" href="#">Chân váy</a></li>
-              <li class="nav-item"><a class="nav-link" href="#">Sale</a></li>
-            </ul>
-          </div>
-         </div>
-
       </div>
+
+      <div class="row w-70">
+        <div class="collapse navbar-collapse" id="navbarNav">
+          <ul class="navbar-nav d-flex justify-content-around w-70">
+            <li class="nav-item"><a class="nav-link" href="#">Sản phẩm</a></li>
+
+            <li class="nav-item dropdown">
+              <button 
+                class="nav-link dropdown-toggle" 
+                id="BrandDropdown" 
+                data-bs-toggle="dropdown"
+                aria-expanded="false"
+              >
+                Thương hiệu
+              </button>
+              <ul class="dropdown-menu" aria-labelledby="BrandDropdown">
+                <li v-for="brand in brands" :key="brand.id">
+                  <a class="dropdown-item text-dark" href="#">{{ brand.name }}</a>
+                </li>
+              </ul>
+            </li>
+
+            <li class="nav-item dropdown">
+              <button class="nav-link dropdown-toggle" id="CategoryDropdown" data-bs-toggle="dropdown" aria-expanded="false">
+                Danh mục
+              </button>
+              <ul class="dropdown-menu" aria-labelledby="CategoryDropdown">
+                <li v-for="category in categorys" :key="category.id">
+                  <a class="dropdown-item" href="#">{{ category.name }}</a>
+                </li>
+              </ul>
+            </li>
+
+            <li class="nav-item dropdown">
+              <button class="nav-link dropdown-toggle" id="CategoryDropdown" data-bs-toggle="dropdown" aria-expanded="false">
+                Khuyến mãi
+              </button>
+              <ul class="dropdown-menu" aria-labelledby="CategoryDropdown">
+                <li v-for="discount in discounts" :key="discount.id">
+                  <a class="dropdown-item" href="#">{{ discount.name }}</a>
+                </li>
+              </ul>
+            </li>
+
+            <li class="nav-item"><a class="nav-link" href="#">Liên hệ, hỗ trợ</a></li>
+            <li class="nav-item"><a class="nav-link" href="#">Về chúng tôi</a></li>
+          </ul>
+        </div>
+      </div>
+    </div>
     </nav>
   </header>
 </template>
@@ -81,6 +104,12 @@ import { useRouter } from "vue-router";
 import { onMounted, ref } from "vue";
 import Swal from 'sweetalert2';
 import Cookies from 'js-cookie';
+import axios from 'axios';
+
+import { Dropdown } from 'bootstrap';
+document.querySelectorAll('.dropdown-toggle').forEach(dropdown => {
+  new Dropdown(dropdown);
+});
 
 export default {
   components: {
@@ -89,6 +118,22 @@ export default {
     const router = useRouter();
     const isDropdownOpen = ref(false);
     const token = Cookies.get("accessToken");
+    const brands = ref([]);
+    const categorys = ref([]);
+    const discounts = ref([]);
+
+    const isOpen = ref({
+      brands: false,
+      categorys: false,
+      discounts: false,
+    })
+
+    const toggleSection = (section) => {
+      Object.keys(isOpen.value).forEach((key) => {
+        isOpen.value[key] = key === section ? !isOpen.value[key] : false;
+      })
+    }
+
     const logout = () => {
       Cookies.remove('accessToken');
 
@@ -117,7 +162,41 @@ export default {
         console.log("Dropdown state:", isDropdownOpen.value);
     };
 
-    return { token, logout, login, information, isDropdownOpen, toggleDropdown};
+    const fetchInfomation = async () => {
+      try {
+        const response = await axios.get("http://127.0.0.1:3000/api/brand");
+        brands.value = response.data.filter(bd => bd.isActive);
+        console.log("Giá trị của brands được fetch: ", brands);
+
+        const response_category = await axios.get("http://127.0.0.1:3000/api/category");
+        categorys.value = response_category.data.filter(ct => ct.isActive);
+        console.log("Giá trị của category sau khi fetch: ", categorys);
+
+        const response_discount = await axios.get("http://127.0.0.1:3000/api/discount");
+        discounts.value = response_discount.data.filter(dc => 
+          dc.isActive === true &&
+          dc.type === "percentage"
+        );
+        console.log("Giá trị của disocunt sau khi fetch: ", discounts);
+      } catch (error) {
+        console.error("Lỗi khi lấy danh sách người dùng:", error);
+      }
+    }
+
+    onMounted(fetchInfomation)
+    return {
+      token,
+      logout,
+      login,
+      information,
+      isDropdownOpen,
+      toggleDropdown,
+      brands,
+      toggleSection,
+      isOpen,  
+      categorys,
+      discounts
+    };
   }
 }
 </script>

@@ -14,8 +14,8 @@ class ProductService{
         const product = {
             name: payload.name,
             description: payload.description,
-            price_afterdiscount: payload.price_selling ? parseFloat(payload.price_selling) : undefined,
             price_selling: payload.price_selling ? parseFloat(payload.price_selling) : undefined,
+            price_afterdiscount: payload.price_selling ? parseFloat(payload.price_selling) : undefined,
             status: payload.status || "Đang hoạt động",
             category_id: ObjectId.isValid(payload.category_id) ? new ObjectId(payload.category_id) : undefined,
             discount_id: ObjectId.isValid(payload.discount_id) ? new ObjectId(payload.discount_id) : undefined,
