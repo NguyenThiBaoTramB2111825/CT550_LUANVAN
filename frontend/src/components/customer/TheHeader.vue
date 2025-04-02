@@ -162,21 +162,21 @@ export default {
 
     const toggleDropdown = () => {
       isDropdownOpen.value = !isDropdownOpen.value;
-        console.log("Dropdown state:", isDropdownOpen.value);
+      console.log("Dropdown state:", isDropdownOpen.value);
     };
 
     const fetchInfomation = async () => {
       try {
         const response = await axios.get("http://127.0.0.1:3000/api/brand");
         brands.value = response.data.filter(bd => bd.isActive);
-        console.log("Giá trị của brands được fetch: ", brands);
+        // console.log("Giá trị của brands được fetch: ", brands);
 
         const response_category = await axios.get("http://127.0.0.1:3000/api/category");
         categorys.value = response_category.data.filter(ct => ct.isActive);
         console.log("Giá trị của category sau khi fetch: ", categorys);
 
         const response_discount = await axios.get("http://127.0.0.1:3000/api/discount");
-        discounts.value = response_discount.data.filter(dc => 
+        discounts.value = response_discount.data.filter(dc =>
           dc.isActive === true &&
           dc.type === "percentage"
         );
@@ -195,7 +195,17 @@ export default {
           } else if (action === "update") {
             const index = brands.value.findIndex(b => b._id === data._id);
             if (index !== -1) {
-              brands.value[index] = data;
+              if (data.isActive) {
+                brands.value[index] = data;
+              }
+              else {
+                brands.value.splice(index, 1);
+              }
+            }
+            else {
+              if (data.isActive) {
+                brands.value.push(data);
+              }
             }
           }
           else if (action === "delete") {
@@ -204,7 +214,38 @@ export default {
           else if (action === "soft_delete") {
             const index = brands.value.findIndex(b => b._id === data._id);
             if (index !== -1) {
-              brands.value[index].isActive = false;
+                brands.value[index].isActive = false;
+            }
+          }
+        }),
+
+        socket.on('category_update', ({ action, data }) => {
+          if (action === "create") {
+            categorys.value.push(data);
+
+          } else if (action === "update") {
+            const index = categorys.value.findIndex(b => b._id === data._id);
+            if (index !== -1) {
+              if (data.isActive) {
+                categorys.value[index] = data;
+              }
+              else {
+                categorys.value.splice(index, 1);
+              }
+            }
+            else {
+              if (data.isActive) {
+                categorys.value.push(data);
+              }
+            }
+          }
+          else if (action === "delete") {
+            categorys.value = categorys.value.filter(b => b._id !== data._id);
+          }
+          else if (action === "soft_delete") {
+            const index = categorys.value.findIndex(b => b._id === data._id);
+            if (index !== -1) {
+                categorys.value[index].isActive = false;
             }
           }
         })

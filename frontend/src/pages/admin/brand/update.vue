@@ -20,7 +20,7 @@
                 <label class="col-md-2">Trạng thái</label>
                 <select v-model="brand.isActive" class="form-control" required>
                     <option :value="true">Đang hoạt động</option>
-                    <option :value="false">Đã xóa<a href=""></a></option>
+                    <option :value="false">Đã xóa</option>
                 </select>
 
             </div>
@@ -45,7 +45,6 @@
     import Swal from "sweetalert2";
     import { useRouter, useRoute } from 'vue-router';
     import {io} from 'socket.io-client';
-
     const  BASE_URL = "http://localhost:3000";
     const socket = io(BASE_URL);
 export default {

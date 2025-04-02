@@ -44,20 +44,19 @@
 </template>
 <script>
 import axios from 'axios';
-import { ref, onMounted, computed } from 'vue';
+import { ref, onMounted, computed, onUnmounted } from 'vue';
 import Breadcrumb from "@/components/Breadcrumb.vue";
 import Swal from "sweetalert2";
 import { useRouter } from 'vue-router';
-
-
-
-const  BASE_URL = "http://localhost:3000";
+import { io } from 'socket.io-client';
+const BASE_URL = "http://localhost:3000";
+const socket = io(BASE_URL); 
 export default {
-      components: {
+    components: {
         Breadcrumb
     },
     setup() {
-        const router = useRouter(); 
+        const router = useRouter();
         const inputsearch = ref('');
         const categorys = ref([]);
 
@@ -72,21 +71,21 @@ export default {
             }
         };
 
-        const searchCategory = async()=> {
-            if (inputsearch.value.trim() ===""){
+        const searchCategory = async () => {
+            if (inputsearch.value.trim() === "") {
                 fetchUsers();
                 return;
             }
-            try{
+            try {
                 const response = await axios.get(`http://127.0.0.1:3000/api/category/name/${inputsearch.value}`);
                 categorys.value = response.data;
             }
-            catch(error){
+            catch (error) {
                 console.error("Lỗi khi tìm kiếm danh mục: ", error);
             }
         };
 
-         const deleteCategory = async (id) => {
+        const deleteCategory = async (id) => {
 
             const result = await Swal.fire({
                 title: "Xác nhận xóa",
@@ -115,13 +114,39 @@ export default {
         };
 
         const addCategory = (id) => {
-            router.push({name: "category-add"});
+            router.push({ name: "category-add" });
         }
 
         const totalCategorys = computed(() => categorys.value.length);
-        onMounted(fetchUsers);
+        onMounted(() => {
+            fetchUsers(),
+                socket.on('category_update', ({ action, data }) => {
+                    if (action === "create") {
+                        categorys.value.push(data);
+                    }
+                    else if (action === "update") {
+                        const index = categorys.value.findIndex(c => c._id === data._id);
+                        if (index !== -1) {
+                            categorys.value[index] = data;
+                        }
+                    }
+                    else if (action === "delete") {
+                        categorys.value = categorys.value.filter(c => c._id !== data._id);
+                    }
+                    else if (action === "soft_delete") {
+                        const index = categorys.value.findIndex(c => c._id === data._id);
+                        if (index !== -1) {
+                            categorys.value[index].isActive = false;
+                        }
+                    }
+                })
+        });
 
-        return { categorys , BASE_URL, deleteCategory, goToUpdatePage, addCategory, inputsearch, searchCategory, totalCategorys};
+        onUnmounted(() => {
+            socket.off('category_update');
+        })
+
+        return { categorys, BASE_URL, deleteCategory, goToUpdatePage, addCategory, inputsearch, searchCategory, totalCategorys };
     }
 }
 </script>

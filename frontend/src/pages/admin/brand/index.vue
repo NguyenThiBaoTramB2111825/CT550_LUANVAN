@@ -53,7 +53,6 @@ import Breadcrumb from "@/components/Breadcrumb.vue";
 import Swal from "sweetalert2";
 import { useRouter } from 'vue-router';
 import { io } from 'socket.io-client';
-
 const BASE_URL = "http://localhost:3000";
 const socket = io(BASE_URL);  // Kết nối đến server
 export default {

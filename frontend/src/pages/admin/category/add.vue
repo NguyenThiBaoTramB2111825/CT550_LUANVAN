@@ -31,9 +31,9 @@
     import Breadcrumb from "@/components/Breadcrumb.vue";
     import Swal from "sweetalert2";
     import { useRouter, useRoute } from 'vue-router';
-    
-
-    const  BASE_URL = "http://localhost:3000";
+    import { io } from 'socket.io-client';
+const BASE_URL = "http://localhost:3000";
+    const socket = io(BASE_URL);
 export default {
     components: {
         Breadcrumb
@@ -48,20 +48,16 @@ export default {
             discription: '',
         });
         const selectedFile = ref(null);
-     
+
         const addCategory = async () => {
 
             try {
-                const formData = new FormData();
-                formData.append("name", category.value.name);
-                formData.append("discription", category.value.discription);
-
                 console.log("Dữ liệu gửi lên API: ", category.value);
-                await axios.post("http://127.0.0.1:3000/api/category/", {
+                const response = await axios.post("http://127.0.0.1:3000/api/category/", {
                     name: category.value.name,
                     description: category.value.discription
                 })
-            
+                socket.emit('category_update', { action: "create", data: response.data })
 
                 Swal.fire('Thành công', 'Cập nhật thông tin thành công', 'success');
                 router.push('/admin/category');

@@ -15,7 +15,7 @@
                 <label class="col-md-2">Trạng thái</label>
                 <select v-model="category.isActive" class="form-control" required>
                     <option :value="true">Đang hoạt động</option>
-                    <option :value="false">Đã xóa<a href=""></a></option>
+                    <option :value="false">Đã xóa</option>
                 </select>
             </div>
         </form>
@@ -38,9 +38,9 @@
     import Breadcrumb from "@/components/Breadcrumb.vue";
     import Swal from "sweetalert2";
     import { useRouter, useRoute } from 'vue-router';
-    
-
+    import {io} from 'socket.io-client';
     const  BASE_URL = "http://localhost:3000";
+    const socket = io(BASE_URL);
 export default {
     components: {
         Breadcrumb
@@ -63,6 +63,7 @@ export default {
             try {
                 const response = await axios.get(`http://127.0.0.1:3000/api/category/${id}`);
                 category.value = response.data;
+                
             } catch (error) {
                 console.error("Lỗi khi lấy danh mục sản phẩm", error);
                 Swal.fire('Lỗi', 'Không tìm thấy danh mục', 'error');
