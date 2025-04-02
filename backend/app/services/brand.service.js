@@ -1,5 +1,4 @@
 const { ObjectId, ReturnDocument } = require("mongodb");
-const { io } = require("socket.io");
 
 class BrandService{
     constructor(client) {
@@ -25,10 +24,7 @@ class BrandService{
     async create(payload) {
         const brand = this.extractBrandData(payload);
         const result = await this.Brand.insertOne(brand);
-        if (result.acknowledged) {
-            return { _id: result.insertedId, ...brand };  // Trả về dữ liệu đúng
-        }
-        return null;
+        return result.acknowledged ? { _id: result.insertedId, ...brand } : null;
     }
 
     //findByInfo
@@ -41,7 +37,6 @@ class BrandService{
     async find(filter) {
         const cursor = await this.Brand.find(filter);
         return await cursor.toArray();
-
     }
 
     async findByName(name) {
@@ -76,14 +71,9 @@ class BrandService{
 
         let result = null;
         const filter = { _id: new ObjectId(id) };
-
-        // Tìm xem có sản phẩm nào thuộc thương hiệu này không
         const checkBrand = await this.Product.find({ brand_id: new ObjectId(id) }).toArray();
-
         console.log("giá trị của checkBrand: ", checkBrand);
-
-        if (checkBrand.length > 0) {  // Nếu có sản phẩm thuộc brand này
-            console.log("thực hiện update");
+        if (checkBrand.length > 0) {
             result = await this.Brand.findOneAndUpdate(
                 filter,
                 { $set: { isActive: false } },
@@ -91,7 +81,6 @@ class BrandService{
             );
             return { ...result, message: "Đã cập nhật trạng thái" };
         } else {
-            console.log("thực hiện delete");
             result = await this.Brand.findOneAndDelete(filter);
             return { ...result, message: "Đã xóa thành công" };
         }

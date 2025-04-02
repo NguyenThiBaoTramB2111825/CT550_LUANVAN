@@ -1,24 +1,23 @@
 const ApiError = require("../api-error");
 const MongoDB = require("../utils/mongodb.util");
 const BrandService = require("../services/brand.service");
-
-const { ObjectId } = require("mongodb");
+const { getSocket } = require("../../socket");
 
 exports.create = async (req, res, next) => {
     if (!req.body?.name || !req.body?.description) {
         return next(new ApiError(400, "Không thể để trống"));
     }
-
     try {
         const brandService = new BrandService(MongoDB.client);
         const document = await brandService.create(req.body);
         if (!document) {
             return next(new ApiError(500, "Không thể tạo thương hiệu"));
         }
+        getSocket().emit("brand_update", { action: "create", data: document });
         return res.send(document);
     }
     catch (error) {
-        return next(new ApiError(500, "An error occured while creating the Brand"));
+        return res.send({ message: error.message });
     }
 };
 
@@ -31,7 +30,6 @@ exports.findAll = async (req, res, next) => {
         const { name } = req.query;
         if (name) {
             document = await brandService.findByName(name);
-
         }
         else {
             document = await brandService.find({});
@@ -111,8 +109,8 @@ exports.update = async (req, res, next) => {
 
         if (!document) {
             return next(new ApiError(404, "Không tìm thấy thương hiệu"));
-
         }
+        getSocket().emit("brand_update", { action: "update", data: document });
         return res.send({ message: "Thương hiệu đã được cập nhật thành công" });
     }
     catch (error) {
@@ -128,6 +126,7 @@ exports.delete = async (req, res, next) => {
         if (!document) {
             return next(new ApiError(400, "Không tìm thấy thương hiệu"));
         }
+        getSocket().emit("brand_update", { action: document.isActive === false ? "soft_delete" : "delete", data: { _id: req.params.id } });
         return res.send({ message: document.message});
     }
     catch (error) {

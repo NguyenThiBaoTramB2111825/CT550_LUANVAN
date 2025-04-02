@@ -105,6 +105,9 @@ import { onMounted, ref } from "vue";
 import Swal from 'sweetalert2';
 import Cookies from 'js-cookie';
 import axios from 'axios';
+import { io } from 'socket.io-client';
+const BASE_URL = "http://localhost:3000";
+const socket = io(BASE_URL, { transports: ["websocket", "polling"] });
 
 import { Dropdown } from 'bootstrap';
 document.querySelectorAll('.dropdown-toggle').forEach(dropdown => {
@@ -183,7 +186,29 @@ export default {
       }
     }
 
-    onMounted(fetchInfomation)
+    onMounted(() => {
+      fetchInfomation(),
+        socket.on('brand_update', ({ action, data }) => {
+          if (action === "create") {
+            brands.value.push(data);
+
+          } else if (action === "update") {
+            const index = brands.value.findIndex(b => b._id === data._id);
+            if (index !== -1) {
+              brands.value[index] = data;
+            }
+          }
+          else if (action === "delete") {
+            brands.value = brands.value.filter(b => b._id !== data._id);
+          }
+          else if (action === "soft_delete") {
+            const index = brands.value.findIndex(b => b._id === data._id);
+            if (index !== -1) {
+              brands.value[index].isActive = false;
+            }
+          }
+        })
+    })
     return {
       token,
       logout,
@@ -195,10 +220,7 @@ export default {
       toggleSection,
       isOpen,  
       categorys,
-      discounts
-    };
-  }
-}
+      discounts}}}
 </script>
 
 <style>

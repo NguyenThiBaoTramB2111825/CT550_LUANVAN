@@ -9,7 +9,7 @@
             </div>
             <div class="mb-3 d-flex">
                 <label class="col-md-2">Mô tả</label>
-                <input type="text"  v-model="brand.discription" class="form-control"  required>
+                <input type="text"  v-model="brand.description" class="form-control"  required>
             </div>
             <div class="mb-3 d-flex">
                 <label class="col-md-2">Website</label>
@@ -35,9 +35,10 @@
     import Breadcrumb from "@/components/Breadcrumb.vue";
     import Swal from "sweetalert2";
     import { useRouter, useRoute } from 'vue-router';
-    
+import { io } from 'socket.io-client';
 
-    const  BASE_URL = "http://localhost:3000";
+const BASE_URL = "http://localhost:3000";
+const socket = io(BASE_URL);
 export default {
     components: {
         Breadcrumb
@@ -49,24 +50,19 @@ export default {
 
         const brand = ref({
             name: '',
-            discription: '',
+            description: '',
             website: ''
         });
      
         const addBrand = async () => {
-
             try {
-                // const formData = new FormData();
-                // formData.append("name", brand.value.name);
-                // formData.append("discription", brand.value.discription);
-
                 console.log("Dữ liệu gửi lên API: ", brand.value);
-                await axios.post("http://127.0.0.1:3000/api/brand/", {
+                const response = await axios.post("http://127.0.0.1:3000/api/brand/", {
                     name: brand.value.name,
-                    description: brand.value.discription,
+                    description: brand.value.description,
                     website: brand.value.website,
                 })
-            
+                socket.emit('brand_updated', {action: "create", data: response.data})
 
                 Swal.fire('Thành công', 'Cập nhật thông tin thành công', 'success');
                 router.push('/admin/brand');

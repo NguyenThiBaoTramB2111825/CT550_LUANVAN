@@ -1,16 +1,21 @@
-// Khởi chạy úng dụng, nó đang hoạt động ở cổng nào
+const http = require("http");
 const app = require("./app");
 const config = require("./app/config");
 const MongoDB = require("./app/utils/mongodb.util");
 const PORT = config.app.port;
+const { initSocket } = require("./socket");
+
+const server = http.createServer(app);
 
 async function startServer() {
     try {
         await MongoDB.connect(config.db.uri);
         console.log("Connected to the database!");
         const PORT = config.app.port;
+
+        initSocket(server);
         
-        app.listen(PORT, () => {
+        server.listen(PORT, () => {
             console.log(`Server is running on port ${PORT}`);
         }
         );

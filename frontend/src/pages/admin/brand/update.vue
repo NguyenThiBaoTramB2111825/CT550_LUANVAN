@@ -44,9 +44,10 @@
     import Breadcrumb from "@/components/Breadcrumb.vue";
     import Swal from "sweetalert2";
     import { useRouter, useRoute } from 'vue-router';
-    
+    import {io} from 'socket.io-client';
 
     const  BASE_URL = "http://localhost:3000";
+    const socket = io(BASE_URL);
 export default {
     components: {
         Breadcrumb
@@ -82,14 +83,14 @@ export default {
                 const id = route.params.id;
                 console.log("Dữ liệu gửi lên API: ", brand.value);
 
-                await axios.put(`http://127.0.0.1:3000/api/brand/${id}`, {
+                const response = await axios.put(`http://127.0.0.1:3000/api/brand/${id}`, {
                     name: brand.value.name,
                     description: brand.value.description,
                     website: brand.value.website,
                     isActive: brand.value.isActive,
                 });
 
-
+                socket.emit("brand_updated", { action: "update", data: response.data });
                 Swal.fire('Thành công', 'Cập nhật thông tin thành công', 'success');
                 router.push('/admin/brand');
 
