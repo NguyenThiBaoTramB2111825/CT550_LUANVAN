@@ -1,12 +1,13 @@
 
 const { ObjectId, ReturnDocument } = require("mongodb");
 const ApiError = require("../api-error");
+const MongoDB = require("../utils/mongodb.util");
 
 class CartService {
-    constructor(client) {
-        this.ProductDetail = client.db().collection("productDetail");
-        this.Customer = client.db().collection("customer");
-        this.Cart = client.db().collection("cart");
+    constructor() {
+        this.ProductDetail = MongoDB.getClient().db().collection("productDetail");
+        this.Customer = MongoDB.getClient().db().collection("customer");
+        this.Cart = MongoDB.getClient().db().collection("cart");
     }
     extractCartData(payload) {
 

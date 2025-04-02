@@ -1,9 +1,10 @@
 const { ObjectId, ReturnDocument } = require("mongodb");
+const MongoDB = require("../utils/mongodb.util");
 
 class BrandService{
-    constructor(client) {
-        this.Brand = client.db().collection("brand");
-        this.Product = client.db().collection("product");
+    constructor() {
+        this.Brand = MongoDB.getClient().db().collection("brand");
+        this.Product = MongoDB.getClient().db().collection("product");
 
     }
 

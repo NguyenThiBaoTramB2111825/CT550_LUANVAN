@@ -3,15 +3,15 @@ const { ObjectId, ReturnDocument } = require("mongodb");
 const ApiError = require("../api-error");
 
 class OrderService {
-    constructor(client) {
-        this.ProductDetail = client.db().collection("productDetail");
-        this.Customer = client.db().collection("customer");
-        this.Order = client.db().collection("order");
-        this.Product = client.db().collection("product");
-        this.Discount = client.db().collection("discount");
-        this.Color = client.db().collection("color");
-        this.Size = client.db().collection("size");
-        this.Image = client.db().collection("image");
+    constructor() {
+        this.ProductDetail = MongoDB.getClient().db().collection("productDetail");
+        this.Customer = MongoDB.getClient().db().collection("customer");
+        this.Order = MongoDB.getClient().db().collection("order");
+        this.Product = MongoDB.getClient().db().collection("product");
+        this.Discount = MongoDB.getClient().db().collection("discount");
+        this.Color = MongoDB.getClient().db().collection("color");
+        this.Size = MongoDB.getClient().db().collection("size");
+        this.Image = MongoDB.getClient().db().collection("image");
     }
 
     async extractOrderData(payload) {

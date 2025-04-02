@@ -3,12 +3,12 @@ const { ObjectId, ReturnDocument } = require("mongodb");
 const ApiError = require("../api-error");
 
 class ProductDetailService{
-    constructor(client) {
-        this.Product = client.db().collection("product");
-        this.ProductDetail = client.db().collection("productDetail");
-        this.Color = client.db().collection("color");
-        this.Size = client.db().collection("size");
-        this.ImportDetail = client.db().collection("importDetail");
+    constructor() {
+        this.Product = MongoDB.getClient().db().collection("product");
+        this.ProductDetail = MongoDB.getClient().db().collection("productDetail");
+        this.Color = MongoDB.getClient().db().collection("color");
+        this.Size = MongoDB.getClient().db().collection("size");
+        this.ImportDetail = MongoDB.getClient().db().collection("importDetail");
     }
 
     extractProductDetailData (payload) {

@@ -1,8 +1,8 @@
 const ApiError = require("../api-error");
 const MongoDB = require("../utils/mongodb.util");
 const CategoryService = require("../services/category.service");
+const { getSocket } = require("../../socket");
 
-const { ObjectId } = require("mongodb");
 
 exports.create = async (req, res, next) => {
     if (!req.body?.name || !req.body?.description) {
@@ -15,10 +15,11 @@ exports.create = async (req, res, next) => {
         if (!document) {
             return next(new ApiError(500, "Không thể tạo danh mục"));
         }
+        getSocket().emit("category_update", { action: "create", data: document });
         return res.send(document);
     }
     catch (error) {
-        return next(new ApiError(500, "An error occured while creating the Category"));
+        return res.send({ message: error.message });
     }
 };
 
@@ -113,6 +114,7 @@ exports.update = async (req, res, next) => {
             return next(new ApiError(404, "Không tìm thấy danh mục"));
 
         }
+        getSocket().emit("category_update", { action: "update", data: document });
         return res.send({ message: "Danh mục được cập nhật thành công" });
     }
     catch (error) {
@@ -128,6 +130,7 @@ exports.delete = async (req, res, next) => {
         if (!document) {
             return next(new ApiError(400, "Không tìm thấy danh mục"));
         }
+        getSocket().emit("category_update", { action: document.isActive === false ? "soft_delte" : "delete", data: { _id: req.params.id}})
         return res.send({ message: document.message });
     }
     catch (error) {

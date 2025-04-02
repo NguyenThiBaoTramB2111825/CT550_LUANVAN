@@ -88,9 +88,7 @@ exports.update = async (req, res, next) => {
          });
 
     } catch (error) {
-        return next(
-            new ApiError(500, `Error updating discount with id=${id}`)
-        );
+        res.send({ message: error.message });
     }
 
 }
@@ -101,11 +99,9 @@ exports.delete = async (req, res, next) => {
         if (!document) {
             return next(new ApiError(404, "discount not found"));
         }
-        return res.send({ messgae: "discount was deleted successfully" });
+        return res.send({ messgae:  document.message});
     } catch (error) {
-        return next(
-            new ApiError(500, `Could not delete discount with id=${req.params.id}`)
-        );
+        res.send({ message: error.message });
     }
 };
 

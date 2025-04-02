@@ -1,9 +1,9 @@
 const { ObjectId } = require("mongodb");
 
 class imageService {
-    constructor(client) {
-        this.Image = client.db().collection("image");
-        this.Product = client.db().collection("product");
+    constructor() {
+        this.Image = MongoDB.getClient().db().collection("image");
+        this.Product = MongoDB.getClient().db().collection("product");
     }
 
     extractImageData(payload) {

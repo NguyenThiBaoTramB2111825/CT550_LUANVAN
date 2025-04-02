@@ -1,10 +1,9 @@
 const { ObjectId, ReturnDocument } = require("mongodb");
 
 class CategoryService{
-    constructor(client) {
-        this.Category = client.db().collection("category");
-        this.Product = client.db().collection("product");
-
+    constructor() {
+        this.Category = MongoDB.getClient().db().collection("category");
+        this.Product = MongoDB.getClient().db().collection("product");
     }
 
     extractCategoryData(payload) {

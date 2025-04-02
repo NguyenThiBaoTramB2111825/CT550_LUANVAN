@@ -1,9 +1,9 @@
 const { ObjectId, ReturnDocument } = require("mongodb");
 
 class ColorService{
-    constructor(client) {
-        this.Color = client.db().collection("color");
-        this.ProductDetail = client.db().collection("productDetail");
+    constructor() {
+        this.Color = MongoDB.getClient().db().collection("color");
+        this.ProductDetail = MongoDB.getClient().db().collection("productDetail");
     }
 
     extractColorData(payload) {

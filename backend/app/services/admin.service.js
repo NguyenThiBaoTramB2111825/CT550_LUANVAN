@@ -2,12 +2,13 @@ const { ObjectId } = require("mongodb");
 const bcrypt = require("bcrypt");
 const jwt = require("jsonwebtoken");
 const config = require("../config/index");
+const MongoDB = require("../utils/mongodb.util");
 
 // console.log("Loaded config: ", config);
 
 class adminService {
-    constructor(client) {
-        this.Admin = client.db().collection("admin");
+    constructor() {
+        this.Admin = MongoDB.getClient().db().collection("admin");
     }
     extractAdminData(payload) {
         const admin = {

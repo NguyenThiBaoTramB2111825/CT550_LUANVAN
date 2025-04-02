@@ -1,9 +1,9 @@
 const { ObjectId, ReturnDocument } = require("mongodb");
 
 class SizeService{
-    constructor(client) {
-        this.Size = client.db().collection("size");
-        this.ProductDetail = client.db().collection("productDetail");
+    constructor() {
+        this.Size = MongoDB.getClient().db().collection("size");
+        this.ProductDetail = MongoDB.getClient().db().collection("productDetail");
 
     }
 

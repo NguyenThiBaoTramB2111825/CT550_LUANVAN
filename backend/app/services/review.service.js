@@ -3,11 +3,11 @@ const { ObjectId, ReturnDocument } = require("mongodb");
 const ApiError = require("../api-error");
 
 class ReviewService {
-    constructor(client) {
-        this.ProductDetail = client.db().collection("productDetail");
-        this.Customer = client.db().collection("customer");
-        this.Order = client.db().collection("order");
-        this.Review = client.db().collection("review");
+    constructor() {
+        this.ProductDetail = MongoDB.getClient().db().collection("productDetail");
+        this.Customer = MongoDB.getClient().db().collection("customer");
+        this.Order = MongoDB.getClient().db().collection("order");
+        this.Review = MongoDB.getClient().db().collection("review");
     }
 
     async extractReviewData(payload) {

@@ -4,8 +4,8 @@ const jwt = require("jsonwebtoken");
 const config = require("../config/index");
 
 class customerService {
-    constructor(client) {
-        this.Customer = client.db().collection("customer");
+    constructor() {
+        this.Customer = MongoDB.getClient().db().collection("customer");
     }
     extractCustomerData(payload) {
         const customer = {

@@ -12,8 +12,9 @@ const MongoDB = require("../utils/mongodb.util");
 // Phần remaining có liên quan đến 
 
 class discountService {
-    constructor(client) {
-        this.Discount = client.db().collection("discount");
+    constructor() {
+        this.Discount = MongoDB.getClient().db().collection("discount");
+        this.Product = MongoDB.getClient().db().collection("product");
     }
 
     parseDate(dateStr, isEndDate = false) {
@@ -53,10 +54,9 @@ class discountService {
             quantity: parseInt(payload.quantity, 10),
             remaining_quantity: payload.quantity,
             value: parseFloat(payload.value) || 0,
-            // value: this.parseFloat(payload.value),
-            type: payload.type || 'percentage' ,//|| "fixed",
+            type: payload.type || 'percentage',//|| "fixed",
             startDate: this.parseDate(payload.startDate),
-            endDate:  this.parseDate(payload.endDate, true),
+            endDate: this.parseDate(payload.endDate, true),
             isActive: this.parseDate(payload.startDate) <= now && now <= this.parseDate(payload.endDate, true),
         };
 
@@ -69,7 +69,7 @@ class discountService {
         console.log("Dữ liệu sau khi được extract: ", discount);
         // Remove undefined fields
         Object.keys(discount).forEach(
-         (key) => (discount[key] === undefined || discount[key] === null) && delete discount[key]
+            (key) => (discount[key] === undefined || discount[key] === null) && delete discount[key]
         );
 
         return discount;
@@ -80,7 +80,7 @@ class discountService {
         console.log("Giá trị nhận vào từ payload: ", payload);
         const discount = this.extractdiscountData(payload);
         if (discount.statusCode === 400) {
-            return {statusCode: 400, message: "Thời gian khuyến mãi không hợp lệ"}
+            return { statusCode: 400, message: "Thời gian khuyến mãi không hợp lệ" }
         }
         console.log("Giá trị của discount sau khi extract: ", discount);
         let existingdiscount = await this.Discount.findOne({ name: discount.name });
@@ -128,11 +128,35 @@ class discountService {
             _id: ObjectId.isValid(id) ? new ObjectId(id) : null,
         });
     }
+    async checkAndUpdateDiscounts() {
+        console.log("Chạy kiểm tra trạng thái khuyến mãi...");
+        const now = new Date();
+        const productService = new ProductService();
+
+        try {
+            const discounts = await this.Discount.find().toArray();
+
+            for (let discount of discounts) {
+                const newIsActive = discount.startDate <= now && now <= discount.endDate;
+                if (discount.isActive === true && newIsActive !== discount.isActive) {
+                    console.log(`Cập nhật trạng thái của discount ${discount._id}: ${discount.isActive} -> ${newIsActive}`);
+
+                    await this.Discount.updateOne(
+                        { _id: discount._id },
+                        { $set: { isActive: newIsActive } }
+                    );
+                    await productService.updateDiscountStatus(discount._id, newIsActive);
+                }
+            }
+        } catch (error) {
+            console.error("Lỗi khi cập nhật trạng thái discount:", error);
+        }
+    }
 
     async update(id, payload) {
         console.log("id và pay load nhận được: ", id, payload);
         const filter = {
-            _id: ObjectId.isValid(id) ? new ObjectId(id): null
+            _id: ObjectId.isValid(id) ? new ObjectId(id) : null
         };
 
         // Kiểm tra discount có tồn tại không
@@ -141,6 +165,7 @@ class discountService {
             return { statusCode: 404, message: "Chương trình giảm giá không tồn tại" };
         }
 
+        
         const update = this.extractdiscountData(payload);
 
         const isSameData = Object.keys(update).every(key => {
@@ -149,7 +174,7 @@ class discountService {
             }
             return update[key] === existingdiscount[key];
         });
-        if (isSameData &&  payload.isActive == existingdiscount.isActive) {
+        if (isSameData && payload.isActive == existingdiscount.isActive) {
             return {
                 statusCode: 400, message: "Không có dữ liệu mới nào cần cập nhật"
             }
@@ -168,11 +193,11 @@ class discountService {
         update.endDate = payload.endDate ? this.parseDate(payload.endDate, true) : existingdiscount.endDate;
         
         // Nếu có isActive được truyền từ payload, thì sẽ lấy giá trị theo payload nhập vào
-        if (typeof payload.isActive !== "undefined" && payload.isActive =="false") {
+        if (typeof payload.isActive !== "undefined" && payload.isActive === false) {
             update.isActive = payload.isActive;
         }
         else {
-            update.isActive = update.startDate && update.endDate ?  update.startDate <= new Date() && new Date() <= update.endDate : false; // Kiểm tra tự động
+            update.isActive = update.startDate && update.endDate ? update.startDate <= new Date() && new Date() <= update.endDate : false; // Kiểm tra tự động
         }
    
         console.log("Giá trị của isActive sau khi được so sánh: ", update.isActive);
@@ -195,7 +220,7 @@ class discountService {
             console.log("giá trị của id và isActive trước khi vào cập nhật trong product: ", id, update.isActive);
             console.log("Kiểu dữ liệu của discountId: ", typeof id);
         
-            const productService = new ProductService(MongoDB.client);
+            const productService = new ProductService();
             await productService.updateDiscountStatus(id, update.isActive);
 
             return { statusCode: 200, message: "Discount cập nhật thành công", data: result };
@@ -207,55 +232,41 @@ class discountService {
 
     }
 
-
-    // delete
     async delete(id) {
-        const result = await this.Discount.findOneAndDelete({
-            _id: ObjectId.isValid(id) ? new ObjectId(id) : null,
-        });
-        return result;
+        if (!ObjectId.isValid(id)) return { message: "ID không hợp lệ" };
+        let result = null;
+        const filter = { _id: new ObjectId(id) };
+        const checkDiscount = await this.Product.find({ discount_id: new ObjectId(id) }).toArray();
+        console.log("giá trị của checkDiscount: ", checkDiscount);
+        if (checkDiscount.length > 0) {
+            result = await this.Discount.findOneAndUpdate(
+                filter,
+                { $set: { isActive: false } },
+                { returnDocument: "after" }
+            );
+            const productService = new ProductService();
+            await productService.updateDiscountStatus(id, false);
+            return { ...result, message: "Đã cập nhật trạng thái" };
+        } else {
+            result = await this.Discount.findOneAndDelete(filter);
+            return { ...result, message: "Đã xóa thành công" };
+        }
     }
 
-    // deleteAll
     async deleteAll() {
         const result = await this.Discount.deleteMany({});
         return result.deletedCount;
     }
 
-    async findOnediscountByName (name) {
+    async findOnediscountByName(name) {
         try {
             const discount = await this.Discount.findOne({ name: name });
-            return discount; 
+            return discount;
         } catch (error) {
             console.error('Error finding discount by name:', error);
             throw error;
         }
-    };
-    
-}
-// cron job chạy tự động mỗi 10p
-cron.schedule("*/10 * * * *", async () => {
-    console.log("Chạy cron job kiểm tra trạng thái khuyến mãi...");
-
-    const discounts = await this.Discount.find({}).toArray();
-    const now = new Date();
-    const productService = new ProductService(MongoDB.client);
-    
-
-    for (let discount of discounts) {
-        const newIsActive = discount.startDate <= now && now <= discount.endDate;
-        if (newIsActive !== discount.isActive) {
-            console.log(`Cập nhật trạng thái của discount ${discount._id}: ${discount.isActive} -> ${newIsActive}`);
-
-            await this.Discount.updateOne(
-                { _id: discount._id },
-                { $set: { isActive: newIsActive } }
-            );
-
-            await productService.updateDiscountStatus(discount._id, newIsActive);
-        }
     }
-});
-
+}
 
 module.exports = discountService;

@@ -1,9 +1,10 @@
 const { ObjectId } = require("mongodb");
+const MongoDB = require("../utils/mongodb.util");
 
 class SupplierService{
-    constructor(client) {
-        this.Supplier = client.db().collection("supplier");
-        this.ImportDetail = client.db().collection("importDetail");
+    constructor() {
+        this.Supplier = MongoDB.getClient().db().collection("supplier");
+        this.ImportDetail = MongoDB.getClient().db().collection("importDetail");
 
     }
 

@@ -1,16 +1,17 @@
 
 const { ObjectId, ReturnDocument } = require("mongodb");
 const ApiError = require("../api-error");
+const MongoDB = require("../utils/mongodb.util");
 
-class ProductService{
-    constructor(client) {
-        this.Product = client.db().collection("product");
-        this.Brand = client.db().collection("brand");
-        this.Category = client.db().collection("category");
-        this.Discount = client.db().collection("discount");
+class ProductService {
+    constructor() {
+        this.Product = MongoDB.getClient().db().collection("product");
+        this.Brand = MongoDB.getClient().db().collection("brand");
+        this.Category = MongoDB.getClient().db().collection("category");
+        this.Discount = MongoDB.getClient().db().collection("discount");
     }
 
-    extractProductData (payload) {
+    extractProductData(payload) {
         const product = {
             name: payload.name,
             description: payload.description,
@@ -39,8 +40,8 @@ class ProductService{
 
         const category = await this.Category.findOne({ _id: product.category_id });
         if (!category) {
-           return { statusCode: 400, message: "Category không tồn tại" }; 
-        } 
+            return { statusCode: 400, message: "Category không tồn tại" };
+        }
 
         const brand = await this.Brand.findOne({ _id: product.brand_id });
         if (!brand) {
@@ -73,7 +74,7 @@ class ProductService{
     //findByInfo
     async getProductInfoById(_id) {
         return await this.Product.findOne({
-            _id: ObjectId.isValid(_id) ? new ObjectId (_id): null,
+            _id: ObjectId.isValid(_id) ? new ObjectId(_id) : null,
         })
     }
 
@@ -81,7 +82,7 @@ class ProductService{
         const cursor = await this.Product.find(filter);
         return await cursor.toArray();
 
-    }   
+    }
        
     async findByName(name) {
         return await this.findOne({
@@ -90,7 +91,7 @@ class ProductService{
     }
 
 
-        // findById
+    // findById
     async findById(id) {
         return await this.Product.findOne({
             _id: ObjectId.isValid(id) ? new ObjectId(id) : null,
@@ -162,7 +163,7 @@ class ProductService{
         }
         const price_selling = update.price_selling ?? existingProduct.price_selling;
         if (price_selling == null) {
-            return {statusCode: 400, message: "Giá bán không hợp lệ"}
+            return { statusCode: 400, message: "Giá bán không hợp lệ" }
         }
 
         // Kiểm tra khuyến mãi hợp lệ
@@ -187,7 +188,6 @@ class ProductService{
             update.price_afterdiscount = update.price_selling || existingProduct.price_selling;
         }
 
-        // Cập nhật sản phẩm trong MongoDB
         try {
             const result = await this.Product.updateOne(
                 { _id: productId },
@@ -217,7 +217,50 @@ class ProductService{
         const result = await this.Product.deleteMany({});
         return result.deletedCount;
     }
-}
 
+
+    async updateDiscountStatus(discountId, isActive) {
+     const discount = await this.Discount.findOne({ _id: new ObjectId(discountId) });
+        if (!discount) return;
+        console.log(`Cập nhật giá sản phẩm theo discount ${discountId}, Trạng thái: ${isActive}`);
+        console.log("Giá trị của discount: ", discount.value);
+
+        try {
+            const products = await this.Product.find({ discount_id: discountId }).toArray();
+
+            if (products.length === 0) {
+                console.log(`Không có sản phẩm nào cần cập nhật cho discount ${discountId}`);
+                return;
+            }
+
+            const bulkUpdates = products.map(product => {
+                let newPriceAfterDiscount = product.price_selling;
+                console.log("Giá trị của newPriceAfterDiscount", newPriceAfterDiscount);
+
+                if (isActive) {
+                    newPriceAfterDiscount = discount.type === "percentage"
+                        ? product.price_selling * (1 - discount.value / 100)
+                        : product.price_selling - discount.value;
+
+                    newPriceAfterDiscount = Math.max(0, newPriceAfterDiscount);
+                }
+
+                    console.log("Giá trị của newPriceAfterDiscount sau khi kiểm tra isActive", newPriceAfterDiscount);
+                return {
+                    updateOne: {
+                        filter: { _id: product._id },
+                        update: { $set: { price_afterdiscount: newPriceAfterDiscount } }
+                    }
+                };
+            });
+
+            const result = await this.Product.bulkWrite(bulkUpdates);
+
+            console.log(`Đã cập nhật ${result.modifiedCount} sản phẩm`);
+        } catch (error) {
+            console.error("Lỗi khi cập nhật giá sản phẩm theo discount:", error);
+        }
+    }
+}
 
 module.exports = ProductService;

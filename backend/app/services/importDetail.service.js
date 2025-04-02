@@ -3,10 +3,10 @@ const { ObjectId, ReturnDocument } = require("mongodb");
 const ApiError = require("../api-error");
 
 class ImportDetailService{
-    constructor(client) {
-        this.ProductDetail = client.db().collection("productDetail");
-        this.Supplier = client.db().collection("supplier");
-        this.ImportDetail = client.db().collection("importDetail");
+    constructor() {
+        this.ProductDetail = MongoDB.getClient().db().collection("productDetail");
+        this.Supplier = MongoDB.getClient().db().collection("supplier");
+        this.ImportDetail = MongoDB.getClient().db().collection("importDetail");
     }
         parseDate(dateStr, isEndDate = false) {
         if (!dateStr) return null;

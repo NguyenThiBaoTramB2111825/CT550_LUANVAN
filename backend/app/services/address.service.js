@@ -1,9 +1,10 @@
 const { ObjectId } = require("mongodb");
+const MongoDB = require("../utils/mongodb.util");
 
 class addressService {
-    constructor(client) {
-        this.Address = client.db().collection("address");
-        this.Customer = client.db().collection("customer");
+    constructor() {
+        this.Address = MongoDB.getClient().db().collection("address");
+        this.Customer = MongoDB.getClient().db().collection("customer");
     }
 
     extractAddressData(payload) {
