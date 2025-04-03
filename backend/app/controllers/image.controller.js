@@ -3,6 +3,7 @@ const MongoDB = require("../utils/mongodb.util");
 const ImageService = require("../services/image.service");
 const upload = require("../utils/multer.config");
 const { ObjectId } = require("mongodb");
+const { getSocket } = require("../../socket");
 
 exports.create = [
     upload.single('url') // Dùng multer để upload ảnh
@@ -19,6 +20,7 @@ exports.create = [
             if (document.statusCode !== 200) {
                 return res.status(document.statusCode).json({ message: document.message });
             }
+            getSocket().emit("image_update", { action: "create"});
             return res.status(201).json(document); 
         } catch (error) {
             return next(new ApiError(500, "An Error Occurred while creating the image"));
@@ -44,6 +46,7 @@ exports.createMany = [
             if (document.statusCode !== 200) {
                 return res.status(document.statusCode).json({ message: document.message });
             }
+            getSocket().emit("image_update", { action: "create_many"});
             return res.status(201).json(document); 
         } catch (error) {
             return next(new ApiError(500, "An Error Occurred while creating the image"));
@@ -115,7 +118,7 @@ exports.update = [
                 return res.status(document.statusCode).json({ message: document.message });
                 // return next(new ApiError(document.statusCode, document.message));
             }
-
+            getSocket().emit("image_update", { action: "update"});
             return res.status(200).json({
                 message: "Image updated successfully", 
                 data: document.data
@@ -138,6 +141,7 @@ exports.delete = async (req, res, next) => {
         if (!document) {
             return next(new ApiError(404, "image not found"));
         }
+        getSocket().emit("image_update", { action: "delete"});
         return res.send({ message: "image was deleted successfully" });
     } catch (error) {
         return res.send( error.message);
@@ -151,6 +155,7 @@ exports.deleteByProductId = async (req, res, next) =>{
         if (!document) {
             return next(new ApiError(404, "image not found"));
         }
+        getSocket().emit("image_update", { action: "delete_many"});
         return res.send({ messgae: "image was deleted successfully" });
     } catch (error) {
         return next(

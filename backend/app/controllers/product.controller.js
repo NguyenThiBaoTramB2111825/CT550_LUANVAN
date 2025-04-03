@@ -1,6 +1,7 @@
 const ApiError = require("../api-error");
 const MongoDB = require("../utils/mongodb.util");
 const ProductService = require("../services/product.service");
+const { getSocket } = require("../../socket");
 
 const { ObjectId } = require("mongodb");
 
@@ -15,6 +16,7 @@ exports.create = async (req, res, next) => {
         if (document.statusCode !== 200) {
             return res.status(document.statusCode).json({ message: document.message });
         }
+          getSocket().emit("product_update", { action: "create", data: document });
           return res.status(201).json(document);  // 201 Create
     }
     catch (error) {
@@ -85,6 +87,7 @@ exports.update = async (req, res, next) => {
         if (document.statusCode && document.statusCode !== 200) {
             return next(new ApiError(document.statusCode, document.message));
         }
+         getSocket().emit("product_update", { action: "update", data: document });
         return res.send({
             message: "Product was updated successfully",
             data: document.data || document
@@ -105,14 +108,14 @@ exports.delete = async (req, res, next) => {
         if (document.statusCode == 404) {
             return next(new ApiError(document.statusCode, document.message));
         }
-        return res.send({ message: "product đã được xóa thành công" });
+
+        getSocket().emit("product_update", { action: document.isActive === false ? "soft_delete" : "delete", data: { _id: req.params.id } });
+        return res.send({ message: document.message });
     }
     catch (error) {
-        return next(
-        new ApiError(500, `Không thể xóa product`));
-    }
-};
-
+        return res.send({ message: error.message });
+    };
+}
 
 exports.deleteAll = async (req, res, next) => {
     try {

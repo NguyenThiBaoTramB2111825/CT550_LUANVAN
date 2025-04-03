@@ -2,14 +2,7 @@ const { ObjectId, ReturnDocument } = require("mongodb");
 const cron = require("node-cron");
 const ProductService = require("./product.service");
 const MongoDB = require("../utils/mongodb.util");
-
-// ở phần remaining được tính bằng cách khi sản phẩm có chứa thông tin khuyến mãi và
-// được bán ra thì khi đó số lượng còn lại mới được trừ.
-
-// Còn việc trừ ngay khi lưu thông tin khuyến mãi thì có thể discount
-//  sẽ bị hết số lượng trong khi không có sản phẩm nào được mua
-
-// Phần remaining có liên quan đến 
+const { getSocket } = require("../../socket");
 
 class discountService {
     constructor() {
@@ -19,31 +12,17 @@ class discountService {
 
     parseDate(dateStr, isEndDate = false) {
         if (!dateStr) return null;
-
-        console.log("Định dạng ngày ban đầu:", dateStr);
-
-        // Chuyển dấu '/' thành '-'
-        let parts = dateStr.replace(/\//g, '-').split('-');
-
-        // Đảm bảo tháng và ngày có hai chữ số (2025-2-5 -> 2025-02-05)
-        if (parts.length === 3) {
-            let [year, month, day] = parts;
-            month = month.padStart(2, '0'); // Thêm '0' nếu tháng chỉ có 1 chữ số
-            day = day.padStart(2, '0');     // Thêm '0' nếu ngày chỉ có 1 chữ số
-            dateStr = `${year}-${month}-${day}`;
-        }
-
-        // Chuyển sang định dạng chuẩn ISO
-        const parsedDate = new Date(`${dateStr}${isEndDate ? 'T23:59:59.999Z' : 'T00:00:00.000Z'}`);
-
-        console.log("Giá trị sau khi parse:", parsedDate);
-
-        if (isNaN(parsedDate.getTime())) {
-            console.error("Lỗi: Giá trị ngày không hợp lệ", dateStr);
+        const date = new Date(dateStr);
+        if (isNaN(date.getTime())) {
             throw new Error("Ngày không hợp lệ: " + dateStr);
         }
+        if (isEndDate) {
+            date.setHours(23, 59, 59, 999); // Ngày kết thúc: 23:59:59
+        } else {
+            date.setHours(0, 0, 0, 0); // Ngày bắt đầu: 00:00:00
+        }
 
-        return parsedDate;
+        return date;
     }
 
     extractdiscountData(payload) {
@@ -57,7 +36,6 @@ class discountService {
             type: payload.type || 'percentage',//|| "fixed",
             startDate: this.parseDate(payload.startDate),
             endDate: this.parseDate(payload.endDate, true),
-            isActive: this.parseDate(payload.startDate) <= now && now <= this.parseDate(payload.endDate, true),
         };
 
         if (discount.startDate > discount.endDate) {
@@ -65,9 +43,9 @@ class discountService {
                 statusCode: 400, message: "Thời gian khuyến mãi không hợp lệ"
             }
         }
+        discount.isActive = discount.startDate <= now && now <= discount.endDate;
 
         console.log("Dữ liệu sau khi được extract: ", discount);
-        // Remove undefined fields
         Object.keys(discount).forEach(
             (key) => (discount[key] === undefined || discount[key] === null) && delete discount[key]
         );
@@ -131,14 +109,16 @@ class discountService {
     async checkAndUpdateDiscounts() {
         console.log("Chạy kiểm tra trạng thái khuyến mãi...");
         const now = new Date();
+        // console.log("Giá trị ngày hiện tại: ", now);
         const productService = new ProductService();
 
         try {
             const discounts = await this.Discount.find().toArray();
-
+            // console.log("Giá trị của discouts: ", discounts);
+            //  console.log("Số lượng discount:", discounts.length);
             for (let discount of discounts) {
                 const newIsActive = discount.startDate <= now && now <= discount.endDate;
-                if (discount.isActive === true && newIsActive !== discount.isActive) {
+                if (discount.isActive === true && newIsActive === false) {
                     console.log(`Cập nhật trạng thái của discount ${discount._id}: ${discount.isActive} -> ${newIsActive}`);
 
                     await this.Discount.updateOne(
@@ -146,6 +126,7 @@ class discountService {
                         { $set: { isActive: newIsActive } }
                     );
                     await productService.updateDiscountStatus(discount._id, newIsActive);
+                    getSocket().emit("discount_update", { action: "update", data: {...discount, isActive: newIsActive} });
                 }
             }
         } catch (error) {
@@ -165,7 +146,6 @@ class discountService {
             return { statusCode: 404, message: "Chương trình giảm giá không tồn tại" };
         }
 
-        
         const update = this.extractdiscountData(payload);
 
         const isSameData = Object.keys(update).every(key => {

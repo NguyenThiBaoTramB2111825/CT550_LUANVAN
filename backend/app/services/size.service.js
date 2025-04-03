@@ -1,5 +1,5 @@
 const { ObjectId, ReturnDocument } = require("mongodb");
-
+const MongoDB = require("../utils/mongodb.util");
 class SizeService{
     constructor() {
         this.Size = MongoDB.getClient().db().collection("size");

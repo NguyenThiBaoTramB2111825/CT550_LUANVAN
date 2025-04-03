@@ -1,5 +1,5 @@
 const { ObjectId } = require("mongodb");
-
+const MongoDB = require("../utils/mongodb.util");
 class imageService {
     constructor() {
         this.Image = MongoDB.getClient().db().collection("image");
@@ -120,8 +120,6 @@ class imageService {
             }
 
             const newProductId = new ObjectId(payload.product_id);
-
-            // Kiểm tra xem Product có tồn tại trong DB hay không
             const productExists = await this.Product.findOne({ _id: newProductId });
             if (!productExists) {
                 return { statusCode: 404, message: "Product ID không tồn tại trong cơ sở dữ liệu" };

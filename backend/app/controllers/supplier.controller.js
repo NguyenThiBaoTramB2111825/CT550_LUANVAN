@@ -1,6 +1,7 @@
 const ApiError = require("../api-error");
 const MongoDB = require("../utils/mongodb.util");
 const SupplierService = require("../services/supplier.service");
+const { getSocket } = require("../../socket");
 
 const { ObjectId } = require("mongodb");
 
@@ -15,6 +16,7 @@ exports.create = async (req, res, next) => {
         if (!document) {
             return next(new ApiError(500, "Không thể tạo nhà cung cấp mới"));
         }
+        getSocket().emit("supplier_update", { action: "create", data: document });
         return res.send(document);
     }
     catch (error) {
@@ -113,6 +115,7 @@ exports.update = async (req, res, next) => {
             return next(new ApiError(404, "Không tìm thấy nhà cung cấp"));
 
         }
+        getSocket().emit("supplier_update", { action: "update", data: document });
         return res.send({ message: "Nhà cung cấp được cập nhật thành công" });
     }
     catch (error) {
@@ -128,6 +131,7 @@ exports.delete = async (req, res, next) => {
         if (!document) {
             return next(new ApiError(400, "Không tìm thấy nhà cung cấp"));
         }
+        getSocket().emit("supplier_update", { action: document.isActive === false ? "soft_delete": "delete" , data: {_id: req.params.id} });
         return res.send({ message: document.message });
     }
     catch (error) {

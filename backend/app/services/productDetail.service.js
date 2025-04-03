@@ -1,7 +1,7 @@
 
 const { ObjectId, ReturnDocument } = require("mongodb");
 const ApiError = require("../api-error");
-
+const MongoDB = require("../utils/mongodb.util");
 class ProductDetailService{
     constructor() {
         this.Product = MongoDB.getClient().db().collection("product");
@@ -170,11 +170,8 @@ class ProductDetailService{
 
         let result = null;
         const filter = { _id: new ObjectId(id) };
-
         const checkImportDetail = await this.ImportDetail.find({ productDetail_id: new ObjectId(id) }).toArray();
-
         console.log("giá trị của productDetail_id: ", checkImportDetail);
-
         if (checkImportDetail.length > 0) {
             console.log("thực hiện update");
             result = await this.ProductDetail.findOneAndUpdate(

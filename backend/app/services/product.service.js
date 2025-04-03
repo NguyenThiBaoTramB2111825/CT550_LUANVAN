@@ -9,6 +9,8 @@ class ProductService {
         this.Brand = MongoDB.getClient().db().collection("brand");
         this.Category = MongoDB.getClient().db().collection("category");
         this.Discount = MongoDB.getClient().db().collection("discount");
+        this.ProductDetail = MongoDB.getClient().db().collection("productDetail");
+
     }
 
     extractProductData(payload) {
@@ -17,10 +19,11 @@ class ProductService {
             description: payload.description,
             price_selling: payload.price_selling ? parseFloat(payload.price_selling) : undefined,
             price_afterdiscount: payload.price_selling ? parseFloat(payload.price_selling) : undefined,
-            status: payload.status || "Đang hoạt động",
+            // status: payload.status || "Đang hoạt động",
             category_id: ObjectId.isValid(payload.category_id) ? new ObjectId(payload.category_id) : undefined,
             discount_id: ObjectId.isValid(payload.discount_id) ? new ObjectId(payload.discount_id) : undefined,
             brand_id: ObjectId.isValid(payload.brand_id) ? new ObjectId(payload.brand_id) : undefined,
+            isActive: payload.isActive !== undefined ? payload.isActive : true
         };
 
         Object.keys(product).forEach(
@@ -37,7 +40,6 @@ class ProductService {
                 statusCode: 400, message: "Product đã tồn tại do tên sản phẩm đã được sử dụng"
             }
         }
-
         const category = await this.Category.findOne({ _id: product.category_id });
         if (!category) {
             return { statusCode: 400, message: "Category không tồn tại" };
@@ -125,7 +127,6 @@ class ProductService {
             return { statusCode: 404, message: "Sản phẩm cần cập nhật không tồn tại" };
         }
 
-        // Chuẩn bị dữ liệu cập nhật, loại bỏ giá trị undefined
         const update = {};
         for (const key in payload) {
             if (payload[key] !== undefined) {
@@ -208,10 +209,22 @@ class ProductService {
 
 
     async delete(id) {
-        const result = await this.Product.findOneAndDelete({
-            _id: ObjectId.isValid(id) ? new ObjectId(id) : null,
-        });
-        return result;
+        if (!ObjectId.isValid(id)) return { message: "ID không hợp lệ" };
+        let result = null;
+        const filter = { _id: new ObjectId(id) };
+        const checkProduct = await this.ProductDetail.find({ product_id: new ObjectId(id) }).toArray();
+        console.log("giá trị của checkProduct: ", checkProduct);
+        if (checkProduct.length > 0) {
+            result = await this.Product.findOneAndUpdate(
+                filter,
+                { $set: { isActive: false } },
+                { returnDocument: "after" }
+            );
+            return { ...result, message: "Đã cập nhật trạng thái" };
+        } else {
+            result = await this.Product.findOneAndDelete(filter);
+            return { ...result, message: "Đã xóa thành công" };
+        }
     }
     async deleteAll() {
         const result = await this.Product.deleteMany({});
@@ -220,7 +233,7 @@ class ProductService {
 
 
     async updateDiscountStatus(discountId, isActive) {
-     const discount = await this.Discount.findOne({ _id: new ObjectId(discountId) });
+        const discount = await this.Discount.findOne({ _id: new ObjectId(discountId) });
         if (!discount) return;
         console.log(`Cập nhật giá sản phẩm theo discount ${discountId}, Trạng thái: ${isActive}`);
         console.log("Giá trị của discount: ", discount.value);
@@ -245,7 +258,7 @@ class ProductService {
                     newPriceAfterDiscount = Math.max(0, newPriceAfterDiscount);
                 }
 
-                    console.log("Giá trị của newPriceAfterDiscount sau khi kiểm tra isActive", newPriceAfterDiscount);
+                console.log("Giá trị của newPriceAfterDiscount sau khi kiểm tra isActive", newPriceAfterDiscount);
                 return {
                     updateOne: {
                         filter: { _id: product._id },
@@ -262,5 +275,4 @@ class ProductService {
         }
     }
 }
-
 module.exports = ProductService;

@@ -1,7 +1,7 @@
 
 const { ObjectId, ReturnDocument } = require("mongodb");
 const ApiError = require("../api-error");
-
+const MongoDB = require("../utils/mongodb.util");
 class ImportDetailService{
     constructor() {
         this.ProductDetail = MongoDB.getClient().db().collection("productDetail");

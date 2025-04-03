@@ -2,7 +2,7 @@ const { ObjectId } = require("mongodb");
 const bcrypt = require('bcrypt');
 const jwt = require("jsonwebtoken");
 const config = require("../config/index");
-
+const MongoDB = require("../utils/mongodb.util");
 class employeeService{
     constructor() {
         this.Employee = MongoDB.getClient().db().collection("employee");

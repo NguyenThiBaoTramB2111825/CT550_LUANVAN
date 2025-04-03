@@ -1,39 +1,35 @@
 const ApiError = require("../api-error");
 const MongoDB = require("../utils/mongodb.util");
 const ImportDetailService = require("../services/importDetail.service");
-
+const { getSocket } = require("../../socket");
 const { ObjectId } = require("mongodb");
 
 exports.create = async (req, res, next) => {
-    
     console.log("Giá trị của header nhận được: ", req.headers.authorization); 
     if (Object.keys(req.body).length == 0) {
         return next(new ApiError(400, "Dữ liệu cần cập nhật không được để trống"));
     }
-
-    
     if (!req.body?.productDetail_id) {
         return next(new ApiError(400, "Không thể để trống productDetail_id"));
     }
     if (!req.body?.supplier_id) {
         return next(new ApiError(400, "Không thể để trống supplier_id"));
     }
-
     try {
         const importDetailService = new ImportDetailService(MongoDB.client);
         const document = await importDetailService.create(req, req.body);
         if (document.statusCode !== 200) {
-            return next(new ApiError(document.statusCode, `Error create importDetail : ${error.message}`));
-        //     return res.status(document.statusCode).json({ message: document.message });
-         }
-          return res.status(200).json(document);  // 201 Create
+            // return res.send({message: error.message});
+            // return next(new ApiError(500, "Không thể tạo importDetail"));
+            return res.status(document.statusCode).json({ message: document.message });
+        }
+        getSocket().emit("importDetail_update", { action: 'create', data: document });
+        return res.send(document);
     }
     catch (error) {
-        return res.send(error.message);
-        // return next(new ApiError(500, `Error create importDetail : ${error.message}`));
+        return res.send({message: error.message});
     }
 };
-
 
 exports.findAll = async (req, res, next) => {
     let document = [];
@@ -50,11 +46,9 @@ exports.findAll = async (req, res, next) => {
             new ApiError(500, "Lỗi truy xuất dữ liệu")
         )
     }
-    
 };
 
 exports.findById = async (req, res, next) => {
-    
     try {
         const importDetailService = new ImportDetailService(MongoDB.client);
         const document = await importDetailService.findById(req.params.id);
@@ -68,7 +62,6 @@ exports.findById = async (req, res, next) => {
             new ApiError(500, "Lỗi truy xuất dữ liệu")
         )
     }
-    
 };
 
 exports.findOne = async (req, res, next) => {
@@ -128,6 +121,7 @@ exports.update = async (req, res, next) => {
         if (document.statusCode && document.statusCode !== 200) {
             return next(new ApiError(document.statusCode, document.message));
         }
+                getSocket().emit("importDetail_update", { action: 'update', data: document });
         return res.send({
             message:document.message,
             data: document.data
@@ -149,6 +143,7 @@ exports.delete = async (req, res, next) => {
         if (document.statusCode == 404) {
             return next(new ApiError(document.statusCode, document.message));
         }
+        getSocket().emit("importDetail_update", { action: document.isActive === false ? "soft_delete" : "delete", data: {_id: req.params.id} });
         return res.send({ message: "product đã được xóa thành công" });
     }
     catch (error) {

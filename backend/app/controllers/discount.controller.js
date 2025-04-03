@@ -2,6 +2,7 @@ const ApiError = require("../api-error");
 const MongoDB = require("../utils/mongodb.util");
 const DiscountService = require("../services/discount.service");
 const { ObjectId } = require("mongodb");
+const { getSocket } = require("../../socket");
 
 exports.create = async (req, res, next) => {
     console.log("Dữ liệu nhập vào: ", req.body);
@@ -17,6 +18,7 @@ exports.create = async (req, res, next) => {
         if (document.statusCode == 400) {
             return res.status(400).json({ message: document.message });
         }
+        getSocket().emit("discount_update", { action: "create", data: document });
         return res.send(document);
     } catch (error) {
         return next(new ApiError(500, "An Error Occurred while creating the discount"));
@@ -82,6 +84,7 @@ exports.update = async (req, res, next) => {
             return next(new ApiError(document.statusCode, document.message));
         }
 
+        getSocket().emit("discount_update", { action: "update", data: document });
         return res.send({
             message: "Discount was updated successfully",
             data: document.data
@@ -99,6 +102,7 @@ exports.delete = async (req, res, next) => {
         if (!document) {
             return next(new ApiError(404, "discount not found"));
         }
+        getSocket().emit("discount_update", {action: document.isActive === false ? "soft_delete": "delete", data: {_id: req.params.id}})
         return res.send({ messgae:  document.message});
     } catch (error) {
         res.send({ message: error.message });

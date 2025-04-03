@@ -1,7 +1,7 @@
 const ApiError = require("../api-error");
 const MongoDB = require("../utils/mongodb.util");
 const ProductDetailService = require("../services/productDetail.service");
-
+const { getSocket } = require("../../socket");
 const { ObjectId } = require("mongodb");
 
 exports.create = async (req, res, next) => {
@@ -25,6 +25,7 @@ exports.create = async (req, res, next) => {
         if (document.statusCode !== 200) {
             return res.status(document.statusCode).json({ message: document.message });
         }
+        getSocket().emit("productDetail_update", { action: "create", data: { document } });
           return res.status(200).json(document);  // 201 Create
     }
     catch (error) {
@@ -109,6 +110,7 @@ exports.update = async (req, res, next) => {
         if (document.statusCode && document.statusCode != 200) {
             return next(new ApiError(document.statusCode, document.message));
         }
+         getSocket().emit("productDetail_update", { action: "update", data: { document } });
         return res.send({
             message: "ProductDetail was updated successfully",
             data: document.data
@@ -129,6 +131,8 @@ exports.delete = async (req, res, next) => {
         if (document.statusCode == 404) {
             return next(new ApiError(document.statusCode, document.message));
         }
+        
+        getSocket().emit("productDetail_update", { action: document.isActive === false ? "soft_delete" : "delete", data: { _id: req.params.id } });
         return res.send({message: document.message});
     }
     catch (error) {

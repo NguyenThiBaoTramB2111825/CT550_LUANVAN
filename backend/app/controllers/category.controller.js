@@ -3,7 +3,6 @@ const MongoDB = require("../utils/mongodb.util");
 const CategoryService = require("../services/category.service");
 const { getSocket } = require("../../socket");
 
-
 exports.create = async (req, res, next) => {
     if (!req.body?.name || !req.body?.description) {
         return next(new ApiError(400, "Không thể để trống"));
@@ -22,7 +21,6 @@ exports.create = async (req, res, next) => {
         return res.send({ message: error.message });
     }
 };
-
 
 exports.findAll = async (req, res, next) => {
     let document = [];
