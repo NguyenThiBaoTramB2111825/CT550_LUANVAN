@@ -54,20 +54,17 @@ import { ref, onMounted, computed } from 'vue';
 import Breadcrumb from "@/components/Breadcrumb.vue";
 import Swal from "sweetalert2";
 import { useRouter } from 'vue-router';
-
-
-const  BASE_URL = "http://localhost:3000";
+import { io } from 'socket.io-client';
+const BASE_URL = "http://localhost:3000";
+const socket = io(BASE_URL);
 export default {
-      components: {
+    components: {
         Breadcrumb
     },
     setup() {
-
         const router = useRouter();
         const inputsearch = ref('');
         const suppliers = ref([]);
-
-
         const fetchSupplier = async () => {
             try {
                 const response = await axios.get("http://127.0.0.1:3000/api/supplier");
@@ -90,8 +87,6 @@ export default {
                 console.error("Lỗi khi tìm kiếm danh mục: ", error);
             }
         }
-
-
         // const searchDiscount = async () => {
         //     if (inputsearch.value.trim() === "") {
         //         fetchSupplier();
@@ -105,9 +100,7 @@ export default {
         //         console.error("Lỗi khi tìm kiếm danh mục: ", error);
         //     }
         // };
-
         const deleleSupplier = async (id) => {
-
             const result = await Swal.fire({
                 title: "Xác nhận xóa",
                 text: "Bạn có chắc chắn muốn xóa nhà cung cấp này không?",
@@ -120,7 +113,7 @@ export default {
             if (result.isConfirmed) {
                 try {
                     const response = await axios.delete(`http://127.0.0.1:3000/api/supplier/${id}`);
-                    Swal.fire('Thông báo!', response.data.message , 'success');
+                    Swal.fire('Thông báo!', response.data.message, 'success');
                     fetchSupplier();
                 } catch (error) {
                     Swal.fire('Lỗi!', 'Có lỗi khi xóa giảm giá', 'error')
@@ -139,7 +132,14 @@ export default {
         }
 
         const totalSupplier = computed(() => suppliers.value.length);
-        onMounted(fetchSupplier);
+        onMounted(() => {
+            fetchSupplier();
+            socket.on('supplier_update', async ({ action }) => {
+                if (["create", "update", "delete", "soft_delete"].includes(action)) {
+                    await fetchSupplier();
+                }
+            });
+        });
 
         return { suppliers, BASE_URL, deleleSupplier, goToUpdatePage, addSupplier, totalSupplier, searchSupplier, inputsearch };
     }

@@ -54,7 +54,6 @@
                     <td>{{ formatDate(discount.startDate) }}</td>
                     <td>{{ formatDate(discount.endDate) }}</td>
                     <td>{{ getStatus(discount) }}</td>
-                    <!-- <td>{{ discount.isActive==="true" ? "Đang hoạt động" : "Chưa bắt đầu/Đã kết thúc"  }}</td> -->
                     <td>
                         <button class="btn  btn-danger" @click="deleteDiscount(discount._id)">Xóa</button> 
                         <button class="btn  btn-success mx-1" @click="goToUpdatePage(discount._id)">Cập nhật</button> 
@@ -75,20 +74,22 @@
 </template>
 <script>
 import axios from 'axios';
-import { ref, onMounted, computed } from 'vue';
+import { ref, onMounted,onUnmounted, computed } from 'vue';
 import Breadcrumb from "@/components/Breadcrumb.vue";
 import Swal from "sweetalert2";
 import { useRouter } from 'vue-router';
+import { io } from 'socket.io-client';
+const BASE_URL = "http://localhost:3000";
+const socket = io(BASE_URL); 
 import dayjs from "dayjs";
+import utc from "dayjs/plugin/utc";
 
-
-
-const  BASE_URL = "http://localhost:3000";
 export default {
-      components: {
+    components: {
         Breadcrumb
     },
     setup() {
+        dayjs.extend(utc);
 
         const filters = ref({
             searchText: '',
@@ -96,7 +97,6 @@ export default {
             endDate: '',
             status: ''
         });
-
         const filterDiscounts = async () => {
             try {
                 let response = await axios.get("http://127.0.0.1:3000/api/discount");
@@ -142,10 +142,10 @@ export default {
         };
 
         const formatCurrency = (amount) => {
-        if (amount === undefined || amount === null) {
-            return "0"; // hoặc có thể trả về một chuỗi trống ""
-        }
-        return Number(amount).toLocaleString("vi-VN");
+            if (amount === undefined || amount === null) {
+                return "0"; // hoặc có thể trả về một chuỗi trống ""
+            }
+            return Number(amount).toLocaleString("vi-VN");
         };
 
         const getStatus = (discount) => {
@@ -168,7 +168,6 @@ export default {
         const formatDate = (dateString) => {
             return dateString ? dayjs(dateString).format("DD/MM/YYYY") : "N/A";
         };
-
         const router = useRouter();
         const inputsearch = ref('');
         const discounts = ref([]);
@@ -210,8 +209,8 @@ export default {
 
             if (result.isConfirmed) {
                 try {
-                    await axios.delete(`http://127.0.0.1:3000/api/discount/${id}`);
-                    Swal.fire('Đã xóa!', 'nhãn hãng đã được xóa thành công', 'success');
+                    const response = await axios.delete(`http://127.0.0.1:3000/api/discount/${id}`);
+                    Swal.fire('Thông báo!', response.data.message, 'success');
                     fetchDiscount();
                 } catch (error) {
                     Swal.fire('Lỗi!', 'Có lỗi khi xóa giảm giá', 'error')
@@ -230,8 +229,34 @@ export default {
         }
 
         const totalDiscounts = computed(() => discounts.value.length);
-        onMounted(fetchDiscount);
+        onMounted(() => {
+            fetchDiscount(),
+                socket.on('discount_update', ({ action, data }) => {
+                    if (action === "create") {
+                        discounts.value.push(data);
+                    }
+                    else if (action === "update") {
+                        const index = discounts.value.findIndex(c => c._id === data._id);
+                        if (index !== -1) {
+                            discounts.value[index] = data;
+                            Swal.fire("Thông báo", "Cập nhật thương hiệu thành công!", "success");
+                        }
+                    }
+                    else if (action === "delete") {
+                        discounts.value = discounts.value.filter(c => c._id !== data._id);
+                    }
+                    else if (action === "soft_delete") {
+                        const index = discounts.value.findIndex(c => c._id === data._id);
+                        if (index !== -1) {
+                            discounts.value[index].isActive = false;
+                        }
+                    }
+                })
+        });
 
+        onUnmounted(() => {
+            socket.off('discount_update');
+        })
         return { discounts, BASE_URL, deleteDiscount, goToUpdatePage, addDiscount, inputsearch, totalDiscounts, formatDate, getStatus, formatCurrency, filterDiscounts, filters };
     }
 }

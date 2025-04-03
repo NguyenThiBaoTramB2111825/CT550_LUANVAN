@@ -66,11 +66,12 @@
 
 <script>
 import axios from 'axios';
-import { ref, onMounted, computed } from 'vue';
+import { ref, onMounted, onUnmounted, computed } from 'vue';
 import Breadcrumb from "@/components/Breadcrumb.vue";
 import Swal from "sweetalert2";
-
+import { io } from 'socket.io-client';
 const BASE_URL = "http://localhost:3000";
+const socket = io(BASE_URL); 
 export default {
     components: { Breadcrumb },
     setup() {
@@ -126,9 +127,9 @@ export default {
             if (result.isConfirmed) {
                 try {
                     const response = await axios.delete(`${BASE_URL}/api/color/${id}`);
-                    Swal.fire('Thông báo!',  response.data.message, 'success');
+                    Swal.fire('Thông báo!', response.data.message, 'success');
                     fetchColors();
-                    window.location.href();
+                    // window.location.href();
                 } catch (error) {
                     Swal.fire('Lỗi!', 'Có lỗi khi xóa màu sắc', 'error');
                 }
@@ -138,13 +139,13 @@ export default {
         const openModal = (color = null) => {
             if (color) {
                 currentColor.value = {
-                    ...color, 
+                    ...color,
                     // isActive: color.isActive === "true" || color.isActive === true
-                 };
+                };
                 console.log("Giá trị sau khi mở modal: ", currentColor.value);
                 isEditing.value = true;
             } else {
-                currentColor.value = { name: '', hexCode: '',isActive: true, _id: null };
+                currentColor.value = { name: '', hexCode: '', isActive: true, _id: null };
                 isEditing.value = false;
             }
             showModal.value = true;
@@ -172,9 +173,19 @@ export default {
         };
 
         const totalColors = computed(() => colors.value.length);
-        onMounted(fetchColors);
+        onMounted(() => {
+            fetchColors();
+            socket.on('color_update', async ({ action }) => {
+                if (["create", "update", "delete", "soft_delete"].includes(action)) {
+                    await fetchColors();
+                }
+            });
+        });
+        onUnmounted(() => {
+            socket.off('color_update');
+        })
 
-        return { colors, inputsearch, searchColor, deleteColor, openModal, closeModal, saveColor, showModal, isEditing, currentColor, totalColors , fetchColors};
+        return { colors, inputsearch, searchColor, deleteColor, openModal, closeModal, saveColor, showModal, isEditing, currentColor, totalColors, fetchColors };
     }
 }
 </script>

@@ -7,7 +7,7 @@
                 <input type="text" class=" mb-2 w-100 border-radius" v-model="filters.searchCategory" placeholder="Nhập danh mục sản phẩm">
                 <input type="text" class=" mb-2 w-100 border-radius" v-model="filters.searchBrand" placeholder="Nhập thương hiệu">
                 <input type="text" class=" mb-2 w-100 border-radius" v-model="filters.searchDiscount" placeholder="Nhập tên chương trình khuyến mãi">
-                <select class="border border-radius mb-2 w-100 " v-model="filters.status">
+                <select class="border border-radius mb-2 w-100 " v-model="filters.isActive">
                     <option value="">Trạng thái</option>
                     <option value="Đang hoạt động">Đang hoạt động</option>
                     <option value="Không hoạt động">Không hoạt động</option>
@@ -41,7 +41,7 @@
                     <td>{{ product.description }}</td>
                     <td>{{ formatCurrency(product.price_selling) }}</td>
                     <td>{{ formatCurrency(product.price_afterdiscount) }}</td>
-                    <td>{{ product.status }}</td>
+                    <td>{{ product.isActive ? "Đang hoạt động" : "Đã xóa"}}</td>
                     <td>
                         <button class="btn  btn-danger m-1" @click="deleteProduct(product._id)">Xóa</button> 
                         <button class="btn  btn-success m-1" @click="goToUpdatePage(product._id)">Cập nhật</button> 
@@ -98,12 +98,13 @@
 
 <script>
     import axios from 'axios';
-    import { ref, onMounted, computed } from 'vue';
+    import { ref, onMounted, onUnmounted,  computed } from 'vue';
     import Breadcrumb from "@/components/Breadcrumb.vue";
     import Swal from "sweetalert2";
     import { useRouter } from 'vue-router';
-
-    const  BASE_URL = "http://localhost:3000";
+    import { io } from 'socket.io-client';
+    const BASE_URL = "http://localhost:3000";
+    const socket = io(BASE_URL);
 export default {
     components: {
         Breadcrumb
@@ -119,12 +120,11 @@ export default {
 
         const filters = ref({
             searchText: '',
-            status: '',
+            isActive: null,
             searchCategory: '',
             searchBrand: '',
             searchDiscount: ''
         });
-
         const filterProducts = computed(() => {
             return products.value.filter(product => {
                 const matchesName = filters.value.searchText.trim()
@@ -142,11 +142,11 @@ export default {
                     ? product.category_name && product.discount_name.toLowerCase().includes(filters.value.searchDiscount.toLowerCase())
                     : true;
 
-                const matchesStatus = filters.value.status
-                    ? product.status === filters.value.status
+                const matchesActive = filters.value.isActive
+                    ? product.isActive === filters.value.isActive
                     : true;
 
-                return matchesName && matchesBrand && matchesCategory && matchesStatus && matchesDiscount;
+                return matchesName && matchesBrand && matchesCategory && matchesActive && matchesDiscount;
             });
         });
 
@@ -173,7 +173,7 @@ export default {
                     url: img.url
                 }));
                 const product = products.value.find(p => p._id === productId);
-                selectedProduct.value =  product || null;
+                selectedProduct.value = product || null;
                 showModal.value = true;
 
             }
@@ -245,7 +245,7 @@ export default {
                 });
                 return false;
             }
- 
+
             files.value = selectedFiles;
         };
 
@@ -276,7 +276,7 @@ export default {
 
         const formatCurrency = (amount) => {
             if (amount === undefined || amount === null) {
-                return "0"; 
+                return "0";
             }
             return Number(amount).toLocaleString("vi-VN");
         };
@@ -340,8 +340,8 @@ export default {
 
             if (result.isConfirmed) {
                 try {
-                    await axios.delete(`http://127.0.0.1:3000/api/product/${id}`);
-                    Swal.fire('Đã xóa!', 'nhãn hãng đã được xóa thành công', 'success');
+                    const response = await axios.delete(`http://127.0.0.1:3000/api/product/${id}`);
+                    Swal.fire('Thông báo!', response.data.message, 'success');
                     fetchProduct();
                 } catch (error) {
                     Swal.fire('Lỗi!', 'Có lỗi khi xóa sản phẩm', 'error')
@@ -369,7 +369,48 @@ export default {
         }
 
         const totalProducts = computed(() => filterProducts.value.length);
-        onMounted(fetchProduct);
+        onMounted(() => {
+            fetchProduct();
+
+            // socket.on('product_update', async ({ action, data }) => {
+            //     if (action === "create") {
+            //         await fetchProductDetails(data); // Lấy thông tin đầy đủ trước khi thêm vào danh sách
+            //         products.value.push(data);
+            //         Swal.fire("Thông báo", "Thêm sản phẩm thành công!", "success");
+
+            //     } else if (action === "update") {
+            //         const index = products.value.findIndex(b => b._id === data._id);
+            //         if (index !== -1) {
+            //             await fetchProductDetails(data); // Lấy thông tin đầy đủ trước khi cập nhật
+            //             products.value[index] = data;
+            //             Swal.fire("Thông báo", "Cập nhật sản phẩm thành công!", "success");
+            //         }
+            //     }
+            //     else if (action === "delete") {
+            //         products.value = products.value.filter(b => b._id !== data._id);
+            //         Swal.fire("Thông báo", "Sản phẩm đã bị xóa!", "info");
+            //     }
+            //     else if (action === "soft_delete") {
+            //         const index = products.value.findIndex(b => b._id === data._id);
+            //         if (index !== -1) {
+            //             products.value[index].isActive = false;
+            //             Swal.fire("Thông báo", "Sản phẩm đã được ẩn!", "warning");
+            //         }
+            //     }
+            // });
+
+            socket.on('product_update', async ({ action }) => {
+                if (["create", "update", "delete", "soft_delete"].includes(action)) {
+                    await fetchProduct();
+                    Swal.fire("Thông báo", "Dữ liệu sản phẩm đã được cập nhật!", "success");
+                }
+            });
+
+        });
+
+        onUnmounted(() => {
+            socket.off('product_update');
+        })
 
         return {
             products,
@@ -393,10 +434,10 @@ export default {
             selectedImages,
             removeImage,
             uploadImages,
-            handleFileUpload, 
+            handleFileUpload,
             existingImages,
             triggerFileInput,
-            fileInput,
+            fileInput
         }
     }
 }
@@ -540,9 +581,3 @@ export default {
         border: 2px solid #ddd;
     }
 </style>
-
-
-
-
-
-

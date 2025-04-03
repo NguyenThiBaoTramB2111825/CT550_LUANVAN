@@ -63,7 +63,7 @@ export default {
             try {
                 const response = await axios.get(`http://127.0.0.1:3000/api/category/${id}`);
                 category.value = response.data;
-                
+
             } catch (error) {
                 console.error("Lỗi khi lấy danh mục sản phẩm", error);
                 Swal.fire('Lỗi', 'Không tìm thấy danh mục', 'error');
@@ -78,12 +78,12 @@ export default {
                 const id = route.params.id;
                 console.log("Dữ liệu gửi lên API: ", category.value);
 
-                await axios.put(`http://127.0.0.1:3000/api/category/${id}`, {
+                const response = await axios.put(`http://127.0.0.1:3000/api/category/${id}`, {
                     name: category.value.name,
                     description: category.value.description,
                     isActive: category.value.isActive,
                 });
-
+                socket.emit("category_updated", { action: "update", data: response.data });
 
                 Swal.fire('Thành công', 'Cập nhật thông tin thành công', 'success');
                 router.push('/admin/category');
@@ -100,7 +100,7 @@ export default {
         const back = async () => {
             router.push({ name: 'category' });
         };
-        return { fetchCategory,BASE_URL, back, updateCategory, category, selectedFile};
+        return { fetchCategory, BASE_URL, back, updateCategory, category, selectedFile };
     }
 }
 </script>

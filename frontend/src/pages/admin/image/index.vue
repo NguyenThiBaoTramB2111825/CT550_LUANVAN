@@ -46,12 +46,13 @@
 
 <script>
 import axios from 'axios';
-import { ref, onMounted, computed } from 'vue';
+import { ref, onMounted, onUnmounted, computed } from 'vue';
 import Breadcrumb from "@/components/Breadcrumb.vue";
 import Swal from "sweetalert2";
 import { useRouter } from 'vue-router';
-
-const  BASE_URL = "http://localhost:3000";
+import { io } from 'socket.io-client';
+const BASE_URL = "http://localhost:3000";
+const socket = io(BASE_URL);
 export default {
     components: {
         Breadcrumb
@@ -69,7 +70,7 @@ export default {
             try {
                 const response = await axios.get("http://127.0.0.1:3000/api/product");
                 console.log("Giá trị của response sau khi fetchProducts: ", response);
-                products.value = Array.isArray(response?.data) ? response.data : []; 
+                products.value = Array.isArray(response?.data) ? response.data : [];
             } catch (error) {
                 console.error(error.message);
             }
@@ -129,8 +130,18 @@ export default {
         }
 
         const totalProducts = computed(() => groupedImages.value.length);
-        onMounted(fetchImage);
-
+        onMounted(() => {
+            fetchImage();
+            socket.on("image_update", async ({ action }) => {
+                if (["create", "create_many", "update", "delete", "delete_many"].includes(action)) {
+                    await fetchImage();
+                    Swal.fire("Thông báo", "Dữ liệu đã được cập nhật", "success");
+                }
+            })
+        });
+        onUnmounted(() => {
+            socket.off('product_update');
+        })
         return { fetchProducts, BASE_URL, images, addImage, inputsearch, totalProducts, fetchImage, deleteImagesByProduct, groupedImages };
     }
 }

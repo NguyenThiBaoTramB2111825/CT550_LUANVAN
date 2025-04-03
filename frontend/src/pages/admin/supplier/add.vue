@@ -46,9 +46,9 @@
     import Breadcrumb from "@/components/Breadcrumb.vue";
     import Swal from "sweetalert2";
     import { useRouter, useRoute } from 'vue-router';
-    
-
-    const  BASE_URL = "http://localhost:3000";
+    import { io } from 'socket.io-client';
+const BASE_URL = "http://localhost:3000";
+const socket = io(BASE_URL);
 export default {
     components: {
         Breadcrumb
@@ -76,12 +76,10 @@ export default {
         });
      
         const addSupplier = async () => {
-
             try {
-
                 console.log("Dữ liệu gửi lên API: ", supplier.value);
-                await axios.post("http://127.0.0.1:3000/api/supplier/", supplier.value)
-        
+                 const response = await axios.post("http://127.0.0.1:3000/api/supplier/", supplier.value)
+                socket.emit("supplier_update", {action: 'add', data : response.data})
                 Swal.fire('Thành công', 'Thêm thông tin nhà cung cấp thành công', 'success');
                 router.push('/admin/supplier');
 

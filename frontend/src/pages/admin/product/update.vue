@@ -44,9 +44,9 @@
         </div>
             <div class="mb-3 d-flex">
                 <label class="col-md-2">Trạng thái</label>
-                <select v-model="product.status" class="form-control" required>
-                    <option value="Đang hoạt động">Hoạt động</option>
-                    <option value="Không hoạt động">Không hoạt động</option>
+                <select v-model="product.isActive" class="form-control" required>
+                    <option :value="true">Hoạt động</option>
+                    <option :value="false">Đã xóa</option>
                 </select>
             </div>
         </form>
@@ -68,8 +68,9 @@
     import Breadcrumb from "@/components/Breadcrumb.vue";
     import Swal from "sweetalert2";
     import { useRouter, useRoute } from 'vue-router';
-
+    import {io} from 'socket.io-client';
     const  BASE_URL = "http://localhost:3000";
+    const socket = io(BASE_URL);
 export default {
     components: {
         Breadcrumb
@@ -88,7 +89,7 @@ export default {
             brand_id: '',
             category_id: '',
             discount_id: '',
-            status: ''
+            isActive: null
 
         });
         const fetchProduct = async () => {
@@ -97,7 +98,7 @@ export default {
             try {
                 const response = await axios.get(`http://127.0.0.1:3000/api/product/${id}`);
                 let data = response.data;
-  
+
                 product.value = data;
             } catch (error) {
                 console.error("Lỗi khi lấy sản phẩm", error);
@@ -127,7 +128,7 @@ export default {
             }
 
         }
-        const fetchCategorys= async () => {
+        const fetchCategorys = async () => {
             try {
                 const response = await axios.get("http://127.0.0.1:3000/api/category");
                 Categorys.value = response.data;
@@ -137,7 +138,7 @@ export default {
             }
 
         }
-             
+
 
         const updateProduct = async () => {
 
@@ -145,16 +146,16 @@ export default {
                 const id = route.params.id;
                 console.log("Dữ liệu gửi lên API: ", product.value);
 
-                await axios.put(`http://127.0.0.1:3000/api/product/${id}`, {
+                const response = await axios.put(`http://127.0.0.1:3000/api/product/${id}`, {
                     name: product.value.name,
                     description: product.value.description,
                     price_selling: product.value.price_selling,
                     brand_id: product.value.brand_id,
                     category_id: product.value.category_id,
                     discount_id: product.value.discount_id,
-                    status: product.value.status,
+                    isActive: product.value.isActive,
                 });
-
+                socket.emit("product_updated", { action: "update", data: response.data });
                 Swal.fire('Thành công', 'Cập nhật thông tin thành công', 'success');
                 router.push('/admin/product');
 
@@ -167,15 +168,15 @@ export default {
         }
         onMounted(async () => {
             await fetchProduct(),
-            await fetchDiscounts(),
-            await fetchBrands(),
-            await fetchCategorys()
+                await fetchDiscounts(),
+                await fetchBrands(),
+                await fetchCategorys()
         });
 
         const back = async () => {
             router.push({ name: 'product' });
         };
-        return { fetchProduct,BASE_URL, back, updateProduct, product, activeDiscounts, Brands, Categorys};
+        return { fetchProduct, BASE_URL, back, updateProduct, product, activeDiscounts, Brands, Categorys };
     }
 }
 </script>

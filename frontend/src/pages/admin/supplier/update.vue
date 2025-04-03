@@ -28,8 +28,8 @@
             <div class="mb-3 d-flex">
                 <label class="col-md-2">Trạng thái</label>
                 <select v-model="supplier.isActive" class="form-control" required>
-                    <option value="true">Đang hoạt động</option>
-                    <option value="false">Đã xóa<a href=""></a></option>
+                    <option :value="true">Đang hoạt động</option>
+                    <option :value="false">Đã xóa<a href=""></a></option>
                 </select>
             </div>     
             <div class=" d-flex justify-content-center text-center">
@@ -50,9 +50,9 @@
     import Breadcrumb from "@/components/Breadcrumb.vue";
     import Swal from "sweetalert2";
     import { useRouter, useRoute } from 'vue-router';
-    
-
-    const  BASE_URL = "http://localhost:3000";
+    import { io } from 'socket.io-client';
+const BASE_URL = "http://localhost:3000";
+const socket = io(BASE_URL);
 export default {
     components: {
         Breadcrumb
@@ -67,7 +67,7 @@ export default {
             address: '',
             email: '',
             phone: '',
-            isActive: ''
+            isActive: null
         });
         const isValidEmail = computed(() => {
             const emailRegex = /^[a-zA-Z0-9._%+-]+@[a-zA-Z0-9.-]+\.[a-zA-Z]{2,}$/;
@@ -105,7 +105,7 @@ export default {
                 const id = route.params.id;
                 console.log("Dữ liệu gửi lên API: ", supplier.value);
 
-                await axios.put(`http://127.0.0.1:3000/api/supplier/${id}`, {
+                const response = await axios.put(`http://127.0.0.1:3000/api/supplier/${id}`, {
                     name: supplier.value.name,
                     address: supplier.value.address,
                     email: supplier.value.email,
@@ -113,7 +113,7 @@ export default {
                     isActive: supplier.value.isActive
                 });
 
-
+                socket.emit("supplier_update", {action: 'update', data: response.data})
                 Swal.fire('Thành công', 'Cập nhật thông tin thành công', 'success');
                 router.push('/admin/supplier');
 

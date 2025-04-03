@@ -105,13 +105,14 @@
 
 <script>
 import axios from 'axios';
-import { ref, onMounted, computed } from 'vue';
+import { ref, onMounted,onUnmounted,  computed } from 'vue';
 import Breadcrumb from "@/components/Breadcrumb.vue";
 import Swal from "sweetalert2";
 const BASE_URL = "http://localhost:3000";
 import dayjs from "dayjs";
 import Cookies from 'js-cookie';
-
+import { io } from 'socket.io-client';
+const socket = io(BASE_URL);
 export default {
     components: { Breadcrumb },
     setup() {
@@ -149,7 +150,7 @@ export default {
                 const productDetailRequests = importDetailsData.map(pd =>
                     axios.get(`${BASE_URL}/api/productDetail/${pd.productDetail_id}`).then(res => res.data).catch(error => {
                         console.error("Lỗi lấy productDetail: ", error);
-                     }),
+                    }),
                 );
                 const supplierRequests = importDetailsData.map(pd =>
                     axios.get(`${BASE_URL}/api/supplier/${pd.supplier_id}`).catch(() => null)
@@ -159,8 +160,8 @@ export default {
                 let productDetails = await Promise.all(productDetailRequests);
 
                 const productRequests = productDetails
-                            .filter(pd => pd?.product_id) // Loại bỏ null
-                            .map(pd => axios.get(`${BASE_URL}/api/product/${pd.product_id}`).then(res => res.data).catch(() => null));
+                    .filter(pd => pd?.product_id) // Loại bỏ null
+                    .map(pd => axios.get(`${BASE_URL}/api/product/${pd.product_id}`).then(res => res.data).catch(() => null));
 
                 const products = await Promise.all(productRequests);
                 console.log("Dữ liệu products:", products);
@@ -208,8 +209,8 @@ export default {
 
             if (result.isConfirmed) {
                 try {
-                    await axios.delete(`${BASE_URL}/api/importDetail/${id}`);
-                    Swal.fire('Đã xóa!', 'chi tiết nhập hàng đã được xóa thành công', 'success');
+                    const response = await axios.delete(`${BASE_URL}/api/importDetail/${id}`);
+                    Swal.fire('Thông báo!', response.data.message, 'success');
                     fetchImportDetails();
                 } catch (error) {
                     Swal.fire('Lỗi!', 'Có lỗi khi xóa chi tiết nhập hàng', 'error');
@@ -218,9 +219,9 @@ export default {
         };
 
         const openModal = (importDetail = null) => {
-             console.log("Dữ liệu importDetail khi mở modal:", importDetail); // Kiểm tra dữ liệu
+            console.log("Dữ liệu importDetail khi mở modal:", importDetail); // Kiểm tra dữ liệu
             if (importDetail) {
-                currentImportDetail.value = { ...importDetail,    importDate: importDetail.importDate ? dayjs(importDetail.importDate).format("YYYY-MM-DD") : null };
+                currentImportDetail.value = { ...importDetail, importDate: importDetail.importDate ? dayjs(importDetail.importDate).format("YYYY-MM-DD") : null };
                 isEditing.value = true;
                 console.log("Dữ liệu được lưu lại trong currentImportDetail: ", currentImportDetail);
             } else {
@@ -270,17 +271,18 @@ export default {
                 };
 
                 if (isEditing.value) {
-                    await axios.put(`${BASE_URL}/api/importDetail/${currentImportDetail.value._id}`,
+                    const response = await axios.put(`${BASE_URL}/api/importDetail/${currentImportDetail.value._id}`,
                         currentImportDetail.value,
                         config
                     );
+                    socket.emit('importDetail_updated', { action: "update", data: response.data })
                 } else {
-                    await axios.post(`${BASE_URL}/api/importDetail/`,
+                    const response = await axios.post(`${BASE_URL}/api/importDetail/`,
                         currentImportDetail.value,
                         config
                     );
+                    socket.emit('importDetail_updated', { action: "create", data: response.data })
                 }
-
                 await fetchImportDetails();
                 Swal.fire('Thành công', isEditing.value ? 'Cập nhật chi tiết nhập hàng thành công' : 'Thêm chi tiết nhập hàng thành công', 'success');
                 closeModal();
@@ -288,7 +290,7 @@ export default {
                 console.error("Lỗi khi lưu chi tiết nhập hàng:", error);
                 Swal.fire('Lỗi!', error.response?.data?.message || 'Có lỗi xảy ra', 'error');
             }
-        }; 
+        };
 
         const formatCurrency = (amount) => {
             if (amount === undefined || amount === null) {
@@ -307,8 +309,18 @@ export default {
         onMounted(async () => {
             await fetchImportDetails(),
                 await fetchSuppliers(),
-                await fetchProductDetails()
+                await fetchProductDetails(),
+                socket.on('importDetail_update', async ({ action }) => {
+                    if (["create", "update", "delete", "soft_delete"].includes(action)) {
+                        await fetchImportDetails();
+                        Swal.fire("Thông báo", "Dữ liệu sản phẩm đã được cập nhật!", "success");
+                    }
+                });
         });
+        onUnmounted(() => {
+            socket.off('productDetail_update');
+        })
+
 
         return { importDetails, inputsearch, deleteImportDetails, openModal, closeModal, saveImportDetails, showModal, isEditing, currentImportDetail, totalImportDetails, suppliers, productDetails, formatDate, formatCurrency, fetchImportDetails };
     }

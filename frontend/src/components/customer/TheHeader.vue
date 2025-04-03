@@ -248,6 +248,36 @@ export default {
                 categorys.value[index].isActive = false;
             }
           }
+        }),
+        socket.on('discount_update', ({ action, data }) => {
+          if (action === "create") {
+            discounts.value.push(data);
+
+          } else if (action === "update") {
+            const index = discounts.value.findIndex(b => b._id === data._id);
+            if (index !== -1) {
+              if (data.isActive) {
+                discounts.value[index] = data;
+              }
+              else {
+                discounts.value.splice(index, 1);
+              }
+            }
+            else {
+              if (data.isActive) {
+                discounts.value.push(data);
+              }
+            }
+          }
+          else if (action === "delete") {
+            discounts.value = discounts.value.filter(b => b._id !== data._id);
+          }
+          else if (action === "soft_delete") {
+            const index = discounts.value.findIndex(b => b._id === data._id);
+            if (index !== -1) {
+                discounts.value[index].isActive = false;
+            }
+          }
         })
     })
     return {

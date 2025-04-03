@@ -56,7 +56,9 @@ import { ref, onMounted } from 'vue';
 import { useRouter } from 'vue-router';
 import Swal from "sweetalert2";
 import Breadcrumb from "@/components/Breadcrumb.vue";
-
+import { io } from 'socket.io-client';
+const BASE_URL = "http://localhost:3000";
+const socket = io(BASE_URL);
 export default {
     components: {
         Breadcrumb,
@@ -122,7 +124,8 @@ export default {
             try {
                 console.log("Dữ liệu gửi lên API:", product.value);
                 await axios.post("http://127.0.0.1:3000/api/product/", product.value);
-
+                
+                socket.emit('product_updated', {action: "create", data: response.data})
                 Swal.fire("Thành công", "Thêm sản phẩm thành công", "success");
                 router.push('/admin/product');
             } catch (error) {

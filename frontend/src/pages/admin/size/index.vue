@@ -68,11 +68,12 @@
 
 <script>
 import axios from 'axios';
-import { ref, onMounted, computed } from 'vue';
+import { ref, onMounted, onUnmounted, computed } from 'vue';
 import Breadcrumb from "@/components/Breadcrumb.vue";
 import Swal from "sweetalert2";
-
+import { io } from 'socket.io-client';
 const BASE_URL = "http://localhost:3000";
+const socket = io(BASE_URL);
 export default {
     components: { Breadcrumb },
     setup() {
@@ -161,7 +162,15 @@ export default {
         };
 
         const totalSizes = computed(() => sizes.value.length);
-        onMounted(fetchSizes);
+        onMounted(() => {
+            fetchSizes();
+            socket.on('size_update', async ({ action }) => {
+                if (["create", "update", "delete", "soft_delete"].includes(action)) {
+                    await fetchSizes(); 
+                }
+            })
+
+        });
 
         return { sizes, inputsearch, searchSize, deleteSize, openModal, closeModal, saveSize, showModal, isEditing, currentSize, totalSizes, fetchSizes };
     }

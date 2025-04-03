@@ -98,15 +98,16 @@
 
 <script>
 import axios from 'axios';
-import { ref, onMounted, computed } from 'vue';
+import { ref, onMounted, onUnmounted, computed } from 'vue';
 import Breadcrumb from "@/components/Breadcrumb.vue";
 import Swal from "sweetalert2";
-
-const BASE_URL = "http://localhost:3000";
+  import { io } from 'socket.io-client';
+  const BASE_URL = "http://localhost:3000";
+  const socket = io(BASE_URL);
 export default {
   components: { Breadcrumb },
   setup() {
-  
+
     const products = ref([]);
     const colors = ref([]);
     const sizes = ref([]);
@@ -189,7 +190,7 @@ export default {
       if (result.isConfirmed) {
         try {
           const response = await axios.delete(`${BASE_URL}/api/productDetail/${id}`);
-          Swal.fire('Thông báo!', response?.data?.message , 'success');
+          Swal.fire('Thông báo!', response?.data?.message, 'success');
           fetchProductDetails();
         } catch (error) {
           Swal.fire('Lỗi!', 'Có lỗi khi xóa chi tiết sản phẩm', 'error');
@@ -237,12 +238,17 @@ export default {
     const totalProductDetails = computed(() => productDetails.value.length);
     onMounted(async () => {
       await fetchProductDetails(),
-      await fetchProducts(),
-      await fetchSizes(),
-      await fetchColors()
+        await fetchProducts(),
+        await fetchSizes(),
+        await fetchColors(),
+        socket.on('productDetail_update', async ({ action }) => {
+          if (["create", "update", "delete", "soft_delete"].includes(action)) {
+            await fetchProductDetails();
+          }
+        })
     });
 
-    return { filteredProductDetails , productDetails, inputsearch, deleteProductDetail, openModal, closeModal, saveProductDetail, showModal, isEditing, currentProductDetail, totalProductDetails, products, colors, sizes };
+    return { filteredProductDetails, productDetails, inputsearch, deleteProductDetail, openModal, closeModal, saveProductDetail, showModal, isEditing, currentProductDetail, totalProductDetails, products, colors, sizes };
   }
 }
 </script>
