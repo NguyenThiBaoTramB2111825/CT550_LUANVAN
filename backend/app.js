@@ -24,8 +24,9 @@ const addressRouter = require("./app/routes/address.route");
 const cartRouter = require("./app/routes/cart.route");
 const orderRouter = require("./app/routes/order.route");
 const reviewRouter = require("./app/routes/review.route");
-
-
+const provinceRouter = require("./app/routes/province.route");
+const dicstrictRouter = require("./app/routes/district.route");
+const wardRouter = require("./app/routes/ward.route");
 
 app.use(cors());
 app.use(express.json());
@@ -48,6 +49,9 @@ app.use("/api/address", addressRouter);
 app.use("/api/cart", cartRouter);
 app.use("/api/order", orderRouter);
 app.use("/api/review", reviewRouter);
+app.use("/api/province", provinceRouter);
+app.use("/api/district", dicstrictRouter);
+app.use("/api/ward", wardRouter);
 
 // cho phép serve thư mục 'uploads' client truy cập ảnh
 app.use('/uploads', express.static(path.join(__dirname, 'app','uploads')));

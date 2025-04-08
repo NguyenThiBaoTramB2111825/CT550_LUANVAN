@@ -10,7 +10,7 @@ class ProductService {
         this.Category = MongoDB.getClient().db().collection("category");
         this.Discount = MongoDB.getClient().db().collection("discount");
         this.ProductDetail = MongoDB.getClient().db().collection("productDetail");
-
+        this.Order = MongoDB.getClient().db().collection("order");
     }
 
     extractProductData(payload) {

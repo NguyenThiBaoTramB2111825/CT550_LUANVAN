@@ -65,7 +65,7 @@ class CartService {
                     { _id: existingCart._id, "items.productDetail_id": updateItem.productDetail_id },
                     { $set: { "items.$": updateItem } }
                 );
-                return { statusCode: 200, message: "Cập nhật số lượng thành công", data: updateItem };
+                return { statusCode: 200, message: "Thêm 1 sản phẩm vào giỏ hàng thành công", data: updateItem };
             }
             else {
                 if (!cart.items[0].dateAdded) {
@@ -216,8 +216,7 @@ class CartService {
             console.log("Giá trị của customerId ở service: ", customer_id);
             console.log("Kiểu dũ liệu của customerId ở service: ", typeof customer_id);
             // Đếm số giỏ hàng của khách hàng
-            const totalCarts = await this.Cart.countDocuments({ customer_id: new ObjectId(customer_id)});
-
+            const totalCarts = await this.Cart.countDocuments({ customer_id: new ObjectId(customer_id) });
             const cartItems = await this.Cart.aggregate([
                 { $match: { customer_id: new ObjectId(customer_id) } }, // Lọc theo customer_id
                 { $unwind: "$items" },                          // Tách mảng items
@@ -234,12 +233,43 @@ class CartService {
                     totalProducts: totalProducts
                 }
             }
-    
+
         } catch (error) {
             return { statusCode: 500, message: "Lỗi khi lấy dữ liệu giỏ hàng", error: error.message };
         }
     }
+
+    async removeCartItem(customerId, productDetail_id) {
+        const filter = {
+            customer_id: ObjectId.isValid(customerId) ? new ObjectId(customerId) : null
+        }
+        const existingCart = await this.Cart.findOne(filter);
+        if (!existingCart) {
+            return {
+                statusCode: 404, message: "Không tìm thấy giỏ hàng cho khách hàng này"
+            }
+        }
+
+        const updatedItems = existingCart.items.filter((item) => item.productDetail_id.toString() !== productDetail_id);
+
+        if (updatedItems.length === 0) {
+            await this.Cart.deleteOne({ _id: existingCart._id });
+            return {
+                statusCode: 200,
+                message: "Đã xóa sản phẩm và giỏ hàng vì không còn sản phẩm nào",
+                data: []
+            }
+        } else {
+            await this.Cart.updateOne(
+                { _id: existingCart._id },
+                { $set: { items: updatedItems } }
+            );
+            return {
+                statusCode: 200,
+                message: "Đã xóa sản phẩm khỏi giỏ hàng",
+                data: updatedItems,
+            }
+        }
+    }
 }
-
-
 module.exports = CartService;

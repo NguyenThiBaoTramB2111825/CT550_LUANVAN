@@ -5,8 +5,8 @@ const CartService = require("../services/cart.service");
 const { ObjectId } = require("mongodb");
 
 exports.create = async (req, res, next) => {
-    // console.log("Giá trị của customer_id được truyền ban đầu: ", req.body.customer_id);
-    // console.log("Giá trị của items được truyền ban đầu: ", req.body.items);
+    console.log("Giá trị của customer_id được truyền ban đầu: ", req.body.customer_id);
+    console.log("Giá trị của items được truyền ban đầu: ", req.body.items);
 
     if (!req.body?.items[0].productDetail_id) {
         return next(new ApiError(400, "Không thể để trống productDetail_id"));
@@ -28,7 +28,7 @@ exports.create = async (req, res, next) => {
         //   return res.status(201).json(document.message);  // 201 Create
     }
     catch (error) {
-        return next(new ApiError(500, `Error create cart : ${error.message}`));
+        res.send({ message: error.message });
     }
 };
 
@@ -92,9 +92,7 @@ exports.findByCustomerId = async (req, res, next) => {
         }
         return res.send(documents);
     } catch (error) {
-        return next(
-            new ApiError(500).json(error.message)
-        );
+        res.send({ message: error.message });
     }
 };
 exports.getCartSummaryByCustomer = async (req, res, next) => {
@@ -154,6 +152,25 @@ exports.delete = async (req, res, next) => {
     catch (error) {
         return next(
         new ApiError(500, `Không thể xóa product`));
+    }
+};
+
+exports.removeCartItem = async (req, res, next) => {
+    try {
+        console.log("Giá trị customer_id được truyền: ", req.params.customerId);
+        console.log("Giá trị của productDetail_id được truyền: ", req.params.productDetail_id);
+
+        const cartService = new CartService(MongoDB.client);
+        const document = await cartService.removeCartItem(req.params.customerId, req.params.productDetail_id);
+        console.log("Giá trị của document sau khi gọi delete: ", document);
+
+        if (document.statusCode == 404) {
+            return next(new ApiError(document.statusCode, document.message));
+        }
+        return res.send({ message: document.message });
+    }
+    catch (error) {
+        return res.send({ message: error.message });
     }
 };
 

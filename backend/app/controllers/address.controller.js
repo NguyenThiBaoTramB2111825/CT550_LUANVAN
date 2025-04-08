@@ -7,8 +7,14 @@ exports.create = async (req, res, next) => {
     if (!req.body?.customer_id) {
         return next(new ApiError(400, "customer_id can not be empty"));
     };
-    if (!req.body?.address) {
-        return next(new ApiError(400, "address can not be empty"));
+    if (!req.body?.province_id) {
+        return next(new ApiError(400, "province_id can not be empty"));
+    };
+    if (!req.body?.district_id) {
+        return next(new ApiError(400, "district_id can not be empty"));
+    };
+    if (!req.body?.ward_id) {
+        return next(new ApiError(400, "ward_id can not be empty"));
     };
     try {
         const addressService = new AddressService(MongoDB.client);
@@ -18,13 +24,12 @@ exports.create = async (req, res, next) => {
         }
         return res.status(201).json(document);
     } catch (error) {
-        return next(new ApiError(500, "An Error Occurred while creating the address"));
+        res.send({ message: error.message });
     }
 }
 
 exports.findALL = async (req, res, next) => {
     let documents = [];
-
     try {
         const addressService = new AddressService(MongoDB.client);
         documents = await addressService.find({});
@@ -46,9 +51,7 @@ exports.findOne = async (req, res, next) => {
         }
         return res.send(document);
     } catch (error) {
-        return next(
-            new ApiError(500, "An Error Occurred while retrieving address")
-        );
+        return res.send({ error: error.message });
     };
 };
 
@@ -62,9 +65,7 @@ exports.findByCustomerId = async (req, res, next) => {
         }
         return res.send(document);
     } catch (error) {
-        return next(
-            new ApiError(500, "An Error Occurred while retrieving address")
-        );
+        return res.send({ error: error.message });      
     };
 };
 
@@ -89,10 +90,7 @@ exports.update = async (req, res, next) => {
         // return res.send({ message: "address was updated successfully" }, document.data);
 
     } catch (error) {
-        return next(
-            new ApiError(500, `Error updating address with id =${id}: ${error.message}`)
-            // new ApiError(500, `Error updating address with id=${id}`, error.message)
-        );
+        return res.send({ message: error.message });
     }
 }
 
@@ -103,11 +101,9 @@ exports.delete = async (req, res, next) => {
         if (!document) {
             return next(new ApiError(404, "address not found"));
         }
-        return res.send({ messgae: "address was deleted successfully" });
+        return res.send({ message: "address was deleted successfully" });
     } catch (error) {
-        return next(
-            new ApiError(500, `Could not delete address with id=${req.params.id}`)
-        );
+        return res.send({ error: error.message });
     }
 };
 
@@ -124,3 +120,42 @@ exports.deleteALL = async (req, res, next) => {
         );
     }
 };
+
+// exports.getProvinces = async (req, res) => {
+//     try {
+//         const addressService = new AddressService(MongoDB.client);
+//         const provinces = await addressService.getProvinces();
+//         return res.status(200).json({
+//             message: provinces.message,
+//             data: provinces.data
+//         });
+//     } catch (err) {
+//         res.status(500).send({ message: err.message });
+//     }
+// }
+
+// exports.getDistrictsByProvince = async (req, res) => {
+//     try {
+//         const addressService = new AddressService(MongoDB.client);
+//         const districts = await addressService.getDistrictsByProvince(req.params.code);
+//         return res.status(200).json({
+//             message: districts.message,
+//             data: districts.data
+//         });
+//     } catch (err) {
+//         res.status(500).send({ message: err.message });
+//     }
+// }
+
+// exports.getWardsByDistrict = async (req, res) => {
+//     try {
+//         const addressService = new AddressService(MongoDB.client);
+//         const wards = await addressService.getWardsByDistrict(req.params.code);
+//         return res.status(200).json({
+//             message: wards.message,
+//             data: wards.data
+//         });
+//     } catch (err) {
+//         res.status(500).send({ message: err.message });
+//     }
+// }

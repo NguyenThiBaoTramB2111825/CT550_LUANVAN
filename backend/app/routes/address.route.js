@@ -17,4 +17,8 @@ router
     .post(Address.create)
     .delete(Address.deleteALL);
 
+// router.route("/provinces").get(Address.getProvinces);
+// router.route("/districts/:code").get(Address.getDistrictsByProvince);
+// router.route("/wards/:code").get(Address.getWardsByDistrict);
+
 module.exports = router;

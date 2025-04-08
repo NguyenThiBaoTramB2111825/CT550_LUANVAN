@@ -1,16 +1,26 @@
 const { ObjectId } = require("mongodb");
 const MongoDB = require("../utils/mongodb.util");
 
-class addressService {
+class AddressService   {
     constructor() {
         this.Address = MongoDB.getClient().db().collection("address");
         this.Customer = MongoDB.getClient().db().collection("customer");
+        this.Province = MongoDB.getClient().db().collection("provinces");
+        this.District = MongoDB.getClient().db().collection("districts");
+        this.Ward = MongoDB.getClient().db().collection("wards");
     }
 
     extractAddressData(payload) {
         const address = {
-            address: payload.address|| undefined,
             customer_id: ObjectId.isValid(payload.customer_id) ? new ObjectId(payload.customer_id) : undefined,
+            province_id: ObjectId.isValid(payload.province_id) ? new ObjectId(payload.province_id) : undefined,
+            district_id: ObjectId.isValid(payload.district_id) ? new ObjectId(payload.district_id) : undefined,
+            ward_id: ObjectId.isValid(payload.ward_id) ? new ObjectId(payload.ward_id) : undefined,
+            receive_name: payload.receive_name || undefined,
+            receive_phone: payload.receive_phone || undefined,
+            street: payload.street || undefined,
+            isDefault: payload.isDefault || false,
+            createAt: new Date()
         };
 
         Object.keys(address).forEach(
@@ -23,7 +33,7 @@ class addressService {
     async create(payload) {
         const address = this.extractAddressData(payload);
         const existingAddress = await this.Address.findOne({
-            address: address.address,
+            street: address.street,
             customer_id: address.customer_id
         });
         console.log("Giá trị của existingAddress: ", existingAddress);
@@ -62,15 +72,6 @@ class addressService {
         return await cursor.toArray();
     }
 
-    // findByName
-    // async findByName(name) {
-    //     return await this.findOne({
-    //         username: { $regex: new RegExp(username), $options: "i" },
-    //     });
-    // }
-
-    // update
-
     async update(id, payload) {
         const filter = {
             _id: ObjectId.isValid(id) ? new ObjectId(id) : null,
@@ -104,11 +105,11 @@ class addressService {
         const duplicateCheck = await this.Address.findOne({
             _id: { $ne: new ObjectId(id) }, // Loại id hiện tại
             customer_id: update.customer_id,
-            address: update.address
+            street: update.street
         });
 
         if (duplicateCheck) {
-            return { statusCode: 404, message: "CustomerId và address đã được sử dụng" };
+            return { statusCode: 404, message: "CustomerId và street đã được sử dụng" };
         }
 
          console.log(`Giá trị của existingAddress.customer_id: ${existingAddress.customer_id } và existingAddress.address: ${existingAddress.address}`);
@@ -145,5 +146,43 @@ class addressService {
         return result.deletedCount;
     }
 
+    // async getProvinces() {
+    //     try {
+    //         const provinces = await this.Province.findAll();
+    //         return {
+    //             statusCode: 200,
+    //             message: "Lấy dữ liệu Province thành công",
+    //             data: provinces,
+    //         };
+    //     } catch (err) {
+    //         throw new Error(`Lỗi truy vấn sản phẩm: ${err.message}`);
+    //     }
+    // }
+
+    // async getDistrictsByProvince(code) {
+    //     try {
+    //         const districts = await this.District.findByProvinceCode(code);
+    //         return {
+    //             statusCode: 200,
+    //             message: "Lấy dữ liệu District thành công",
+    //             data: districts,
+    //         };
+    //     } catch (err) {
+    //         res.status(500).send({ message: err.message });
+    //     }
+    // }
+
+    // async getWardsByDistrict(code) {
+    //     try {
+    //         const wards = await this.Ward.findByDistrictCode(code);
+    //         return {
+    //             statusCode: 200,
+    //             message: "Lấy dữ liệu wards thành công",
+    //             data: wards,
+    //         };
+    //     } catch (err) {
+    //         res.status(500).send({ message: err.message });
+    //     }
+    // }
 }
-module.exports = addressService;
+module.exports = AddressService  ;

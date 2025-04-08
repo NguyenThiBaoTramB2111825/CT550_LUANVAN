@@ -63,7 +63,7 @@ class adminService {
                 role: "admin"
             },
             config.jwt.secret,  // Chuỗi bí mật từ file config
-            { expiresIn: "2h" }
+            { expiresIn: "5h" }
         );
         
         const refreshToken = jwt.sign(
