@@ -1,26 +1,26 @@
 <template>
   <div class="container mt-4 justify-content-center">
-    <div class="row mx-auto" style="width: 1300px;">
-
-        <div class="col-md-1  d-flex flex-column align-items-center" v-if="productDetail.length">
-          <div v-if="productDetail[0].images.length">
-            <div v-for="(image, index) in productDetail[0].images" 
-              :key="image" 
-              @click="showImageIndex(index)" 
-              >
-              <img style="width: 60px; height: 77px; cursor: pointer; border: 2px solid transparent"
-                :src="`${BASE_URL}${image}`" class="mb-1 p-1" :class="{ 'border-dark' : index === selectedImageIndex }">
-            </div>
+    <div class="row mx-auto mx-auto" style="width: 1300px;">
+      <div class="col-md-1 text-end m-0 p-0" v-if="productDetail.length">
+        <div v-if="productDetail[0].images.length">
+          <div v-for="(image, index) in productDetail[0].images" 
+            :key="image" 
+            @click="showImageIndex(index)" 
+            
+            >
+            <img style="width: 60px; height: 77px; cursor: pointer; border: 2px solid transparent"
+              :src="`${BASE_URL}${image}`" class="mb-1 p-1" :class="{ 'border-dark' : index === selectedImageIndex }">
           </div>
         </div>
+      </div>
 
-        <div class="col-md-6 mx-auto"  v-if="productDetail.length">
-          <img style="width: 630px; height: 780px;" v-if="productDetail[0].images.length" :src="`${BASE_URL}${productDetail[0].images[selectedImageIndex]}`">
-        </div>
+      <div class="col-md-6 px-0 mx-1 p-0" v-if="productDetail.length">
+        <img class="mx-0" style="width: 100%; height: 790px;" v-if="productDetail[0].images.length" :src="`${BASE_URL}${productDetail[0].images[selectedImageIndex]}`">
+      </div>
 
 
-      <div class="col-md-5"  v-if="productDetail.length">
-        <h4 style="font-family:'Franklin Gothic Medium', 'Arial Narrow', Arial, sans-serif; font-size: 18px;">{{ productDetail[0]. product_name}}</h4>
+      <div class="col-md-4 mx-auto" v-if="productDetail.length">
+        <p style=" font-size: 15px; font-weight: bold;">{{ productDetail[0]. product_name}}</p>
         <div v-if="productDetail[0].sale" >
           <div class="d-inline">
             <span class="old-price m-1">{{ formatCurrency(productDetail[0].price_selling) }} VND</span>
@@ -29,34 +29,35 @@
           <br>
           <span class="new-price m-1">{{formatCurrency( productDetail[0].price_afterdiscount) }} VND</span> 
         </div>
-
-        <span class="m-1" v-else style="font-family: Arial, Helvetica, sans-serif; font-weight: 700; font-size: 30px;" >{{ formatCurrency(productDetail[0].price_selling) }} VND</span>
-
-        <p class="m-0 ">Kho: {{ productDetail[0].stock }}</p>
+        <span class="m-1" v-else style=" font-weight: 500; font-size: 25px;" >{{ formatCurrency(productDetail[0].price_selling) }} VND</span>
         
+        <hr style="border: none; border-top: 1px dashed #999;">
         <p class="m-0 ">Màu sắc sản phẩm: </p>
-        <div class="d-flex justify-content-center flex-wrap gap-2">
-          <span class="border rounded-circle p-2 m-0 color-item" 
+        <div class="d-flex justify-content-start flex-wrap gap-2">
+          <span class="border rounded-circle p-2 mb-2 color-item" 
             :class="{'selected': selectedColor === color.id}"
             v-for="color in productDetail[0].colors" 
+
             :key="color.id"
             @click="selectColor(color.id)">
             {{ color.name }}
           </span>
         </div>
-        <span class="m-0">Kích cỡ: </span>
-        <div  class="d-flex justify-content-center flex-wrap gap-2">
+
+        <p class="m-0 ">Kích cỡ: </p>
+        <div  class="d-flex justify-content-start flex-wrap gap-2">
           <span v-for="size in productDetail[0].sizes" :key="size.id" 
           class=" border rounded-circle p-2 size-item" 
+
           :class="{'selected': selectedSize === size.id}"
           @click="selectSize(size.id)"
           >
           {{ size.name }}
-        </span>
+          </span>
         </div>
 
         <div class="d-flex justify-content-center flex-wrap gap-3 mt-3">
-          <button type="submit" class="btn border border-radius-2 fs-6 p-2 bg-success fw-bold text-white">Thêm vào giỏ hàng</button>
+          <button type="submit" style="width: 300px;" class="btn border border-radius-2 fs-6 bg-dark fw-bold text-white" @click="addCart()">Thêm vào giỏ hàng</button>
           <div 
             class="border rounded-circle" 
             @click="toggleFavorite"
@@ -64,10 +65,11 @@
             <i class="fa-heart p-3 align-items-center"
               :class="{'fa-solid text-danger': isFavorite, 'fa-regular text-dark': !isFavorite}">
             </i>
+          </div>
         </div>
 
-        </div>
-        <hr>
+      <hr style="border: none; border-top: 1px dashed #999;">
+
         <h5 class="text-center mb-2">Thông tin chi tiết sản phẩm</h5>
         <div>
           <p class="fw-bold m-0 d-flex justify-content-between align-items-center">
@@ -77,6 +79,18 @@
             </button>
           </p>
           <span v-if="isOpen.description" class="m-1"> {{ productDetail[0].product_desciption }}</span>
+        </div>
+
+        <div>
+          <p class="m-0 d-flex justify-content-between align-items-center">
+            Hướng dẫn chọn kích cỡ
+            <button @click="toggleSection('size_intruction')" class="btn-toggle">
+              {{ isOpen.size_intruction ? '-' : '+' }}
+            </button>
+          </p>
+          <div class="image-wrapper ">
+             <img v-if="isOpen.size_intruction" class="img-fluid img-zoom"  src="../../assets/images/size.png" alt="">
+            </div>
         </div>
 
         <div>
@@ -129,34 +143,34 @@
 
 <script>
 import axios from 'axios';
-import { ref, onMounted, computed, isProxy } from 'vue';
+import { ref, onMounted, computed, isProxy, resolveTransitionHooks } from 'vue';
 import { useRouter, useRoute } from 'vue-router';
 import Swal from "sweetalert2";
-
+import Cookies from 'js-cookie';
 const BASE_URL = "http://localhost:3000";
-
+import { jwtDecode } from 'jwt-decode';
 export default {
   setup() {
+    const cart = ref([]);
     const product = ref([]);
     const router = useRouter();
     const route = useRoute();
     const product_id = route.params.id;
-
     const isFavorite = ref(false);
     const selectedSize = ref(null);
-    const selectedColor = ref(false);
+    const selectedColor = ref(null);
     const currentIndex = ref(0);
     const itemsPerPage = 6;
     const productDetail = ref([]);
     const productSortByDiscount = ref([]);
     const selectedImageIndex = ref(0);
 
-
     const isOpen = ref({
       description: false,
       category: false,
       brand: false,
       discount: false,
+      size_intruction: false,
     })
     const toggleSection = (section) => {
       isOpen.value[section] = !isOpen.value[section];
@@ -170,6 +184,7 @@ export default {
     }
     const selectSize = (sizeId) => {
       selectedSize.value = sizeId;
+
     }
 
     const showImageIndex = (index) => {
@@ -184,38 +199,48 @@ export default {
       return Number(amount).toLocaleString("vi-VN");
     };
 
-
     const fetchProductDetail = async () => {
       try {
         const response = await axios.get(`${BASE_URL}/api/productDetail/productId/${product_id}`);
-        const productDetails = response.data; // Dữ liệu trả về từ API
+        const productDetails = response.data;
+
         console.log("Giá trị của productDetails được fetch: ", productDetails);
 
+        // 1. Lấy danh sách color_id và size_id không trùng
+        const uniqueColorIds = [...new Set(productDetails.map(pd => pd.color_id))];
+        const uniqueSizeIds = [...new Set(productDetails.map(pd => pd.size_id))];
+
+        // 2. Fetch thông tin màu
         const colorsRes = await Promise.all(
-          productDetails.map(pd =>
-            axios.get(`${BASE_URL}/api/color/${pd.color_id}`)
-              .then(res => ({ id: pd.color_id, name: res.data.name }))
+          uniqueColorIds.map(id =>
+            axios.get(`${BASE_URL}/api/color/${id}`)
+              .then(res => ({ id, name: res.data.name }))
               .catch(error => {
                 console.error("Lỗi lấy ColorId: ", error);
-              }),
-          ));
+                return null;
+              })
+          )
+        );
 
-        const SizesRes = await Promise.all(
-          productDetails.map(pd =>
-            axios.get(`${BASE_URL}/api/size/${pd.size_id}`)
-              .then(res => ({
-                id: pd.size_id,
-                name: res.data.name
-              }))
+        const sizesRes = await Promise.all(
+          uniqueSizeIds.map(id =>
+            axios.get(`${BASE_URL}/api/size/${id}`)
+              .then(res => ({ id, name: res.data.name }))
               .catch(error => {
-                console.error("Lỗi lấy sizeId: ", error);
-              }),
-          ));
+                console.error("Lỗi lấy SizeId: ", error);
+                return null;
+              })
+          )
+        );
 
-        console.log("Giá trị của colorsRes: ", colorsRes);
-        console.log("Giá trị của SizesRes: ", SizesRes);
+        // Chuyển đổi thông tin từ màu sắc và kích cỡ thành Map
+        const colorMap = new Map(colorsRes.filter(Boolean).map(c => [c.id, c]));
+        const sizeMap = new Map(sizesRes.filter(Boolean).map(s => [s.id, s]));
 
+        console.log("Màu sắc không trùng:", Array.from(colorMap.values()));
+        console.log("Size không trùng:", Array.from(sizeMap.values()));
 
+        // 4. Lấy ảnh & product
         let [imageData, productData] = await Promise.all([
           axios.get(`${BASE_URL}/api/image/productId/${product_id}`),
           axios.get(`${BASE_URL}/api/product/${product_id}`)
@@ -223,8 +248,8 @@ export default {
 
         const images = imageData.data;
         const product = productData.data;
-        console.log("Giá trị của product: ", product);
 
+        // 5. Lấy category, brand, discount
         const [categoryData, brandData, discountData] = await Promise.all([
           axios.get(`${BASE_URL}/api/category/${product.category_id}`),
           axios.get(`${BASE_URL}/api/brand/${product.brand_id}`),
@@ -235,18 +260,20 @@ export default {
         const brand = brandData.data;
         const discount = discountData.data;
 
-        const productMap = new Map();
+        // 6. Map ảnh
         const imageMap = new Map();
-
         images.forEach(img => {
           if (!imageMap.has(img.product_id)) {
-            imageMap.set(img.product_id, [])
+            imageMap.set(img.product_id, []);
           }
           imageMap.get(img.product_id).push(img.url);
-        })
+        });
 
-        productDetails.forEach((detail, index) => {
-
+        // 7. Map chi tiết sản phẩm
+        const productMap = new Map();
+        productDetails.forEach(detail => {
+          const colorName = colorMap.get(detail.color_id);
+          const sizeName = sizeMap.get(detail.size_id);
           if (!productMap.has(detail.product_id)) {
             productMap.set(detail.product_id, {
               product_id: detail.product_id,
@@ -271,32 +298,106 @@ export default {
               sale: product.price_afterdiscount !== product.price_selling,
             });
           }
-          const productData = productMap.get(detail.product_id);
 
-          if (detail.color_id) {
-            productData.colors.push({
-              id: colorsRes[index].id,
-              name: colorsRes[index].name
-            });
-          }
-          if (detail.size_id) {
-            productData.sizes.push({
-              id: SizesRes[index].id,
-              name: SizesRes[index].name
-            });
-          }
+          const productData = productMap.get(detail.product_id);
+          if (colorName && !productData.colors.includes(colorName)) productData.colors.push(colorName);
+          if (sizeName && !productData.sizes.includes(sizeName)) productData.sizes.push(sizeName);
         });
 
-        productDetail.value = Array.from(productMap.values());
+        const productList = Array.from(productMap.values());
+        productDetail.value = productList;
         console.log("Chi tiết sản phẩm đã xử lý:", productDetail);
+        // console.log("Id của color đầu tiên trong productDetail:", productDetail.sizes.id);
+
+
 
       } catch (error) {
         console.error("Lỗi khi fetch chi tiết sản phẩm:", error);
       }
     }
 
+
+    const addCart = async () => {
+      let customerId = null;
+      console.log("Bắt đầu thực hiện addCart.......");
+      try {
+        const token = Cookies.get("accessToken");
+        if (!token) {
+          await Swal.fire("Thông báo", "Bạn cần đăng nhập để thêm sản phẩm vào giỏ hàng.", "warning").then(() => {
+            router.push({ name: "login" });
+          });
+          return;
+        }
+
+        const decoded = jwtDecode(token);
+        const expiresInMs = decoded.exp * 1000 - Date.now();
+        if (expiresInMs <= 0) {
+          await Swal.fire("Hết hạn", "Phiên đăng nhập đã hết hạn, vui lòng đăng nhập lại.", "error").then(() => {
+            Cookies.remove("accessToken");
+            router.push({ name: "login" });
+          });
+          return;
+        }
+
+        customerId = decoded.id;
+        console.log("Giá trị của customerId: ", customerId);
+
+      } catch (err) {
+        console.error("Lỗi khi xử lý token:", err);
+        await Swal.fire("Lỗi!", "Có lỗi khi xác thực đăng nhập", "error");
+        return;
+      }
+
+      if (selectedColor.value === null) {
+        await Swal.fire('Thông báo!', 'Vui lòng chọn màu sản phẩm', 'warning');
+        return;
+      }
+      console.log("Giá trị của selectedColor được chọn: ", selectedColor.value);
+
+      if (selectedSize.value === null) {
+        await Swal.fire('Thông báo!', 'Vui lòng chọn size sản phẩm', 'warning');
+        return;
+      }
+      console.log("Giá trị của selectedSize được chọn: ", selectedSize.value);
+      try {
+        const response = await axios.get(`${BASE_URL}/api/productDetail/productId/${product_id}`);
+        const productDetails = response.data;
+        const productDetail_match = productDetails.find(item => item.color_id === selectedColor.value && item.size_id === selectedSize.value);
+        if (!productDetail_match) {
+          await Swal.fire("Không tìm thấy", "Không tìm thấy bản ghi sản phẩm phù hợp", "error");
+          return;
+        }
+        console.log("Giá trị của productDetail_match được chọn: ", productDetail_match);
+
+        const cart = {
+          customer_id: customerId,
+          items: [
+            {
+              "productDetail_id": productDetail_match._id,
+              "quantity": 1
+            }
+          ]
+        };
+        console.log("Giá trị của cart khi gửi: ", cart);
+
+
+        try {
+          const response_cart = await axios.post(`${BASE_URL}/api/cart`, cart);
+          await Swal.fire('Thông báo!', response_cart.data.message, 'success');
+        }
+        catch (error) {
+          console.log("Lỗi khi thêm sản phẩm:", error);
+          Swal.fire("Lỗi", error.response?.data?.message || "Có lỗi xảy ra", "warning");
+        }
+      }
+      catch (error) {
+        await Swal.fire('Lỗi!', 'Có lỗi khi thêm Cart mới', 'error');
+      }
+    }
+
     onMounted(
-      fetchProductDetail
+      fetchProductDetail,
+
     );
 
     return {
@@ -316,7 +417,9 @@ export default {
       toggleFavorite,
       isFavorite,
       isOpen,
-      toggleSection
+      toggleSection,
+      product,
+      addCart
     }
   }
 }
@@ -517,4 +620,22 @@ export default {
   .btn-toggle:hover {
     color: red;
   }
+  p{
+    margin: 4px;
+    padding: 4px;
+  }
+
+.image-wrapper {
+  overflow: hidden; /* Ẩn phần ảnh bị phóng ra ngoài */
+  display: inline-block;
+}
+.img-zoom {
+  transition: transform 0.3s ease;
+  max-width: 100%;
+  height: auto;
+}
+
+.img-zoom:hover {
+  transform: scale(1.2); /* Phóng to ảnh 120% khi hover */
+}
 </style>

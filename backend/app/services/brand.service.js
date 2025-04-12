@@ -5,7 +5,6 @@ class BrandService{
     constructor() {
         this.Brand = MongoDB.getClient().db().collection("brand");
         this.Product = MongoDB.getClient().db().collection("product");
-
     }
 
     extractBrandData(payload) {
@@ -24,8 +23,14 @@ class BrandService{
 
     async create(payload) {
         const brand = this.extractBrandData(payload);
-        const result = await this.Brand.insertOne(brand);
-        return result.acknowledged ? { _id: result.insertedId, ...brand } : null;
+        const checkBrand = await this.Brand.find({ name: payload.name }).toArray();
+        if (checkBrand.length > 0) {
+             throw new Error( "Thương hiệu đã tồn tại");
+        }
+        else {
+            const result = await this.Brand.insertOne(brand);
+            return result.acknowledged ? { _id: result.insertedId, ...brand } : null;
+        }
     }
 
     //findByInfo
@@ -90,8 +95,6 @@ class BrandService{
     async deleteAll() {
         const result = await this.Brand.deleteMany({});
         return result.deletedCount;
-    }
-}
-
+    }}
 
 module.exports = BrandService;

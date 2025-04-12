@@ -8,7 +8,7 @@
             <thead>
                 <tr>
                     <th>#</th>
-                    <th>Tên sản phẩm</th>
+                    <th @click="sortByName">Tên sản phẩm  <i class="fa-solid fa-sort"></i></th>
                     <th>Ảnh 1</th>
                     <th>Ảnh 2</th>
                     <th>Ảnh 3</th>
@@ -58,14 +58,16 @@ export default {
         Breadcrumb
     },
     setup() {
+        const sortAsc = ref(false);
 
-        console.log("Bắt đầu fetch dữ liệu/.....");
         const router = useRouter();
         const inputsearch = ref('');
         const images = ref([]);
         const products = ref([]);
-        console.log("Trước khi fetch ");
 
+        const sortByName = () => {
+            sortAsc.value =! sortAsc.value;
+        }
         const fetchProducts = async () => {
             try {
                 const response = await axios.get("http://127.0.0.1:3000/api/product");
@@ -99,10 +101,25 @@ export default {
                     }
                 }
                 grouped[img.product_id].images.push(img.url);
-                console.log("Giá trị của grouped qua từng lần lặp: ", grouped);
+                // console.log("Giá trị của grouped qua từng lần lặp: ", grouped);
             });
-            return Object.values(grouped);
+
+            // const result = Object.values(grouped).sort((a, b) => {
+            //     return sortAsc.value ? a.product_name.localeCompare(b.product_name, 'vi', { sensitivity: 'base' })
+            //         : b.product_name.localeCompare(a.product_name, 'vi', { sensitivity: 'base' });
+            // })
+            // return result;
+
+            console.log("Giá trị của grouped: ", Object.values(grouped));
+        const result = Object.values(grouped).sort((a, b) => {
+            return sortAsc.value
+            ? a.product_name.localeCompare(b.product_name, 'vi', { sensitivity: 'base' })
+            : b.product_name.localeCompare(a.product_name, 'vi', { sensitivity: 'base' });
+        });
+
+        return result;
         })
+
         const deleteImagesByProduct = async (productId) => {
             const result = await Swal.fire({
                 title: "Xác nhận xóa",
@@ -142,7 +159,19 @@ export default {
         onUnmounted(() => {
             socket.off('product_update');
         })
-        return { fetchProducts, BASE_URL, images, addImage, inputsearch, totalProducts, fetchImage, deleteImagesByProduct, groupedImages };
+        return {
+            fetchProducts,
+            BASE_URL,
+            images,
+            addImage,
+            inputsearch,
+            totalProducts,
+            fetchImage,
+            deleteImagesByProduct,
+            groupedImages,
+            sortAsc,
+            sortByName
+        }
     }
 }
 </script>
@@ -164,4 +193,9 @@ export default {
         background-color: #f4f4f4;
         font-weight: bold;
     }
+
+    ::v-deep(.table thead th) {
+  vertical-align: middle !important;
+  text-align: center !important;
+}
 </style>

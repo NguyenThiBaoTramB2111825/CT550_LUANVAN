@@ -4,6 +4,7 @@
     <main>
     <router-view />
     </main>
+    <Footer />
 
 </template>
 
@@ -13,11 +14,12 @@ import { useRouter } from "vue-router";
 import { onMounted } from "vue";
 import Cookies from "js-cookie";
 import TheHeader from '../components/customer/TheHeader.vue';
+import Footer from "@/components/customer/Footer.vue";
 
 export default {
         components: {
         TheHeader,
-  
+        Footer,
     },
     // setup() {
     //     const router = useRouter();

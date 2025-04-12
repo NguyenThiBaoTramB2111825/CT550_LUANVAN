@@ -25,12 +25,12 @@
 
                     <td>{{ index + 1 }}</td>
                     <td>{{ brand.name }}</td>
-                    <td>{{ brand.description }}</td>
+                    <td class="text-start">{{ brand.description }}</td>
                     <td>{{ brand.website }}</td>
                     <td>{{ brand.isActive ? "Đang hoạt động" : "Đã xóa" }}</td>
                     <td>
-                        <button class="btn  btn-danger" @click="deleteBrand(brand._id)">Xóa</button> 
-                        <button class="btn  btn-success mx-1" @click="goToUpdatePage(brand._id)">Cập nhật</button> 
+                        <button class="btn  btn-danger m-1" @click="deleteBrand(brand._id)">Xóa</button> 
+                        <button class="btn  btn-success" @click="goToUpdatePage(brand._id)">Cập nhật</button> 
                         
                     </td>
                     
@@ -172,5 +172,11 @@ th, td {
 th {
     background-color: #f4f4f4;
     font-weight: bold;
+}
+
+
+::v-deep(.table thead th) {
+  vertical-align: middle !important;
+  text-align: center !important;
 }
 </style> 

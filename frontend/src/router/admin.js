@@ -60,7 +60,7 @@ const admin = [
         path: "customer",
         name: "customer",
         component: () => import("../pages/admin/customer/index.vue"),
-        meta: {breadcrumb: "Quản lý khách hàng"}
+        meta: { breadcrumb: "Quản lý khách hàng" }
       },
 
       {
@@ -252,6 +252,14 @@ const admin = [
       // },
     ],
   },
-];
+  {
+    path: "/admin/login",
+    name: "admin_login",
+    component: () => import("../pages/admin/login.vue"),
+    meta: {
+      breadcrumb: 'Quản lý khuyến mãi'
+    },
+  },
+]
 
 export default admin;

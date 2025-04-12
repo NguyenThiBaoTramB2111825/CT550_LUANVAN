@@ -4,38 +4,53 @@
     <div class="m-4">
         <h5 class="text-center">Danh sách chi tiết sản phẩm</h5>
         
-        <div class="text-end mb-2">
-            <input type="text" class="border border-radius" v-model="inputsearch" placeholder="Nhập tên sản phẩm">
+        <div class="text-end mb-5">
+            <input type="text" class="border rounded p-2" v-model="inputsearch" placeholder="Nhập tên sản phẩm">
         </div>
 
-        <table class="p-2 table table-bordered table-striped text-center">
-            <thead>
+
+        <div v-for="product in groupedData" :key="product.product_id" class="mb-6 m-4">
+          <h5 class="mt-3">{{ product.product_name }}</h5>
+          <div v-for="color in product.colors" :key="color.color_id" class="ms-3">
+            <p class="">Màu: {{ color.color_name }}</p>
+
+            <table class="ml-4 table table-bordered">
+              <thead>
                 <tr>
-                    <th>#</th>
-                    <th>Tên sản phẩm</th>
-                    <th>Màu sắc</th>
-                    <th>Kích thước</th>
-                    <th>Số lượng kho</th>
-                    <th>Trạng thái</th>
-                    <th>Thao tác</th>
-            
+                  <th>Kích thước</th>
+                  <th>Số lượng kho</th>
+                  <th>Trạng thái</th>
+                  <th>Thao tác</th>
                 </tr>
-            </thead>
-            <tbody>
-                <tr v-for="(productDetail, index) in filteredProductDetails" :key="productDetail._id">
-                    <td>{{ index + 1 }}</td>
-                    <td>{{ productDetail.product_name }}</td>
-                    <td>{{ productDetail.color_name }}</td>
-                    <td>{{ productDetail.size_name }}</td>
-                    <td>{{ productDetail.stock }}</td>
-                    <td>{{ productDetail.isActive ? "Đang hoạt động" : "Đã xóa" }}</td>
-                    <td>
-                        <button class="btn btn-danger m-2" @click="deleteProductDetail(productDetail._id)">Xóa</button>
-                        <button class="btn btn-success mx-1" @click="openModal(productDetail)">Cập nhật</button>
-                    </td>
+              </thead>
+              <tbody class="text-center">
+                <tr v-for="size in color.sizes" :key="size.size_id">
+                  <td>{{ size.size_name }}</td>
+                  <td>{{ size.stock }}</td>
+                  <td>
+                    <span :class="size.isActive ? 'text-success' : 'text-danger'">
+                      {{ size.isActive ? 'Đang hoạt động' : 'Đã xóa' }}
+                    </span>
+                  </td>
+                  <td>
+                    <button class="btn btn-danger btn-sm" @click="deleteProductDetail(size._id)">X</button>
+                    <button class="btn btn-success btn-sm mx-1" 
+                            @click="openModal({ 
+                              ...size, 
+                              product_id: product.product_id, 
+                              color_id: color.color_id 
+                            })">
+                      <i class="fa-solid fa-pen-to-square"></i>
+                    </button>
+                  </td>
                 </tr>
-            </tbody>
-        </table>
+              </tbody>
+            </table>
+          </div>
+
+          <hr>
+        </div>
+
         <span>Tổng chi tiết sản phẩm: {{ totalProductDetails }}</span>
         
         <div class="text-end">
@@ -130,7 +145,7 @@ export default {
     const fetchColors = async () => {
       try {
         const response = await axios.get("http://127.0.0.1:3000/api/color");
-        colors.value = response.data;
+        colors.value = response.data.filter(co => co.isActive);
       }
       catch (error) {
         console.error("Lỗi khi lấy danh sách color: ", error)
@@ -139,7 +154,7 @@ export default {
     const fetchSizes = async () => {
       try {
         const response = await axios.get("http://127.0.0.1:3000/api/size");
-        sizes.value = response.data;
+        sizes.value = response.data.filter(si => si.isActive);
       }
       catch (error) {
         console.error("Lỗi khi lấy danh sách size: ", error)
@@ -166,15 +181,74 @@ export default {
         const products = await Promise.all(productRequests);
 
         productDetailsData.forEach((pd, index) => {
-          pd.color_name = colors[index]?.data?.name || "Không có màu sắc";
-          pd.size_name = sizes[index]?.data?.name || "Không có kích cỡ";
-          pd.product_name = products[index]?.data?.name || "Không có sản phẩm";
+          pd.color_name = colors[index]?.data?.isActive ? colors[index]?.data?.name : `${colors[index]?.data?.name} - Đã bị xóa`;
+          pd.size_name = sizes[index]?.data?.isActive ? sizes[index]?.data?.name : `${sizes[index]?.data?.name} - Đã bị xóa`;
+          pd.product_name = products[index]?.data?.isActive ? products[index]?.data?.name : `${products[index]?.data?.name} - Đã bị xóa`
+
         });
+        productDetailsData.sort((a, b) => {
+          return a.product_name.localeCompare(b.product_name, 'vi', { sensitivity: 'base' })
+        })
 
         productDetails.value = productDetailsData;
+        console.log("Giá trị của productDetail: ", productDetails.value);
       } catch (error) {
         console.error("Lỗi khi lấy danh sách chi tiết sản phẩm:", error);
       }
+    };
+
+    const groupedData = computed(() => {
+      const grouped = [];
+
+      productDetails.value.forEach(detail => {
+        let productGroup = grouped.find(p => p.product_id === detail.product_id);
+        if (!productGroup) {
+          productGroup = {
+            product_id: detail.product_id,
+            product_name: detail.product_name,
+            colors: [],
+          };
+          grouped.push(productGroup);
+        }
+
+        let colorGroup = productGroup.colors.find(c => c.color_id === detail.color_id);
+        if (!colorGroup) {
+          colorGroup = {
+            color_id: detail.color_id,
+            color_name: detail.color_name,
+            sizes: [],
+          };
+          productGroup.colors.push(colorGroup);
+        }
+
+        colorGroup.sizes.push({
+          size_id: detail.size_id,
+          size_name: detail.size_name,
+          stock: detail.stock,
+          isActive: detail.isActive,
+          _id: detail._id
+        });
+      });
+      console.log("Giá trị của grouped: ", grouped);
+      return grouped;
+
+
+
+    });
+
+    const getDuplicateCountByProduct = (productName) => {
+      return filteredProductDetails.value.filter(item => item.product_name === productName).length;
+    };
+
+    const isFirstOfProduct = (productDetail, index) => {
+      return filteredProductDetails.value.findIndex(item => item.product_name === productDetail.product_name) === index;
+    };
+    const getDuplicateCountByColor = (colorName) => {
+      return filteredProductDetails.value.filter(item => item.color_name === colorName).length;
+    };
+
+    const isFirstOfColor = (productDetail, index) => {
+      return filteredProductDetails.value.findIndex(item => item.color_name === productDetail.color_name) === index;
     };
 
     const deleteProductDetail = async (id) => {
@@ -247,8 +321,31 @@ export default {
           }
         })
     });
+    onUnmounted(() => {
+      socket.off('productDetail_update');
+    })
 
-    return { filteredProductDetails, productDetails, inputsearch, deleteProductDetail, openModal, closeModal, saveProductDetail, showModal, isEditing, currentProductDetail, totalProductDetails, products, colors, sizes };
+    return {
+      filteredProductDetails,
+      productDetails,
+      inputsearch,
+      deleteProductDetail,
+      openModal,
+      closeModal,
+      saveProductDetail,
+      showModal,
+      isEditing,
+      currentProductDetail,
+      totalProductDetails,
+      products,
+      colors,
+      sizes,
+      getDuplicateCountByProduct,
+      isFirstOfProduct,
+      getDuplicateCountByColor,
+      isFirstOfColor,
+      groupedData
+    }
   }
 }
 </script>
@@ -269,5 +366,9 @@ export default {
     border-radius: 10px;
     width: 400px;
     text-align: center;
+}
+::v-deep(.table thead th) {
+  vertical-align: middle !important;
+  text-align: center !important;
 }
 </style>

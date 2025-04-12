@@ -183,10 +183,11 @@
 
 <script>
 import axios from 'axios';
-import { ref, onMounted, computed } from 'vue';
+import { ref, onMounted,onUnmounted, computed } from 'vue';
 import { useRouter } from 'vue-router';
-
+import { io } from 'socket.io-client';
 const BASE_URL = "http://localhost:3000";
+const socket = io(BASE_URL);
 
 export default {
   setup() {
@@ -198,7 +199,6 @@ export default {
       }
       return Number(amount).toLocaleString("vi-VN");
     };
-
 
     const gotoProductDetail = (id) => {
       console.log("Giá trị id được truyền: ", id);
@@ -298,6 +298,7 @@ export default {
               colors: new Set(), // Dùng Set để tránh trùng lặp
               sizes: new Set(),
               sale: product.price_selling !== product.price_afterdiscount,
+              isActive: product.isActive
             })
           }
 
@@ -343,10 +344,22 @@ export default {
         console.error("Lỗi khi lấy danh sách chi tiết sản phẩm:", error);
       }
     }
-    onMounted(async () => {
-      await fetchProductDetails()
-
+       onMounted(async () => {
+      await fetchProductDetails(),
+        socket.on('productDetail_update', async ({ action }) => {
+          if (["create", "update", "delete", "soft_delete"].includes(action)) {
+            await fetchProductDetails();
+          }
+        })
+        socket.on('product_update', async ({ action }) => {
+          if (["create", "update", "delete", "soft_delete"].includes(action)) {
+            await fetchProductDetails();
+          }
+        })
     });
+    onUnmounted(() => {
+      socket.off('productDetail_update');
+    })
 
     return {
       formatCurrency,

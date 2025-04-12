@@ -194,4 +194,20 @@ export default {
     width: 400px;
     text-align: center;
 }
+
+/* .table th,
+.table td {
+    vertical-align: middle !important;
+    text-align: center !important;
+} */
+
+
+::v-deep(.table thead th) {
+  vertical-align: middle !important;
+  text-align: center !important;
+}
+::v-deep(.table thead th) {
+  vertical-align: middle !important;
+  text-align: center !important;
+}
 </style>

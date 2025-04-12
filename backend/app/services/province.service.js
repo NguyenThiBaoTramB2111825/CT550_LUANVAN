@@ -15,6 +15,18 @@ class ProvinceService {
     async findByCode(code) {
         return await this.Province.findOne({ code });
     }
+
+    async findByName(name) {
+        return await this.Province.find({
+            name: { $regex: new RegExp(`.*${name}.*`, "i") }
+        });
+    }
+
+    async findById(id) {
+        return await this.Province.findOne({
+            _id: ObjectId.isValid(id) ? new ObjectId(id) : null,
+        });
+    }
 }
 
 module.exports =  ProvinceService;

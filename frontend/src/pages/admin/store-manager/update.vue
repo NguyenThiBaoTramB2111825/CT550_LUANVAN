@@ -56,8 +56,8 @@
             <div class="mb-3 d-flex">
                 <label class="col-md-2">Trạng thái</label>
                   <select v-model="storemanager.isDeleted" class="form-control" required>
-                    <option value="true">Xóa</option>
-                    <option value="false">Đang hoạt động</option>
+                    <option :value="true">Xóa</option>
+                    <option :value="false">Đang hoạt động</option>
                 </select>
             </div>
         </form>
@@ -99,7 +99,7 @@ export default {
             address: '',
             phone: '',
             profileImage: '',
-            isDeleted: ''
+            isDeleted: null
         });
         const selectedFile = ref(null);
 
@@ -147,6 +147,7 @@ export default {
                 Swal.fire("Lỗi", "Số điện thoại không hợp lệ!", "error");
                 return;
             }
+            console.log("Dữ liệu gửi lên API: ", storemanager.value);
 
             try {
                 const formData = new FormData();
@@ -155,42 +156,25 @@ export default {
                 formData.append("email", storemanager.value.email);
                 formData.append("address", storemanager.value.address);
                 formData.append("phone", storemanager.value.phone);
-                formData.append("isDeleted", storemanager.value.isDeleted);
+                formData.append("isDeleted", Boolean(storemanager.value.isDeleted));
                 if (selectedFile.value) {
                     formData.append("profileImage", selectedFile.value);
                 }
 
                 const id = route.params.id;
-                console.log("Dữ liệu gửi lên API: ", storemanager.value);
-                await axios.put(`http://127.0.0.1:3000/api/employee/${id}`, formData, {
+              
+                const response = await axios.put(`http://127.0.0.1:3000/api/employee/${id}`, formData, {
                     headers: { "Content-Type": "multipart/form-data" }
                 });
+                console.log("Giá trị của response sau khi gọi hàm update:  ", response.data);
 
                 Swal.fire('Thành công', 'Cập nhật thông tin thành công', 'success');
                 router.push('/admin/store-manager');
 
             } catch (error) {
                 console.log("Lỗi khi cập nhật thông tin:", error);
-                Swal.fire("Lỗi", "Có lỗi khi cập nhật thông tin", "error");
+                Swal.fire("Lỗi", error?.response?.data.message, "error");
             }
-            // await axios.put(`http://127.0.0.1:3000/api/employee/${this.storemanager._id}`,  formData, {
-            //     headers: { "Content-Type": "multipart/form-data" }
-            // })
-            // .then(response => {
-            //     console.log("Cập nhật thành công:", response.data);
-            // })
-            // .catch(error => {
-            //     console.error("Lỗi khi cập nhật:", error.response);
-            // });
-            // try{
-            //     await axios.put(`http://127.0.0.1:3000/api/employee/${id}`, storemanager.value);
-            //     Swal.fire('Thành công', 'Cập nật thông tin thành công', 'success');
-            //     router.push('/admin/store-manager');
-            // }
-            // catch(error){
-            //     console.log(`Lỗi khi cập nhật thông tin: `, error);
-            //     Swal.fire(`Lỗi`, 'Có lỗi khi cập nhật thông tin', 'error')
-            // }
         }
         onMounted(fetchStoreManager);
 
@@ -198,11 +182,7 @@ export default {
             router.push({ name: 'store-manager' });
         };
 
-        const addstoreManager = (id) => {
-            router.push('#');
-        }
-
-        return { fetchStoreManager, handleFileUpload, BASE_URL, back, addstoreManager, updateStoreManager, storemanager, selectedFile, isValidEmail, isValidPhone };
+        return { fetchStoreManager, handleFileUpload, BASE_URL, back, updateStoreManager, storemanager, selectedFile, isValidEmail, isValidPhone };
     }
 }
 </script>

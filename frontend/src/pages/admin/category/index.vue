@@ -23,11 +23,11 @@
                 <tr v-for="(category, index) in categorys" :key="category._id">
 
                     <td>{{ index + 1 }}</td>
-                    <td>{{ category.name }}</td>
-                    <td>{{ category.description }}</td>
+                    <td class="text-start">{{ category.name }}</td>
+                    <td class="text-start">{{ category.description }}</td>
                     <td>{{ category.isActive ? "Đang hoạt động" : "Đã xóa" }}</td>
                     <td>
-                        <button class="btn  btn-danger" @click="deleteCategory(category._id)">Xóa</button> 
+                        <button class="btn  btn-danger m-1" @click="deleteCategory(category._id)">Xóa</button> 
                         <button class="btn  btn-success mx-1" @click="goToUpdatePage(category._id)">Cập nhật</button> 
                     </td>
                 </tr>
@@ -166,5 +166,11 @@ th, td {
 th {
     background-color: #f4f4f4;
     font-weight: bold;
+}
+
+
+::v-deep(.table thead th) {
+  vertical-align: middle !important;
+  text-align: center !important;
 }
 </style> 

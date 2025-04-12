@@ -313,7 +313,7 @@ export default {
                 socket.on('importDetail_update', async ({ action }) => {
                     if (["create", "update", "delete", "soft_delete"].includes(action)) {
                         await fetchImportDetails();
-                        Swal.fire("Thông báo", "Dữ liệu sản phẩm đã được cập nhật!", "success");
+                        // Swal.fire("Thông báo", "Dữ liệu sản phẩm đã được cập nhật!", "success");
                     }
                 });
         });
@@ -344,4 +344,9 @@ export default {
         width: 400px;
         text-align: center;
     }
+
+    ::v-deep(.table thead th) {
+  vertical-align: middle !important;
+  text-align: center !important;
+}
 </style>

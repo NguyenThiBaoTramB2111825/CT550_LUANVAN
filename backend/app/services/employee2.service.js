@@ -3,7 +3,7 @@ const bcrypt = require('bcrypt');
 const jwt = require("jsonwebtoken");
 const config = require("../config/index");
 const MongoDB = require("../utils/mongodb.util");
-class employee2Service{
+class employee2Service {
     constructor() {
         this.Employee2 = MongoDB.getClient().db().collection("employee2");
     }
@@ -17,14 +17,14 @@ class employee2Service{
             phone: payload.phone,
             email: payload.email,
             profileImage: payload.profileImage,
-            isDeleted: payload.isDeleted || false
+            isDeleted: payload.isDeleted !== undefined ? payload.isDeleted : false
         };
         Object.keys(employee2).forEach(
             (key) => (employee2[key] === undefined || employee2[key] === null) && delete employee2[key]
         );
         return employee2;
     }
- async create(payload) {
+    async create(payload) {
         const employee2 = this.extractEmployee2Data(payload);
         let existingEmployee2 = await this.Employee2.findOne({ phone: employee2.phone });
         if (existingEmployee2) {
@@ -32,7 +32,7 @@ class employee2Service{
                 statusCode: 400, message: "Employee2 đã tồn tại do phone  đã được sử dụng"
             }
         }
-         existingEmployee2 = await this.Employee2.findOne({ email: employee2.email });
+        existingEmployee2 = await this.Employee2.findOne({ email: employee2.email });
         if (existingEmployee2) {
             return {
                 statusCode: 400, message: "Employee2 đã tồn tại do email  đã được sử dụng"
@@ -78,7 +78,7 @@ class employee2Service{
                 role: "employee2"
             },
             config.jwt.secret,
-            {expiresIn: "24h"}
+            { expiresIn: "24h" }
         )
         return {
             token, employee2: {
@@ -104,7 +104,7 @@ class employee2Service{
     async findByName(name) {
         return await this.find({
             name: {
-              $regex: new RegExp(`.*${name}.*`, "i")  // Tìm bất cứ đâu trong chuỗi, không phân biệt hoa thường
+                $regex: new RegExp(`.*${name}.*`, "i")  // Tìm bất cứ đâu trong chuỗi, không phân biệt hoa thường
             }
         });
     }
@@ -113,7 +113,7 @@ class employee2Service{
     async findById(id) {
         return await this.Employee2.findOne({
             _id: ObjectId.isValid(id) ? new ObjectId(id) : null,
-        });
+        })
     }
 
     // update
@@ -129,8 +129,12 @@ class employee2Service{
         }
 
         const update = this.extractEmployee2Data(payload);
+        if (payload.isDeleted === "true") {
+            update.isDeleted = true;
+        } else {
+            update.isDeleted = false;
+        }
 
-           // Kiểm tra nếu dữ liệu không có thay đổi
         const isSameData = Object.keys(update).every(key => update[key] === existingEmployee2[key]);
         if (isSameData) {
             return { statusCode: 400, message: "Không có dữ liệu mới nào cần được cập nhật" };
@@ -147,18 +151,18 @@ class employee2Service{
             return { statusCode: 409, message: "Tên hoặc số điện thoại đã được sử dụng bởi nhân viên" };
         }
         if (update.password) {
-                const saltRounds = 10;
-                update.password = await bcrypt.hash(update.password, saltRounds);
+            const saltRounds = 10;
+            update.password = await bcrypt.hash(update.password, saltRounds);
         }
         const result = await this.Employee2.findOneAndUpdate(
             filter,
             { $set: update },
-            { returnDocument: "after"} 
+            { returnDocument: "after" }
         );
         if (!result) {
-            return {statusCode: 400, message: "Customer đã tồn tại"};
+            return { statusCode: 400, message: "Customer đã tồn tại" };
         }
-        return result;
+        return { statusCode: 200, message: "Nhân viên được cập nhật thành công", data: result };
     }
 
 
@@ -175,28 +179,26 @@ class employee2Service{
         const result = await this.Employee2.deleteMany({});
         return result.deletedCount;
     }
-
-    async findOneEmployee2ByName (name) {
+    async findOneEmployee2ByName(name) {
         try {
             const employee2 = await this.Employee2.findOne({ name: name });
-            return employee2; 
+            return employee2;
         } catch (error) {
             console.error('Error finding employee2 by name:', error);
             throw error;
         }
-    };
+    }
     
-    async findOneEmployee2ByPhone (phone) {
+    async findOneEmployee2ByPhone(phone) {
         try {
             const employee2 = await this.Employee2.findOne({ phone: phone });
-            return employee2; 
+            return employee2;
         } catch (error) {
             console.error('Error finding employee2 by phone number:', error);
             throw error;
         }
-    };
-    
-}; 
+    }
+}
 
 module.exports = employee2Service;
   

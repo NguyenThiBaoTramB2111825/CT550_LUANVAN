@@ -13,6 +13,7 @@ class OrderService {
         this.Color = MongoDB.getClient().db().collection("color");
         this.Size = MongoDB.getClient().db().collection("size");
         this.Image = MongoDB.getClient().db().collection("image");
+        this.Cart = MongoDB.getClient().db().collection("cart");
     }
 
     async extractOrderData(payload) {
@@ -21,7 +22,7 @@ class OrderService {
             items: [],
             shippingFee: payload.shippingFee ? parseFloat(payload.shippingFee) : 0,
             discount_id: ObjectId.isValid(payload.discount_id) ? new ObjectId(payload.discount_id) : undefined,
-            discount_name: undefined,
+            discount_name: '',
             discount_value: 0,
             totalPrice: 0, // sẽ tính lại bên dưới
             status: payload.status || "Pending",
@@ -29,7 +30,14 @@ class OrderService {
             approvedBy: ObjectId.isValid(payload.approvedBy) ? new ObjectId(payload.approvedBy) : undefined,
             approvedDate: payload.approvedDate ? new Date(payload.approvedDate) : undefined,
             updatedBy: ObjectId.isValid(payload.updatedBy) ? new ObjectId(payload.updatedBy) : undefined,
-            note: payload.note || ""
+            note: payload.note || "",
+            paymentMethod: payload.paymentMethod || "COD", // "COD" | "Online"
+            paymentSattus: payload.paymentSattus || "Unpaid",//"Unpaid" | "Paid" | "Failed"
+            deliveryStatus: payload.deliveryStatus || "Pending", //"Pending", "Shipped", "Delivered", "Cancelled"
+            address_id: ObjectId.isValid(payload.address_id) ? new ObjectId(payload.address_id) : undefined,
+            transaction_id: payload.transaction_id || null,
+            admin_note: payload.admin_note || ""
+
         };
         let totalPrice = 0;
         order.items = await Promise.all(payload.items.map(async (item) => {
@@ -116,7 +124,23 @@ class OrderService {
 
         const result = await this.Order.insertOne(order);
         console.log("Giá trị của result: ", result);
-        return { statusCode: 200, message: "Tạo giỏ hàng mới thành công", _id: result.insertedId, data: order }
+
+        await this.Cart.deleteMany({
+            customer_id: new ObjectId(payload.customer_id),
+            productDetail_id: { $in: payload.items.map(item => new ObjectId(item.productDetail_id)) }
+        });
+
+        await this.Cart.updateOne(
+            { customer_id: new ObjectId(payload.customer_id) },
+            {
+                $pull: {
+                    items: {
+                        productDetail_id: { $in: payload.items.map(item => new ObjectId(item.productDetail_id)) }
+                    }
+                }
+            }
+        );
+        return { statusCode: 200, message: "Tạo đơn hàng mới thành công", _id: result.insertedId, data: order }
 
     }
     //findByInfo

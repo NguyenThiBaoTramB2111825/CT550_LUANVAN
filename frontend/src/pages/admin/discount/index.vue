@@ -55,8 +55,8 @@
                     <td>{{ formatDate(discount.endDate) }}</td>
                     <td>{{ getStatus(discount) }}</td>
                     <td>
-                        <button class="btn  btn-danger" @click="deleteDiscount(discount._id)">Xóa</button> 
-                        <button class="btn  btn-success mx-1" @click="goToUpdatePage(discount._id)">Cập nhật</button> 
+                        <button class="btn  btn-danger m-1" @click="deleteDiscount(discount._id)">Xóa</button> 
+                        <button class="btn  btn-success" @click="goToUpdatePage(discount._id)">Cập nhật</button> 
                         
                     </td>
                     
@@ -182,20 +182,6 @@ export default {
             }
         };
 
-        // const searchDiscount = async () => {
-        //     if (inputsearch.value.trim() === "") {
-        //         fetchDiscount();
-        //         return;
-        //     }
-        //     try {
-        //         const response = await axios.get(`http://127.0.0.1:3000/api/discount/name/${inputsearch.value}`);
-        //         discounts.value = response.data;
-        //     }
-        //     catch (error) {
-        //         console.error("Lỗi khi tìm kiếm danh mục: ", error);
-        //     }
-        // };
-
         const deleteDiscount = async (id) => {
 
             const result = await Swal.fire({
@@ -277,5 +263,9 @@ th, td {
 th {
     background-color: #f4f4f4;
     font-weight: bold;
+}
+::v-deep(.table thead th) {
+  vertical-align: middle !important;
+  text-align: center !important;
 }
 </style> 

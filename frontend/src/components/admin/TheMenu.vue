@@ -8,7 +8,6 @@
                      <br>
                 </span>
             </div>
-            
             <button @click="toggleMenu" class="btn btn-outline-dark mt-1">
                     <i class="fa-solid fa-bars fa-xl text-dark"></i>
             </button>
@@ -52,45 +51,35 @@ export default defineComponent({
             menuStore.toggleMenu();
         }
         const openIndex = ref(null);
-        const menuItems =  [
+        const menuItems = [
+            {
+                title: "Quản lý đơn hàng",
+                icon: "fa-solid fa-sort-down",
+                route: "admin-dashboard"
+            },
             {
                 title: "Quản lý nhân viên",
-                icon: "fa-user",
+                icon: "fa-solid fa-users-gear",
                 route: "admin-dashboard",
                 subItems: [
-                    { title: "Nhân viên cửa hàng",  icon: "fa-user", route: "store-manager" },
-                    { title: "Nhân viên kho", icon: "fa-user", route: "warehouse-manager" }
+                    { title: "Nhân viên cửa hàng",  icon: "fa-solid fa-circle-user", route: "store-manager" },
+                    { title: "Nhân viên kho", icon: "fa-regular fa-user", route: "warehouse-manager" }
                 ]
             },
             {
                 title: "Khách hàng",
-                icon: "fa-box",
+                icon: "fa-solid fa-users",
                 route: "customer"
             },
             {
-                title: "Quản lý đơn hàng",
-                icon: "fa-receipt",
-                route: "admin-dashboard"
-            },
-            {
                 title: "Quản lý danh mục",
-                icon: "fa-receipt",
+                icon: "fa-solid fa-list",
                 route: "category"
             },
             {
                 title: "Quản lý thương hiệu",
-                icon: "fa-receipt",
+                icon: "fa-regular fa-copyright",
                 route: "brand"
-            },
-            {
-                title: "Quản lý khuyến mãi",
-                icon: "fa-receipt",
-                route: "discount"
-            },
-            {
-                title: "Quản lý sản phẩm",
-                icon: "fa-receipt",
-                route: "product"
             },
             {
                 title: "Quản lý nhà cung cấp",
@@ -98,13 +87,24 @@ export default defineComponent({
                 route: "supplier"
             },
             {
+                title: "Quản lý khuyến mãi",
+                icon: "fa-solid fa-ticket",
+                route: "discount"
+            },
+            {
+                title: "Quản lý sản phẩm",
+                icon: "fa-brands fa-product-hunt",
+                route: "product"
+            },
+ 
+            {
                 title: "Quản lý chi tiết sản phẩm",
-                icon: "fa-receipt",
+                icon: "fa-solid fa-info",
                 route: "productDetail"
             },
             {
                 title: "Quản lý chi tiết nhập",
-                icon: "fa-receipt",
+                icon: "fa-solid fa-circle-info",
                 route: "importDetail"
             },
             // Thêm các mục khác tương tự...
@@ -124,8 +124,9 @@ export default defineComponent({
         display: none;
     }
     .submenu-link {
-        font-size: 0.75rem; 
-        font-style: italic;  
+        font-size: 13px; 
+        /* font-size: 0.75rem;  */
+        font-style: bold;  
         border: none !important;  
         padding-left: 2px; 
 }

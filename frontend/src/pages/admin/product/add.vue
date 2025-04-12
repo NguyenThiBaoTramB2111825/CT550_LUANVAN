@@ -94,7 +94,8 @@ export default {
         const fetchBrands = async () => {
             try {
                 const response = await axios.get("http://127.0.0.1:3000/api/brand");
-                Brands.value = response.data;
+                Brands.value = response.data.filter(br => br.isActive);
+                console.log("Giá trị của Brands sau khi fetch: ", Brands.value);
             }
             catch (error) {
                 console.error("Lỗi khi lấy danh sách thương hiệu: ", error)
@@ -104,7 +105,7 @@ export default {
         const fetchCategorys= async () => {
             try {
                 const response = await axios.get("http://127.0.0.1:3000/api/category");
-                Categorys.value = response.data;
+                Categorys.value = response.data.filter(ct => ct.isActive);
             }
             catch (error) {
                 console.error("Lỗi khi lấy danh sách danh mục: ", error)
@@ -123,9 +124,9 @@ export default {
         const addProduct = async () => {
             try {
                 console.log("Dữ liệu gửi lên API:", product.value);
-                await axios.post("http://127.0.0.1:3000/api/product/", product.value);
+                const response = await axios.post("http://127.0.0.1:3000/api/product/", product.value);
                 
-                socket.emit('product_updated', {action: "create", data: response.data})
+                // socket.emit('product_updated', {action: "create", data: response.data})
                 Swal.fire("Thành công", "Thêm sản phẩm thành công", "success");
                 router.push('/admin/product');
             } catch (error) {

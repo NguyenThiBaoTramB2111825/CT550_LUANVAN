@@ -12,7 +12,7 @@
                 <tr>
                     <th>#</th>
                     <th>Tên</th>
-                    <th>Hexcode</th>
+                    <!-- <th>Hexcode</th> -->
                     <th>Trạng thái</th>
                     <th>Thao tác</th>
                 </tr>
@@ -21,7 +21,7 @@
                 <tr v-for="(color, index) in colors" :key="color._id">
                     <td>{{ index + 1 }}</td>
                     <td>{{ color.name }}</td>
-                    <td>{{ color.hexCode }}</td>
+                    <!-- <td>{{ color.hexCode }}</td> -->
                     <td>{{ color.isActive ? "Đang hoạt động" : "Đã xóa" }}</td>
                     <td>
                         <button class="btn btn-danger" @click="deleteColor(color._id)">Xóa</button>
@@ -45,10 +45,10 @@
                 <label>Tên màu</label>
                 <input type="text" v-model="currentColor.name" class="form-control text-center" required>
             </div>
-            <div class="mb-3">
+            <!-- <div class="mb-3">
                 <label>Hexcode</label>
                 <input type="text" v-model="currentColor.hexCode" class="form-control text-center" required>
-            </div>
+            </div> -->
             <div v-if="isEditing" class="mb-3" >
                 <label >Trạng thái</label>
                 <select v-model="currentColor.isActive" class="form-control text-center">
@@ -79,7 +79,7 @@ export default {
         const inputsearch = ref('');
         const showModal = ref(false);
         const isEditing = ref(false);
-        const currentColor = ref({ name: '', hexCode: '', isActive: true, _id: null });
+        const currentColor = ref({ name: '', isActive: true, _id: null });
 
         const fetchColors = async () => {
             try {
@@ -145,7 +145,7 @@ export default {
                 console.log("Giá trị sau khi mở modal: ", currentColor.value);
                 isEditing.value = true;
             } else {
-                currentColor.value = { name: '', hexCode: '', isActive: true, _id: null };
+                currentColor.value = { name: '', isActive: true, _id: null };
                 isEditing.value = false;
             }
             showModal.value = true;
@@ -206,5 +206,10 @@ export default {
     border-radius: 10px;
     width: 400px;
     text-align: center;
+}
+
+::v-deep(.table thead th) {
+  vertical-align: middle !important;
+  text-align: center !important;
 }
 </style>

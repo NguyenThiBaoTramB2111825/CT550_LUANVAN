@@ -1,28 +1,29 @@
 <template>
-        <div class="m-4 ">
+    <Breadcrumb class="text-end" />
+        <div class="m-3 ">
             <h5 class="text-center">Danh sách sản phẩm</h5>
             <br>
-            <div class="d-flex flex-column align-items-center mx-auto mb-2 w-25 fs-15">
-                <input type="text" class=" mb-2 w-100 border-radius" v-model="filters.searchText" placeholder="Nhập tên sản phẩm">
-                <input type="text" class=" mb-2 w-100 border-radius" v-model="filters.searchCategory" placeholder="Nhập danh mục sản phẩm">
-                <input type="text" class=" mb-2 w-100 border-radius" v-model="filters.searchBrand" placeholder="Nhập thương hiệu">
-                <input type="text" class=" mb-2 w-100 border-radius" v-model="filters.searchDiscount" placeholder="Nhập tên chương trình khuyến mãi">
-                <select class="border border-radius mb-2 w-100 " v-model="filters.isActive">
+            <div class="d-flex flex-column align-items-center mx-auto mb-2 w-50 fs-15">
+                <input type="text" class=" mb-2 p-2 w-100 border rounded" v-model="filters.searchText" placeholder="Nhập tên sản phẩm">
+                <input type="text" class=" mb-2 p-2 w-100 border rounded" v-model="filters.searchCategory" placeholder="Nhập danh mục sản phẩm">
+                <input type="text" class=" mb-2 p-2 w-100 border rounded" v-model="filters.searchBrand" placeholder="Nhập thương hiệu">
+                <input type="text" class=" mb-2 p-2 w-100 border rounded" v-model="filters.searchDiscount" placeholder="Nhập tên chương trình khuyến mãi">
+                <select class="mb-2 p-2 w-100 border rounded" v-model="filters.isActive" placeholder="Chọn trạng thái">
                     <option value="">Trạng thái</option>
-                    <option value="Đang hoạt động">Đang hoạt động</option>
-                    <option value="Không hoạt động">Không hoạt động</option>
+                    <option :value="true">Đang hoạt động</option>
+                    <option :value="false">Không hoạt động</option>
                 </select>
 
         </div>
         <br>
-        <table class="p-2 table table-bordered table-striped text-center">
+        <table class="p-2 table table-bordered table-striped justify-content-center align-items-center text-center">
             <thead>
                 <tr>
                     <th>#</th>
-                    <th>Tên</th>
-                    <th>Loại danh mục</th>
-                    <th>Thương hiệu</th>
-                    <th>Khuyến mãi (nếu có)</th>
+                    <th @click="sortBy('name')">Tên <i class="fa-solid fa-sort"></i></th>
+                    <th @click="sortBy('category_name')">Loại danh mục <i class="fa-solid fa-sort"></i></th>
+                    <th @click="sortBy('brand_name')">Thương hiệu <i class="fa-solid fa-sort"></i></th>
+                    <th @click="sortBy('discount_name')">Khuyến mãi (nếu có) <i class="fa-solid fa-sort"></i></th>
                     <th>Mô tả</th>
                     <th>Giá bán</th>
                     <th>Giá sau khi giảm</th>
@@ -34,11 +35,11 @@
                 <tr v-for="(product, index) in filterProducts" :key="product._id">
 
                     <td>{{ index + 1 }}</td>
-                    <td>{{ product.name }}</td>
+                    <td class="text-start">{{ product.name }}</td>
                     <td>{{ product.category_name || 'Chưa có danh mục' }}</td>
                     <td>{{ product.brand_name  || 'Chưa có thương hiệu'}}</td>
                     <td>{{ product.discount_name || 'Chưa có khuyến mãi' }}</td>
-                    <td>{{ product.description }}</td>
+                    <td class="text-start">{{ product.description }}</td>
                     <td>{{ formatCurrency(product.price_selling) }}</td>
                     <td>{{ formatCurrency(product.price_afterdiscount) }}</td>
                     <td>{{ product.isActive ? "Đang hoạt động" : "Đã xóa"}}</td>
@@ -125,8 +126,25 @@ export default {
             searchBrand: '',
             searchDiscount: ''
         });
+
+        const router = useRouter();
+        const inputsearch = ref('');
+        const products = ref([]);
+        const sortAsc = ref(true);
+        const sortField = ref('');
+
+        const sortBy = (field) => {
+            if (sortField.value === field) {
+                sortAsc.value = !sortAsc.value;
+            }
+            else {
+                sortField.value = field;
+                sortAsc.value = true;
+            }
+        }
+
         const filterProducts = computed(() => {
-            return products.value.filter(product => {
+            let filtered = products.value.filter(product => {
                 const matchesName = filters.value.searchText.trim()
                     ? product.name.toLowerCase().includes(filters.value.searchText.toLowerCase())
                     : true;
@@ -139,18 +157,28 @@ export default {
                     ? product.category_name && product.category_name.toLowerCase().includes(filters.value.searchCategory.toLowerCase())
                     : true;
                 const matchesDiscount = filters.value.searchDiscount.trim()
-                    ? product.category_name && product.discount_name.toLowerCase().includes(filters.value.searchDiscount.toLowerCase())
+                    ? product.discount_name && product.discount_name.toLowerCase().includes(filters.value.searchDiscount.toLowerCase())
                     : true;
+
+                console.log("Giá trị của filters.value.isActive: ", filters.value.isActive);
 
                 const matchesActive = filters.value.isActive
-                    ? product.isActive === filters.value.isActive
+                    ? product.isActive === (filters.value.isActive)
                     : true;
-
                 return matchesName && matchesBrand && matchesCategory && matchesActive && matchesDiscount;
             });
+            filtered.sort((a, b) => {
+
+                const field = sortField.value;
+                const aVal = (a[field] || '').toString().toLowerCase();
+                const bVal = (b[field] || '').toString().toLowerCase();
+
+                return sortAsc.value ? aVal.localeCompare(bVal, 'vi', { sensitivity: 'base' })
+                    : bVal.localeCompare(aVal, 'vi', { sensitivity: 'base' });
+            })
+            return filtered;
         });
 
-        // Đảm bảo ref đã gán giá trị sau khi component được render
         onMounted(() => {
             console.log("Component đã mount, fileInput:", fileInput.value);
         });
@@ -281,10 +309,7 @@ export default {
             return Number(amount).toLocaleString("vi-VN");
         };
 
-        const router = useRouter();
-        const inputsearch = ref('');
-        const products = ref([]);
-
+ 
         const fetchProduct = async () => {
             try {
                 console.log("Thực hiện fetch dữ liệu sản phẩm...");
@@ -295,7 +320,7 @@ export default {
                     try {
                         if (product.brand_id) {
                             const brandRes = await axios.get(`http://127.0.0.1:3000/api/brand/${product.brand_id}`);
-                            product.brand_name = brandRes.data.name || "Không có thương hiệu";
+                            product.brand_name = brandRes.data.isActive ? brandRes.data.name : `${brandRes.data.name} - Đã bị xóa`;
                         }
                     } catch (error) {
                         console.error("Lỗi khi lấy thương hiệu:", error);
@@ -304,7 +329,7 @@ export default {
                     try {
                         if (product.category_id) {
                             const categoryRes = await axios.get(`http://127.0.0.1:3000/api/category/${product.category_id}`);
-                            product.category_name = categoryRes.data.name || "Không có danh mục";
+                            product.category_name = categoryRes.data.isActive ? categoryRes.data.name : `${categoryRes.data.name} - Đã bị xóa`;
                         }
                     } catch (error) {
                         console.error("Lỗi khi lấy danh mục:", error);
@@ -402,7 +427,7 @@ export default {
             socket.on('product_update', async ({ action }) => {
                 if (["create", "update", "delete", "soft_delete"].includes(action)) {
                     await fetchProduct();
-                    Swal.fire("Thông báo", "Dữ liệu sản phẩm đã được cập nhật!", "success");
+                    // Swal.fire("Thông báo", "Dữ liệu sản phẩm đã được cập nhật!", "success");
                 }
             });
 
@@ -437,7 +462,9 @@ export default {
             handleFileUpload,
             existingImages,
             triggerFileInput,
-            fileInput
+            fileInput,
+            sortAsc,
+            sortBy,
         }
     }
 }
@@ -580,4 +607,9 @@ export default {
         border-radius: 10px;
         border: 2px solid #ddd;
     }
+
+    ::v-deep(.table thead th) {
+  vertical-align: middle !important;
+  text-align: center !important;
+}
 </style>

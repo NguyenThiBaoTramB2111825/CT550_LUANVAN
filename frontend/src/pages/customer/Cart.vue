@@ -18,29 +18,35 @@
       <span class="mx-2">Order Complete</span>
     </div>
     
-    <div  style="width: 80%;" class="row justify-content-center my-4 mx-auto">
+    <div style="width: 90%;" class="row justify-content-center my-4 mx-auto">
       <div class="col-md-8">
+
+          <p  class="cart-header" > <input type="checkbox" class="form-check-input border-none mx-2" v-model="selectAllChecked" @change="handleSelectedAllChange">TỔNG SẢN PHẨM ({{ cart.items.length }})</p>
           <div v-if="cart.items && cart.items.length">
             <div v-for="(item, index) in cart.items" :key="index" class="cart-item">
-                <input type="checkbox" class="form-check-input border-none"id="check1" name="option1" v-model="item.checked">
+                <input type="checkbox" class="form-check-input border-none" name="option1" v-model="item.checked" 
+                  @change="() => handleCheckboxChange(item)">
               <img :src="`${BASE_URL}${item.image_url}`|| defaultImage" alt="product" class="product-image mx-3" />
 
               <div class="item-details mr-2">
-                <h3 class="product-name">{{ item.product_name || 'Sản phẩm không tên' }}</h3>
+                <h3 class="product-name" @click="gotoDetailPage(item.product_id)">{{ item.product_name || 'Sản phẩm không tên' }}</h3>
                 <p>Size: {{ item.size_name || 'N/A' }} | Màu: {{ item.color_name || 'N/A' }}</p>
-                <div v-if="item.sale" >
-                  <p class="old-price m-1">{{ formatCurrency(item.price_selling) }} VND</p>
-                  <p class="new-price m-1">{{ formatCurrency( item.price_afterDiscount) }} VND</p> 
-                </div>
-                <p class="m-1" v-else style="font-family: Arial, Helvetica, sans-serif; font-weight: 700; font-size: 30px;" >{{ formatCurrency(item.price_selling) }} VND</p>
-                <div class=" d-flex align-items-center justify-content-end">
-                  <input class="border rounded-circle fw-bold" type="button" value="-">
-                  <p class="mx-3">{{ item.quantity }}</p>
-                  <input class="border rounded-circle fw-bold mr-2" type="button" value="+">
-               <i class="fa-light fa-trash"></i>
+                <div class="d-inline">
+                  <div v-if="item.sale" >
+                    <span class="old-price m-1">{{ formatCurrency(item.price_selling) }} VND</span>
+                    <span class="new-price m-1">{{ formatCurrency( item.price_afterDiscount) }} VND</span> 
+                  </div>
+                  <span class="m-1" v-else style="font-family: Arial, Helvetica, sans-serif; font-weight: 700; font-size: 17px;" >{{ formatCurrency(item.price_selling) }} VND</span>
 
+                  <div class=" d-flex align-items-center justify-content-end">
+                    <input @click="decreaseQuantity(item)" class="border rounded-circle fw-bold" type="button" value="-">
+                    <p class="mx-3">{{ item.quantity }}</p>
+                    <input @click="increaseQuantity(item)" class="border rounded-circle fw-bold mr-2" type="button" value="+">
+                    <button class="remove-btn mx-2" @click="deleteProductDetailCart(item.productDetail_id)"><i class="bi bi-trash"></i></button>
+          
+                  </div>
                 </div>
-
+                 
               </div>
             </div>
           </div>
@@ -49,8 +55,19 @@
             <p>Giỏ hàng của bạn đang trống </p>
           </div>
       </div>
-      <div class="col-md-4">
-        <h4>Cart summary</h4>
+      <div class="col-md-4 cart-summary">
+        <h6 class="text-center">TỔNG GIỎ HÀNG</h6>
+        <span style="font-size: 14px;">Tiến hành áp dụng chiết khấu và tính tổng giá bán của sản phẩm sau đó xác nhận giá cuối cùng.</span>
+        <div class="summary-content ">
+          <p><strong>Tổng giá bán lẻ:</strong><span class="float-end"> {{ formatCurrency(totalOriginalPrice) }} VNĐ</span></p>
+          <p><strong>Tổng giá giảm:</strong><span class="float-end"> -{{ formatCurrency(totalDiscount) }} VNĐ</span></p>
+          <hr>
+          <p class="final-price"><strong>Giá ước tính: </strong> <span class="float-end" >{{ formatCurrency(totalDiscountedPrice) }} VNĐ</span></p>
+          <span class="float-end" style="color: red; font-size: 13px;" >Saved {{ formatCurrency(totalDiscount) }} VNĐ</span>
+          <button class="checkout-btn" @click="gotocheckoutPage()"  :disabled="totalItems === 0">Đặt hàng ({{ totalItems }})</button>
+        </div>
+        <hr>
+        <p>Chúng tôi chấp nhận thanh toán khi nhận hàng và thanh toán trực tuyến</p>
       </div>
 
 
@@ -60,21 +77,42 @@
 </template>
 
 <script>
-import { ref, onMounted } from 'vue';
+import { ref, onMounted, computed, watch } from 'vue';
 import axios from 'axios';
 import { jwtDecode } from 'jwt-decode';
 import Cookies from 'js-cookie';
 import Swal from 'sweetalert2';
-import { useRouter } from 'vue-router';
+import { useRouter, useRoute } from 'vue-router';
 const BASE_URL = 'http://localhost:3000';
 
 export default {
   setup() {
+
+    const route = useRoute()
+    const customerId = ref(route.params.customerId);
     const cart = ref({ items: [] });
     const defaultImage = '/images/no-image.png';
     const router = useRouter();
-
     const cartSummary = ref([]);
+    const selectAllChecked = ref(false);
+    const customer_id_receive = ref(null);
+
+    const increaseQuantity = (item) => {
+      const newQuantity = item.quantity + 1;
+      updateCartItem(item.productDetail_id, newQuantity, item.checked ? 'Selected' : 'Pending');
+    }
+
+    const decreaseQuantity = (item) => {
+      if (item.quantity > 1) {
+        const newQuantity = item.quantity - 1;
+        updateCartItem(item.productDetail_id, newQuantity, item.checked ? 'Selected' : 'Pending');
+      }
+    }
+
+    const handleCheckboxChange = (item) => {
+      const status = item.checked ? 'Selected' : 'Pending';
+      updateCartItem(item.productDetail_id, item.quantity, status);
+    }
 
     const formatDate = (dateStr) => {
       const date = new Date(dateStr);
@@ -89,10 +127,16 @@ export default {
     };
 
 
-    const fetchCart = async (customerId) => {
+    const fetchCart = async () => {
       try {
-        const response = await axios.get(`${BASE_URL}/api/cart/customerId/${customerId}`);
+        const response = await axios.get(`${BASE_URL}/api/cart/customerId/${customerId.value}`);
         const rawCart = response.data;
+        if (!rawCart.items || rawCart.items.length === 0) {
+          Swal.fire("Thông báo", "Giỏ hàng của bạn đang trống.", "info");
+          // router.push({ name: 'home' });
+          cart.value = { ...rawCart, items: [] };
+          return;
+        }
         const enrichedItems = await Promise.all(
           rawCart.items.map(async (item) => {
             try {
@@ -109,7 +153,7 @@ export default {
               const size = sizeData.data;
               const product = productData.data;
               const image = imageData.data;
-              console.log("Giá trị của image: ", image);
+
               return {
                 ...item,
                 product_id: product._id,
@@ -138,7 +182,6 @@ export default {
             checked: item.status === 'Selected'  // Gắn giá trị checked ban đầu
           }))
         };
-        console.log("Giá trị của cart sau khi fetch: ", cart);
       } catch (error) {
         console.error("Lỗi khi fetch giỏ hàng:", error);
         Swal.fire("Lỗi", "Không thể tải giỏ hàng", "error");
@@ -146,14 +189,111 @@ export default {
     };
 
 
-    const fetchCartSummary = async (customerId) => {
-      const response = await axios.get(`${BASE_URL}/api/cart/getCartSummary/${customerId}`);
+    const fetchCartSummary = async () => {
+      const checkItems = cart.value.items?.filter(item => item.checked) || [];
+      const response = await axios.get(`${BASE_URL}/api/cart/getCartSummary/${customerId.value}`);
       cartSummary.value = response.data;
-      console.log("Giá trị của cartSummary: ", cartSummary);
+    }
+
+    const checkedItems = computed(() => cart.value.items?.filter(item => item.checked) || []);
+
+    const totalOriginalPrice = computed(() =>
+      checkedItems.value.reduce((sum, item) => sum + item.price_selling * item.quantity, 0)
+    );
+
+    const totalDiscount = computed(() =>
+      checkedItems.value.reduce((sum, item) => sum + (item.price_selling - item.price_afterDiscount) * item.quantity, 0)
+    );
+
+    const totalDiscountedPrice = computed(() =>
+      totalOriginalPrice.value - totalDiscount.value
+    );
+
+    const totalItems = computed(() => {
+      return checkedItems.value.reduce((sum, item) => sum + item.quantity, 0) || 0;
+    });
+
+
+    const gotoDetailPage = (id) => {
+      router.push({ name: 'productDetail2', params: { id } });
 
     }
+    const gotocheckoutPage = async(customerId) => {
+      router.push({ name: 'checkoutPage', params: { customerId } });
+    }
+
+    const updateCartItem = async (productDetailId, quantity, status) => {
+      try {
+        const response = await axios.put(`${BASE_URL}/api/cart/${customerId.value}`, {
+          items: [{
+            productDetail_id: productDetailId,
+            quantity: quantity,
+            status: status 
+          }]
+        });
+        await fetchCart();
+      } catch (err) {
+        console.error("Lỗi khi cập nhật:", err);
+        Swal.fire("Lỗi", err.response?.data?.message, "error");
+      }
+    };
+
+    const deleteProductDetailCart = async (productDetail_id) => {
+
+      const result = await Swal.fire({
+        title: "Xác nhận xóa",
+        text: "Bạn có chắc chắn muốn xóa sản phẩm này không?",
+        icon: 'warning',
+        showCancelButton: true,
+        confirmButtonText: 'Xóa',
+        cancelButtonText: "Hủy"
+      });
+
+      if (result.isConfirmed) {
+        try {
+          const response_delete = await axios.delete(`${BASE_URL}/api/cart/${customerId.value}/${productDetail_id}`);
+          Swal.fire('Thông báo!', response_delete.data.message, 'success');
+          await fetchCart();
+        } catch (error) {
+          Swal.fire('Lỗi!', error.response_delete?.data?.message, 'error')
+          console.error(error);
+        }
+      }
+    };
+
+    const handleSelectedAllChange = async () => {
+      cart.value.items.forEach(item => {
+        item.checked = selectAllChecked.value
+      });
+      const updatedItems = cart.value.items.map(item => ({
+        productDetail_id: item.productDetail_id,
+        quantity: item.quantity,
+        status: item.checked ? "Selected" :  "Pending"
+      }));
+
+      try {
+        await axios.put(`${BASE_URL}/api/cart/${customerId.value}`, {
+          items: updatedItems
+        });
+      } catch (err) {
+        console.error("Lỗi khi cập nhật checkbox tổng:", err);
+        Swal.fire("Lỗi", err.response?.data?.message, "error");
+      }
+    };
+
+    watch(
+      () => cart.value.items,
+      (items) => {
+        if (items.length) {
+          selectAllChecked.value = items.every(item => item.checked);
+        } else {
+          selectAllChecked.value = false;
+        }
+      },
+      { deep: true, immediate: true }
+    );
+
     onMounted(() => {
-    
       const token = Cookies.get("accessToken");
       if (!token) {
         Swal.fire("Thông báo", "Bạn cần đăng nhập để truy cập giỏ hàng.", "warning").then(() => {
@@ -165,7 +305,6 @@ export default {
       try {
         const decoded = jwtDecode(token);
         const expiresInMs = decoded.exp * 1000 - Date.now();
-
         if (expiresInMs <= 0) {
           Swal.fire("Hết hạn", "Phiên đăng nhập đã hết hạn, vui lòng đăng nhập lại.", "error").then(() => {
             Cookies.remove("accessToken");
@@ -174,9 +313,9 @@ export default {
           return;
         }
 
-        const customerId = decoded.id;
-        fetchCart(customerId);
-        fetchCartSummary(customerId);
+        customerId.value = decoded.id;
+        fetchCart();
+        fetchCartSummary();
       } catch (error) {
         Swal.fire("Lỗi", "Token không hợp lệ, vui lòng đăng nhập lại.", "error").then(() => {
           Cookies.remove("accessToken");
@@ -184,6 +323,7 @@ export default {
         });
       }
     });
+
     return {
       formatCurrency,
       formatDate,
@@ -191,8 +331,22 @@ export default {
       cart,
       BASE_URL,
       fetchCartSummary,
-      cartSummary
-
+      cartSummary,
+      totalDiscount,
+      totalDiscountedPrice,
+      totalItems,
+      totalOriginalPrice,
+      increaseQuantity,
+      decreaseQuantity,
+      gotoDetailPage,
+      customer_id_receive,
+      updateCartItem,
+      deleteProductDetailCart,
+      customerId,
+      handleCheckboxChange,
+      handleSelectedAllChange,
+      selectAllChecked,
+      gotocheckoutPage
     }
   }
 }
@@ -212,7 +366,7 @@ h2 {
 
 .cart-item {
   display: flex;
-  align-items: center;
+  align-items: flex-start;
   border: 1px solid #ddd;
   /* border-radius: 8px; */
   padding: 15px;
@@ -272,12 +426,69 @@ p{
 
 .new-price {
   color: red;
-  font-size: 22px;
+  font-size: 17px;
   font-weight: bold;
 }
 
-/* .btn_quantity{
-  border-radius: 5px;
-  margin: 3px;
-} */
+
+.remove-btn {
+  background: none;
+  border: none;
+  cursor: pointer;
+  font-size: 18px;
+  color: red;
+}
+
+.cart-summary {
+  flex: 1;
+  background: #f8f8f8;
+  padding: 20px;
+  margin-left: 5px;
+  /* border:  solid 1px; */
+}
+
+.summary-content p {
+  font-size: 16px;
+  margin: 10px 0;
+  align-items: center;
+  justify-content: space-around;
+}
+
+.quantity-control {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+}
+
+.checkout-btn {
+  width: 100%;
+  background: black;
+  color: white;
+  padding: 10px;
+  border: none;
+  cursor: pointer;
+  font-size: 16px;
+  margin-top: 15px;
+}
+
+.final-price {
+  font-size: 18px;
+  color: red;
+  font-weight: bold;
+}
+
+
+.cart-header {
+    background: white;
+  font-size: 20px;
+  font-weight: bold;
+  margin-bottom: 15px;
+  padding: 10px;
+}
+
+
+.checkout-btn:disabled {
+  opacity: 0.6;
+  cursor: not-allowed;
+}
 </style>

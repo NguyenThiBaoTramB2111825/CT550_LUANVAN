@@ -13,8 +13,6 @@
                     </button>
                     <ul class="dropdown-menu" data-bs-auto-close="outside">
                         <li><a class="dropdown-item" href="#" @mousedown.prevent="logout">Đăng Xuất</a></li>
-                        <!-- <li><a class="dropdown-item" href="#">Another action</a></li>
-                        <li><a class="dropdown-item" href="#">Something else here</a></li> -->
                     </ul>
                 </div>
             </div>
@@ -54,3 +52,5 @@ export default {
     }
 }
 </script>
+
+

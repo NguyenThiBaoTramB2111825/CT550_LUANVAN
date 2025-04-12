@@ -100,19 +100,6 @@ export default {
         });
         const selectedFile = ref(null);
 
-        // const fetchStoreManager = async () => {
-        //     const id = route.params.id; // Lấy id từ url
-        //     console.log("Giá trị của id được truyền để thực hiện tìm kiếm và cập nhật")
-        //     try {
-        //         const response = await axios.get(`http://127.0.0.1:3000/api/employee/${id}`);
-        //         storemanager.value = response.data;
-        //     } catch (error) {
-        //         console.error("Lỗi khi lấy danh sách người dùng:", error);
-        //         Swal.fire('Lỗi', 'Không tìm thấy thông tin nhân viên', 'error');
-        //         router.push('/admin/store-manager');
-        //     }
-        // };
-
         const isValidEmail = computed(() => {
             const emailRegex = /^[a-zA-Z0-9._%+-]+@[a-zA-Z0-9.-]+\.[a-zA-Z]{2,}$/;
             return emailRegex.test(storemanager.value.email);
@@ -136,6 +123,7 @@ export default {
         };
 
         const addStoreManager = async () => {
+            console.log("Giá trị của storemanager gọi addStoreManager: ", storemanager.value);
             if (!isValidEmail.value) {
                 Swal.fire("Lỗi", "Email không hợp lệ!", "error");
                 return;
@@ -156,44 +144,26 @@ export default {
                 if (selectedFile.value) {
                     formData.append("profileImage", selectedFile.value);
                 }
+
                 console.log("Dữ liệu gửi lên API: ", storemanager.value);
-                await axios.post("http://127.0.0.1:3000/api/employee/", formData, {
+                const response = await axios.post(`${BASE_URL}/api/employee/`, formData, {
                     headers: { "Content-Type": "multipart/form-data" }
                 });
 
-                Swal.fire('Thành công', 'Cập nhật thông tin thành công', 'success');
+                Swal.fire('Thành công', 'Thêm thông tin thành công', 'success');
                 router.push('/admin/store-manager');
 
             } catch (error) {
                 console.log("Lỗi khi thêm nhân viên:", error);
-                Swal.fire("Lỗi", "Có lỗi khi cập nhật thông tin", "error");
+                Swal.fire("Lỗi", error?.response?.data.message, "error");
             }
-            // await axios.put(`http://127.0.0.1:3000/api/employee/${this.storemanager._id}`,  formData, {
-            //     headers: { "Content-Type": "multipart/form-data" }
-            // })
-            // .then(response => {
-            //     console.log("Cập nhật thành công:", response.data);
-            // })
-            // .catch(error => {
-            //     console.error("Lỗi khi cập nhật:", error.response);
-            // });
-            // try{
-            //     await axios.put(`http://127.0.0.1:3000/api/employee/${id}`, storemanager.value);
-            //     Swal.fire('Thành công', 'Cập nật thông tin thành công', 'success');
-            //     router.push('/admin/store-manager');
-            // }
-            // catch(error){
-            //     console.log(`Lỗi khi cập nhật thông tin: `, error);
-            //     Swal.fire(`Lỗi`, 'Có lỗi khi cập nhật thông tin', 'error')
-            // }
         }
-        // onMounted(fetchStoreManager);
 
         const back = async () => {
             router.push({ name: 'store-manager' });
         };
 
-        return {handleFileUpload, BASE_URL, back, addStoreManager, storemanager, selectedFile, isValidEmail, isValidPhone };
+        return { handleFileUpload, BASE_URL, back, addStoreManager, storemanager, selectedFile, isValidEmail, isValidPhone };
     }
 }
 </script>

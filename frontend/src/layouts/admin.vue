@@ -3,7 +3,7 @@ import TheHeader from '../components/admin/TheHeader.vue';
 import TheMenu from '../components/admin/TheMenu.vue';
 import Cookies from 'js-cookie';
 import { useMenu } from '../store/use-menu';
-import Login from '../components/admin/Login.vue';
+import { useRouter } from 'vue-router';
 import { jwtDecode } from 'jwt-decode';
 import Swal from "sweetalert2";
 
@@ -11,16 +11,16 @@ export default {
     components: {
         TheHeader,
         TheMenu,
-        Login,
     },
     setup() {
+          const router = useRouter(); 
         const token = Cookies.get('accessToken');
         console.log("Current token:", token);
-
+  
         if (token) {
-            const decoded = jwtDecode(token);
+        const decoded = jwtDecode(token);
             const expiresInMs  = decoded.exp * 1000 - Date.now(); // So sánh với thời gian hiện tại
-            if (expiresInMs <= 0)// Token hết hạn
+            if (expiresInMs <= 0)
             {
                 Swal.fire({
                     title: 'Thông báo!',
@@ -30,7 +30,7 @@ export default {
                     showConfirmButton: false
                 }).then(() => {
                     Cookies.remove('accessToken');
-                    window.location.href = '/admin';
+                    router.push({name: "admin_login"});
 
                 });
             }
@@ -44,27 +44,21 @@ export default {
                         showConfirmButton: false
                     }).then(() => {
                         Cookies.remove('accessToken');
-                        window.location.href = '/admin';
+                         router.push({name: "admin_login"});
                     });
                 }, expiresInMs);
             }
         }
-
+            
         const menuStore = useMenu();
         return {
             token,menuStore
-        }
-    }
-}
+        }}}
 </script>
 
 <template>
 
-    <div v-if="!token">
-        <Login/>
-    </div>
-
-  <div v-else class="d-flex vh-100 row">
+  <div class="d-flex vh-100 row">
         <aside class="border-end" :class="{ 'collapsed': !menuStore.isMenuVisible}" :style="{width: menuStore.isMenuVisible ? '250px': '80px'}" >
             <TheMenu />
         </aside>
@@ -80,15 +74,6 @@ export default {
 </template>
 
 <style scoped>
-
-    /* content-wrapper{
-        max-width: 1286px;
-        flex-grow: 1;
-        display: flex;
-        flex-direction: column;
-        min-width: 0;
-    } */
-
     .content{
         flex-grow: 1;
         max-width: 100%;

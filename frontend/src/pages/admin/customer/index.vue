@@ -157,4 +157,8 @@ th {
     background-color: #f4f4f4;
     font-weight: bold;
 }
+::v-deep(.table thead th) {
+  vertical-align: middle !important;
+  text-align: center !important;
+}
 </style> 

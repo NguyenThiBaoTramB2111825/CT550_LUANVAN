@@ -25,14 +25,14 @@
                 <tr v-for="(supplier, index) in  suppliers" :key="supplier._id">
 
                     <td>{{ index + 1 }}</td>
-                    <td>{{ supplier.name }}</td>
-                    <td>{{ supplier.address }}</td>
+                    <td class="text-start">{{ supplier.name }}</td>
+                    <td  class="text-start">{{ supplier.address }}</td>
                     <td>{{ supplier.email }}</td>
                     <td>{{ supplier.phone }}</td>
                     <td>{{ supplier.isActive  ? "Đang hoạt động" : "Đã xóa" }}</td>
                     <td>
-                        <button class="btn  btn-danger" @click="deleleSupplier(supplier._id)">Xóa</button> 
-                        <button class="btn  btn-success mx-1" @click="goToUpdatePage(supplier._id)">Cập nhật</button> 
+                        <button class="btn  btn-danger m-1" @click="deleleSupplier(supplier._id)">Xóa</button> 
+                        <button class="btn  btn-success" @click="goToUpdatePage(supplier._id)">Cập nhật</button> 
                         
                     </td>
                     
@@ -161,5 +161,11 @@ th, td {
 th {
     background-color: #f4f4f4;
     font-weight: bold;
+}
+
+
+::v-deep(.table thead th) {
+  vertical-align: middle !important;
+  text-align: center !important;
 }
 </style> 

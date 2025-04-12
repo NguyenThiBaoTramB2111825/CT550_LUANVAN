@@ -79,6 +79,7 @@ import { useRouter } from "vue-router";
 import Swal from "sweetalert2";
 import Cookies from "js-cookie";
 import axios from 'axios';
+import { jwtDecode } from 'jwt-decode';
 
 export default {
   setup() {
@@ -92,12 +93,14 @@ export default {
       await axios
         .post("http://127.0.0.1:3000/api/admin/login", admin.value)
         .then((res) => {
+            console.log("Phản hồi từ server:", res);
           if (res.status == 200) {
             admin.value = {
               username: "",
               password: "",
             };
             const token = res.data.token;
+            console.log("Giá trị của token: ", token);{
             Cookies.set("accessToken", token, { expires: 24 });
             Swal.fire({
               title: "Thành công!",
@@ -106,8 +109,11 @@ export default {
               timer: 1500,
               showConfirmButton: false,
             });
+            console.log("Giá trị của admin sau khi đăng nhập: ", admin);
             window.location.reload();
             router.push({ name: "admin-dashboard" });
+            }
+
           }
         })
         .catch((error) => {
@@ -127,7 +133,7 @@ export default {
     return {
       loginAdmin,
       admin,
-    };
-  },
-};
+    }
+  }
+}
 </script>

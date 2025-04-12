@@ -27,6 +27,7 @@ const reviewRouter = require("./app/routes/review.route");
 const provinceRouter = require("./app/routes/province.route");
 const dicstrictRouter = require("./app/routes/district.route");
 const wardRouter = require("./app/routes/ward.route");
+const payRouter = require("./app/routes/pay.route");
 
 app.use(cors());
 app.use(express.json());
@@ -52,6 +53,7 @@ app.use("/api/review", reviewRouter);
 app.use("/api/province", provinceRouter);
 app.use("/api/district", dicstrictRouter);
 app.use("/api/ward", wardRouter);
+app.use("/api/pay", payRouter);
 
 // cho phép serve thư mục 'uploads' client truy cập ảnh
 app.use('/uploads', express.static(path.join(__dirname, 'app','uploads')));

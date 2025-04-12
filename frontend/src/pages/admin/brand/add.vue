@@ -1,10 +1,10 @@
 <template>
        <Breadcrumb  class="text-end" />
-        <h5 class="text-center">Thêm danh mục</h5>
+        <h5 class="text-center">Thêm thương hiệu</h5>
 
         <form class="col-md-8 offset-md-2 ">
             <div class="mb-3 d-flex">
-                <label class="col-md-2"> Tên danh mục</label>
+                <label class="col-md-2"> Tên thương hiệu</label>
                 <input type="text"  v-model="brand.name" class="form-control"  required>
             </div>
             <div class="mb-3 d-flex">
@@ -64,12 +64,12 @@ export default {
                 })
                 socket.emit('brand_updated', {action: "create", data: response.data})
 
-                Swal.fire('Thành công', 'Cập nhật thông tin thành công', 'success');
+                Swal.fire('Thông báo', response.message, 'success');
                 router.push('/admin/brand');
 
             } catch (error) {
-                console.log("Lỗi khi thêm danh mục:", error);
-                Swal.fire("Lỗi", "Lỗi khi thêm danh mục", "error");
+                console.log("Lỗi khi thêm thương hiệu:", error);
+                Swal.fire("Lỗi", error?.response?.data.message, "error");
             }
         }
         const back = async () => {

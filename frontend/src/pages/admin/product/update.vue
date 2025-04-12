@@ -121,7 +121,7 @@ export default {
         const fetchBrands = async () => {
             try {
                 const response = await axios.get("http://127.0.0.1:3000/api/brand");
-                Brands.value = response.data;
+                Brands.value = response.data.filter(br => br.isActive);
             }
             catch (error) {
                 console.error("Lỗi khi lấy danh sách thương hiệu: ", error)
@@ -131,17 +131,14 @@ export default {
         const fetchCategorys = async () => {
             try {
                 const response = await axios.get("http://127.0.0.1:3000/api/category");
-                Categorys.value = response.data;
+                Categorys.value = response.data.filter(ct => ct.isActive);
             }
             catch (error) {
                 console.error("Lỗi khi lấy danh sách danh mục: ", error)
             }
-
         }
 
-
         const updateProduct = async () => {
-
             try {
                 const id = route.params.id;
                 console.log("Dữ liệu gửi lên API: ", product.value);

@@ -24,7 +24,7 @@ exports.create = [
             }
             return res.send(document);
         } catch (error) {
-            return next(new ApiError(500, "An Error Occurred while creating the employee2"));
+            return req.send({ message: error.message });
         }
     }
 ]
@@ -45,7 +45,7 @@ exports.loginEmployee2 = async (req, res, next) => {
         })
     } catch (error) {
         console.error("Lỗi khi đăng nhập:", error.message);  // Log chi tiết lỗi
-        return next(new ApiError(400, error.message));
+        return res.send({ message: error.message });
     }
 };
 
@@ -116,29 +116,25 @@ exports.findByName = async (req, res, next) => {
 exports.update = [
     upload.single('profileImage'),
     async (req, res, next) => {
-        
-        // console.log("File nhận được:", req.file);
-        // console.log("Dữ liệu cập nhật:", req.body);
 
         const id = req.params.id;
         const payload = req.body;
         if (req.file) {
             payload.profileImage = `/uploads/${req.file.filename}`;
         }
-
         try {
             const employee2Service = new Employee2Service(MongoDB.client);
             const document = await employee2Service.update(id, payload);
             if (document.statusCode && document.statusCode !== 200) {
                 return next(new ApiError(document.statusCode, document.message));
             }
-
-            return res.send({ message: "Employee2 was updated successfully" });
+         return res.send({
+            message: "Employee was updated successfully",
+            data: document.data
+        });
 
         } catch (error) {
-            return next(
-                new ApiError(500, `Error updating employee2 with id=${id}`)
-            );
+            return res.send({ message: error.message });
         }
     }
 ]
@@ -146,14 +142,6 @@ exports.update = [
 exports.delete = async (req, res, next) => {
     try {
         const employee2Service = new Employee2Service(MongoDB.client);
-        // const borrowService = new BorrowService(MongoDB.client);
-        // const activeBorrow = await borrowService.findActiveBorrowByUserId(req.params.id);
-        // if (activeBorrow) {
-        //     // Kiểm tra user có đang mượn không, nếu đang mượn không thể xóa
-        //     return next(
-        //         new ApiError(400, 'Người dùng có đơn mượn đang mượn, không thể xóa.')
-        //     );
-        // }
         const document = await employee2Service.delete(req.params.id);
         if (!document) {
             return next(new ApiError(404, "employee2 not found"));
@@ -161,9 +149,7 @@ exports.delete = async (req, res, next) => {
         // await borrowService.deleteWithUserId(req.params.id);
         return res.send({ messgae: "employee2 was deleted successfully" });
     } catch (error) {
-        return next(
-            new ApiError(500, `Could not delete employee2 with id=${req.params.id}`)
-        );
+        return res.send({ message: error.message });
     }
 };
 
@@ -177,6 +163,6 @@ exports.deleteALL = async (req, res, next) => {
     } catch (error) {
         return next(
             new ApiError(500, "An Error Occurred while removing all users")
-        );
+        )
     }
-};
+}

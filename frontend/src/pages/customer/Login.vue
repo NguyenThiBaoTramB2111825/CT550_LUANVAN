@@ -51,16 +51,17 @@ export default {
   setup() {
     const customer = ref({ name: "", password: "" });
     const router = useRouter();
-
     const loginCustomer = async () => {
       try {
         const res = await axios.post("http://127.0.0.1:3000/api/customer/login", customer.value);
         if (res.status === 200) {
           Cookies.set("accessToken", res.data.token, { expires: 1 });
           Swal.fire("Thành công!", "Đăng nhập thành công.", "success");
+          console.log("Thông tin của customer: ", customer);
           router.push({ name: "home" });
         }
       } catch (error) {
+        console.error({message: error.message})
         Swal.fire("Thất bại", "Tên người dùng hoặc mật khẩu không đúng.", "error");
       }
     };

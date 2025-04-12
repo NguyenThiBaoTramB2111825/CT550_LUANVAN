@@ -13,9 +13,10 @@ const customer = [
         name: "productDetail2",
         component: () => import("../pages/customer/productDetail.vue"),
       },
+
     ],
   },
-      {
+  {
     path: "/login",
     name: "login",
     component: () => import("../pages/customer/Login.vue"),
@@ -25,8 +26,23 @@ const customer = [
     name: "register",
     component: () => import("../pages/customer/register.vue"),
   },
-
+  {
+    path: "/cart/:customerId",
+    name: "Cart",
+    component: () => import("../pages/customer/Cart.vue"),
+  },
+  {
+    path: "/checkoutPage/:customerId",
+    name: "checkoutPage",
+    component: () => import("../pages/customer/checkoutPage.vue"),
+  },
+  {
+    path: "/orderHistory/:customerId",
+    name: "OrderHistory",
+    component: () => import("../pages/customer/OrderHistory.vue"),
+  },
 
 ];
+
 
 export default customer;

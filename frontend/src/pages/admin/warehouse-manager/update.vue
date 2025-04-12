@@ -56,8 +56,8 @@
             <div class="mb-3 d-flex">
                 <label class="col-md-2">Trạng thái</label>
                   <select v-model="warehousemanager.isDeleted" class="form-control" required>
-                    <option value="true">Xóa</option>
-                    <option value="false">Đang hoạt động</option>
+                    <option :value="true">Xóa</option>
+                    <option :value="false">Đang hoạt động</option>
                 </select>
             </div>
         </form>
@@ -99,7 +99,7 @@ export default {
             address: '',
             phone: '',
             profileImage: '',
-            isDeleted: ''
+            isDeleted: null
         });
         const selectedFile = ref(null);
 
@@ -171,9 +171,9 @@ export default {
 
             } catch (error) {
                 console.log("Lỗi khi cập nhật thông tin:", error);
-                Swal.fire("Lỗi", "Có lỗi khi cập nhật thông tin", "error");
+                Swal.fire("Lỗi", error?.response?.data.message, "error");
             }
-    
+
         }
         onMounted(fetchWareHouseManager);
 
@@ -181,7 +181,7 @@ export default {
             router.push({ name: 'warehouse-manager' });
         };
 
-        return { fetchWareHouseManager, handleFileUpload, BASE_URL, back, updateWareHoseManager, warehousemanager, };
+        return { fetchWareHouseManager, handleFileUpload, BASE_URL, back, updateWareHoseManager, warehousemanager, isValidPhone, isValidEmail };
     }
 }
 </script>

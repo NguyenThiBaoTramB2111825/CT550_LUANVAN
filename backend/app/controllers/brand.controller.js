@@ -11,20 +11,19 @@ exports.create = async (req, res, next) => {
         const brandService = new BrandService(MongoDB.client);
         const document = await brandService.create(req.body);
         if (!document) {
-            return next(new ApiError(500, "Không thể tạo thương hiệu"));
+            return res.status(404).send({ message: "Tên brand đã tồn tại, không tạo được brand mới" });
         }
         getSocket().emit("brand_update", { action: "create", data: document });
         return res.send(document);
     }
     catch (error) {
-        return res.send({ message: error.message });
-    }
+    return res.status(400).send({ message: error.message });
+}
 };
 
 
 exports.findAll = async (req, res, next) => {
     let document = [];
-    
     try {
         const brandService = new BrandService(MongoDB.client);
         const { name } = req.query;

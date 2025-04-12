@@ -5,8 +5,8 @@ const { getSocket } = require("../../socket");
 const { ObjectId } = require("mongodb");
 
 exports.create = async (req, res, next) => {
-    if (!req.body?.name || !req.body?.hexCode) {
-        return next(new ApiError(400, "Không thể để trống thông tin màu sắc, gồm name và hexCode"));
+    if (!req.body?.name) {
+        return next(new ApiError(400, "Không thể để trống thông tin màu sắc, gồm name"));
     }
 
     try {

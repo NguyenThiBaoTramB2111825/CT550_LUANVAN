@@ -10,7 +10,6 @@ class ColorService{
     extractColorData(payload) {
         const color = {
             name: payload.name,
-            hexCode: payload.hexCode,
             isActive:  payload.isActive !== undefined ? payload.isActive : true,
 
         };

@@ -89,15 +89,13 @@ exports.findById = async (req, res, next) => {
 exports.findByCustomerId = async (req, res, next) => {
     try {
         const orderService = new OrderService(MongoDB.client);
-        const documents = await orderService.findOne({ customer_id: new ObjectId(req.params.customerId) });
+        const documents = await orderService.find({ customer_id: new ObjectId(req.params.customerId) });
         if (!documents) {
             return next(new ApiError(404, `Không tìm thấy order nào với customerId: ${req.params.customerId}`));
         }
         return res.send(documents);
     } catch (error) {
-        return next(
-            new ApiError(500).json(error.message)
-        );
+        return res.send({ message: error.message });
     }
 };
 exports.getOrderSummaryByCustomer = async (req, res, next) => {

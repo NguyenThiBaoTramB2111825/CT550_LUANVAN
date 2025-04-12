@@ -60,8 +60,6 @@ import Breadcrumb from "@/components/Breadcrumb.vue";
 import Swal from "sweetalert2";
 import { useRouter } from 'vue-router';
 
-
-
 const  BASE_URL = "http://localhost:3000";
 export default {
       components: {
@@ -86,7 +84,7 @@ export default {
                 return;
             }
             try{
-                const response = await axios.get(`http://127.0.0.1:3000/api/employee/name/${inputsearch.value}`);
+                const response = await axios.get(`${BASE_URL}/api/employee/name/${inputsearch.value}`);
                 storemanagers.value = response.data;
             }
             catch(error){
@@ -107,11 +105,11 @@ export default {
 
             if (result.isConfirmed) {
                 try {
-                    await axios.delete(`http://127.0.0.1:3000/api/employee/${id}`);
+                   const response= await axios.delete(`${BASE_URL}/api/employee/${id}`);
                     Swal.fire('Đã xóa!', 'Nhân viên đã được xóa thành công', 'success');
                     fetchUsers();
                 } catch (error) {
-                    Swal.fire('Lỗi!', 'Có lỗi khi xóa nhân viên', 'error')
+                    Swal.fire('Lỗi!',   error.response?.data?.message, 'error')
                     console.error(error);
                 }
             }
@@ -149,5 +147,9 @@ th, td {
 th {
     background-color: #f4f4f4;
     font-weight: bold;
+}
+::v-deep(.table thead th) {
+  vertical-align: middle !important;
+  text-align: center !important;
 }
 </style> 

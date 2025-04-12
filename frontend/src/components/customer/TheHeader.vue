@@ -1,6 +1,6 @@
 
 <template>
-  <header class="border-bottom bg-white">
+  <header :class="['border-bottom bg-white', {'header-hidden': isHidden }]">
     <div class="container-fluid py-1 text-center bg-primary">
       <span class="fw-bold fs-5 text-white">Chương trình giảm giá vô cùng hấp dẫn đây!</span>
     </div>
@@ -38,7 +38,7 @@
                 </ul>
           </div>
           <div>
-            <a href="#" class="btn btn-outline-dark">
+            <a @click="gotoCartPage()" class="btn btn-outline-dark">
               <i class="bi bi-cart"></i> (0)
             </a>
           </div>
@@ -49,7 +49,7 @@
       <div class="row w-70">
         <div class="collapse navbar-collapse" id="navbarNav">
           <ul class="navbar-nav d-flex justify-content-around w-70">
-            <li class="nav-item"><a class="nav-link" href="#">Sản phẩm</a></li>
+            <li class="nav-item"><a class="nav-link" @click="gotoHomePage()">Trang chủ</a></li>
 
             <li class="nav-item dropdown">
               <button 
@@ -89,6 +89,7 @@
               </ul>
             </li>
 
+            <li class="nav-item"><a class="nav-link" @click="gotoOrderHistoryPage()">Xem lịch đơn hàng</a></li>
             <li class="nav-item"><a class="nav-link" href="#">Liên hệ, hỗ trợ</a></li>
             <li class="nav-item"><a class="nav-link" href="#">Về chúng tôi</a></li>
           </ul>
@@ -101,14 +102,14 @@
 
 <script>
 import { useRouter } from "vue-router";
-import { onMounted, ref } from "vue";
+import { onMounted, onUnmounted,  ref } from "vue";
 import Swal from 'sweetalert2';
 import Cookies from 'js-cookie';
 import axios from 'axios';
 import { io } from 'socket.io-client';
 const BASE_URL = "http://localhost:3000";
 const socket = io(BASE_URL, { transports: ["websocket", "polling"] });
-
+import { jwtDecode } from 'jwt-decode';
 import { Dropdown } from 'bootstrap';
 document.querySelectorAll('.dropdown-toggle').forEach(dropdown => {
   new Dropdown(dropdown);
@@ -118,12 +119,26 @@ export default {
   components: {
   },
   setup() {
+
     const router = useRouter();
     const isDropdownOpen = ref(false);
     const token = Cookies.get("accessToken");
     const brands = ref([]);
     const categorys = ref([]);
     const discounts = ref([]);
+    // const customerId = ref(null);
+
+    const isHidden = ref(false);
+    let lastScroll = window.scrollY;
+    const handleScroll = () => {
+      const currentScroll = window.scrollY;
+      if (currentScroll > lastScroll && currentScroll > 50) {
+        isHidden.value = true;
+      } else {
+        isHidden.value = false;
+      }
+      lastScroll = currentScroll;
+    }
 
     const isOpen = ref({
       brands: false,
@@ -186,100 +201,138 @@ export default {
       }
     }
 
+    const gotoCartPage = async () => { // Thêm async để có thể sử dụng await
+      const token = Cookies.get("accessToken");
+      console.log("Current token:", token);
+
+      if (token) {
+        try {
+          const decoded = jwtDecode(token);
+          const expiresInMs = decoded.exp * 1000 - Date.now();
+
+          if (expiresInMs <= 0) {
+            await Swal.fire({
+              title: "Thông báo!",
+              text: "Phiên đăng nhập hết hạn, vui lòng đăng nhập lại",
+              icon: "error",
+              timer: 3000,
+              showConfirmButton: false,
+            });
+            Cookies.remove("accessToken");
+            router.push({ name: "login" });
+          } else {
+            setTimeout(async () => {
+              await Swal.fire({
+                title: "Thông báo!",
+                text: "Phiên đăng nhập hết hạn, vui lòng đăng nhập lại",
+                icon: "error",
+                timer: 3000,
+                showConfirmButton: false,
+              });
+              Cookies.remove("accessToken");
+              router.push({ name: "login" });
+            }, expiresInMs);
+
+            const customerId = decoded.id;
+            router.push({ name: "Cart", params: { customerId } });
+          }
+        } catch (error) {
+          console.error("Lỗi khi giải mã token:", error);
+          await Swal.fire("Lỗi", "Phiên đăng nhập không hợp lệ, vui lòng đăng nhập lại", "error");
+          Cookies.remove("accessToken");
+          router.push({ name: "login" });
+        }
+      } else {
+        const result = await Swal.fire({
+          title: "Thông báo!",
+          text: "Bạn cần đăng nhập để vào giỏ hàng",
+          icon: "warning",
+          showCancelButton: true,
+          cancelButtonText: "Hủy",
+          confirmButtonText: "Đăng nhập",
+        });
+
+        if (result.isConfirmed) {
+          router.push({ name: "login" }); // Chỉ chuyển hướng khi người dùng nhấn "Đăng nhập"
+        } else {
+          router.push({ name: "home" });
+        }
+      }
+    };
+
+    const gotoHomePage = () => {
+      router.push({ name: "home" });
+    }
+
+    const gotoOrderHistoryPage = async () => {
+      const token = Cookies.get("accessToken");
+      if (token) {
+        try {
+          const decoded = jwtDecode(token);
+          const expiresInMs = decoded.exp * 1000 - Date.now();
+
+          if (expiresInMs <= 0) {
+            await Swal.fire({
+              title: "Thông báo!",
+              text: "Phiên đăng nhập hết hạn, vui lòng đăng nhập lại",
+              icon: "error",
+              timer: 3000,
+              showConfirmButton: false,
+            });
+            Cookies.remove("accessToken");
+            router.push({ name: "login" });
+          } else {
+
+            const customerId = decoded.id;
+            router.push({ name: "OrderHistory", params: { customerId } });
+          }
+        } catch (error) {
+          console.error("Lỗi khi giải mã token:", error);
+          await Swal.fire("Lỗi", "Phiên đăng nhập không hợp lệ, vui lòng đăng nhập lại", "error");
+          Cookies.remove("accessToken");
+          router.push({ name: "login" });
+        }
+      } else {
+        const result = await Swal.fire({
+          title: "Thông báo!",
+          text: "Bạn cần đăng nhập để vào giỏ hàng",
+          icon: "warning",
+          showCancelButton: true,
+          cancelButtonText: "Hủy",
+          confirmButtonText: "Đăng nhập",
+        });
+
+        if (result.isConfirmed) {
+          router.push({ name: "login" }); // Chỉ chuyển hướng khi người dùng nhấn "Đăng nhập"
+        } else {
+          router.push({ name: "home" });
+        }
+      }
+    }
     onMounted(() => {
-      fetchInfomation(),
-        socket.on('brand_update', ({ action, data }) => {
-          if (action === "create") {
-            brands.value.push(data);
+      fetchInfomation();
+      window.addEventListener('scroll', handleScroll);
+      socket.on('brand_update', async ({ action }) => {
+        if (["create", "update", "delete", "soft_delete"].includes(action)) {
+          await fetchInfomation();
+        }
+      });
+      socket.on('category_update', async ({ action }) => {
+        if (["create", "update", "delete", "soft_delete"].includes(action)) {
+          await fetchInfomation();
+        }
+      });
+      socket.on('discount_update', async ({ action }) => {
+        if (["create", "update", "delete", "soft_delete"].includes(action)) {
+          await fetchInfomation();
+        }
+      });
+    });
 
-          } else if (action === "update") {
-            const index = brands.value.findIndex(b => b._id === data._id);
-            if (index !== -1) {
-              if (data.isActive) {
-                brands.value[index] = data;
-              }
-              else {
-                brands.value.splice(index, 1);
-              }
-            }
-            else {
-              if (data.isActive) {
-                brands.value.push(data);
-              }
-            }
-          }
-          else if (action === "delete") {
-            brands.value = brands.value.filter(b => b._id !== data._id);
-          }
-          else if (action === "soft_delete") {
-            const index = brands.value.findIndex(b => b._id === data._id);
-            if (index !== -1) {
-                brands.value[index].isActive = false;
-            }
-          }
-        }),
+    onUnmounted(() => {
+      window.removeEventListener('scroll', handleScroll); // ✨
+    });
 
-        socket.on('category_update', ({ action, data }) => {
-          if (action === "create") {
-            categorys.value.push(data);
-
-          } else if (action === "update") {
-            const index = categorys.value.findIndex(b => b._id === data._id);
-            if (index !== -1) {
-              if (data.isActive) {
-                categorys.value[index] = data;
-              }
-              else {
-                categorys.value.splice(index, 1);
-              }
-            }
-            else {
-              if (data.isActive) {
-                categorys.value.push(data);
-              }
-            }
-          }
-          else if (action === "delete") {
-            categorys.value = categorys.value.filter(b => b._id !== data._id);
-          }
-          else if (action === "soft_delete") {
-            const index = categorys.value.findIndex(b => b._id === data._id);
-            if (index !== -1) {
-                categorys.value[index].isActive = false;
-            }
-          }
-        }),
-        socket.on('discount_update', ({ action, data }) => {
-          if (action === "create") {
-            discounts.value.push(data);
-
-          } else if (action === "update") {
-            const index = discounts.value.findIndex(b => b._id === data._id);
-            if (index !== -1) {
-              if (data.isActive) {
-                discounts.value[index] = data;
-              }
-              else {
-                discounts.value.splice(index, 1);
-              }
-            }
-            else {
-              if (data.isActive) {
-                discounts.value.push(data);
-              }
-            }
-          }
-          else if (action === "delete") {
-            discounts.value = discounts.value.filter(b => b._id !== data._id);
-          }
-          else if (action === "soft_delete") {
-            const index = discounts.value.findIndex(b => b._id === data._id);
-            if (index !== -1) {
-                discounts.value[index].isActive = false;
-            }
-          }
-        })
-    })
     return {
       token,
       logout,
@@ -289,15 +342,35 @@ export default {
       toggleDropdown,
       brands,
       toggleSection,
-      isOpen,  
+      isOpen,
       categorys,
-      discounts}}}
+      discounts,
+      gotoCartPage,
+      gotoHomePage, 
+      isHidden,
+      handleScroll,
+      gotoOrderHistoryPage
+    }
+  }
+}
 </script>
 
 <style>
 
   .container{
     max-width: 1350px;
+  }
+
+  header {
+    position: sticky;
+    top: 0;
+    z-index: 1000;
+    transition: transform 0.3s ease-in-out;
+  }
+
+  /* Khi header bị ẩn */
+  .header-hidden {
+    transform: translateY(-100%);
   }
   .navbar-nav {
       width: 100%;
@@ -317,3 +390,4 @@ export default {
   }
 
 </style>
+

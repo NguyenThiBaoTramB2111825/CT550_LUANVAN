@@ -15,6 +15,22 @@ class WardService {
     async findByCode(code) {
         return await this.Ward.findOne({ code });
     }
+
+    async findAll() {
+        return await this.Ward.find().toArray();
+    }
+
+    async findByName(name) {
+        return await this.Ward.find({
+            name: { $regex: new RegExp(`.*${name}.*`, "i") }
+        });
+    }
+
+    async findById(id) {
+        return await this.Ward.findOne({
+            _id: ObjectId.isValid(id) ? new ObjectId(id) : null,
+        });
+    }
 }
 
 module.exports = WardService;
