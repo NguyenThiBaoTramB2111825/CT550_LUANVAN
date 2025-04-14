@@ -44,9 +44,12 @@
                     <td>{{ formatCurrency(product.price_afterdiscount) }}</td>
                     <td>{{ product.isActive ? "Đang hoạt động" : "Đã xóa"}}</td>
                     <td>
-                        <button class="btn  btn-danger m-1" @click="deleteProduct(product._id)">Xóa</button> 
-                        <button class="btn  btn-success m-1" @click="goToUpdatePage(product._id)">Cập nhật</button> 
-                        <button class="btn  btn-info m-1" @click="openModal(product._id)">Xem ảnh</button> 
+                        <button class="btn  btn-danger m-1" @click="deleteProduct(product._id)"><i class="fa-solid fa-trash"></i></button> 
+                        <button class="btn  btn-success m-1" @click="goToUpdatePage(product._id)"><i class="fa-solid fa-pen-to-square"></i></button> 
+                        <button class="btn  btn-info " @click="openModal(product._id)">
+                            <span v-if="product.hasImage"> <i class="fa-solid fa-eye"></i></span>
+                            <span v-else><i class="fa-solid fa-upload"></i></span>
+                    </button> 
                     </td>
                     
                 </tr>
@@ -96,7 +99,6 @@
         </div>
         </div>
 </template>
-
 <script>
     import axios from 'axios';
     import { ref, onMounted, onUnmounted,  computed } from 'vue';
@@ -132,6 +134,7 @@ export default {
         const products = ref([]);
         const sortAsc = ref(true);
         const sortField = ref('');
+        const haveImage = ref(true);
 
         const sortBy = (field) => {
             if (sortField.value === field) {
@@ -160,7 +163,7 @@ export default {
                     ? product.discount_name && product.discount_name.toLowerCase().includes(filters.value.searchDiscount.toLowerCase())
                     : true;
 
-                console.log("Giá trị của filters.value.isActive: ", filters.value.isActive);
+                // console.log("Giá trị của filters.value.isActive: ", filters.value.isActive);
 
                 const matchesActive = filters.value.isActive
                     ? product.isActive === (filters.value.isActive)
@@ -202,6 +205,7 @@ export default {
                 }));
                 const product = products.value.find(p => p._id === productId);
                 selectedProduct.value = product || null;
+                haveImage.value = selectedProduct.value ? true : false;
                 showModal.value = true;
 
             }
@@ -309,7 +313,7 @@ export default {
             return Number(amount).toLocaleString("vi-VN");
         };
 
- 
+
         const fetchProduct = async () => {
             try {
                 console.log("Thực hiện fetch dữ liệu sản phẩm...");
@@ -343,6 +347,16 @@ export default {
                     } catch (error) {
                         console.error("Lỗi khi lấy giảm giá:", error);
                     }
+
+                    const ImageRes = await axios.get(`http://127.0.0.1:3000/api/image/productId/${product._id}`);
+                    console.log("Giá trị của ImageRes: ", ImageRes);
+                    if (Array.isArray(ImageRes.data) && ImageRes.data.length > 0) {
+                        product.hasImage = true;
+                    }
+                    else {
+                        product.hasImage = false;
+                    }
+
                 }
 
                 products.value = productsData;
@@ -464,7 +478,7 @@ export default {
             triggerFileInput,
             fileInput,
             sortAsc,
-            sortBy,
+            sortBy
         }
     }
 }

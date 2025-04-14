@@ -246,7 +246,8 @@ export default {
     const fetchProductDetails = async () => {
       try {
         const response = await axios.get(`${BASE_URL}/api/productDetail`);
-        let productDetailsData = response.data;
+        let productDetailsData = response.data.filter(p => p.stock >0);
+        console.log("Giá trị của productDetailsData: ", productDetailsData);
 
         const [productsResponse, colorsResponse, sizesResponse, imagesResponse, discountsResponse] = await Promise.all([
           axios.get(`${BASE_URL}/api/product`),  // Lấy toàn bộ sản phẩm

@@ -107,6 +107,11 @@ export default defineComponent({
                 icon: "fa-solid fa-circle-info",
                 route: "importDetail"
             },
+            {
+                title: "Quản lý đơn hàng",
+                icon: "fa-solid fa-list-check",
+                route: "order"
+            },
             // Thêm các mục khác tương tự...
         ];
          const toggleSubmenu = (index) => {

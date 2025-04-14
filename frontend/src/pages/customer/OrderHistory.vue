@@ -23,7 +23,7 @@
 
       <div class="card-body">
         <p><strong>Phương thức thanh toán:</strong> {{ order.paymentMethod === "COD" ? "Thanh toán khi nhận hàng" : "Thanh toán trực tuyến" }}</p>
-        <p><strong>Trạng thái thanh toán:</strong> {{ order. paymentSattus ==="Unpaid"  ? "Chưa thanh toán" : "Đã thanh toán"}}</p>
+        <p><strong>Trạng thái thanh toán:</strong> {{ order. paymentStatus ==="Unpaid"  ? "Chưa thanh toán" : "Đã thanh toán"}}</p>
         <p><strong>Địa chỉ giao:</strong> {{ order.address_name }}</p>
         <p><strong>Ghi chú của khách hàng</strong> {{ order.note }}</p>
 
@@ -234,7 +234,7 @@ export default {
 
       <div class="card-body">
         <p><strong>Phương thức thanh toán:</strong> {{ order.paymentMethod === "COD" ? "Thanh toán khi nhận hàng" : "Thanh toán trực tuyến" }}</p>
-        <p><strong>Trạng thái thanh toán:</strong> {{ order.paymentSattus ==="Unpaid"  ? "Chưa thanh toán" : "Đã thanh toán"}}</p>
+        <p><strong>Trạng thái thanh toán:</strong> {{ order.paymentStatus ==="Unpaid"  ? "Chưa thanh toán" : "Đã thanh toán"}}</p>
         <p><strong>Địa chỉ giao:</strong> {{ order.address_name }}</p>
         <p><strong>Ghi chú của khách hàng:</strong> {{ order.note }}</p>
 

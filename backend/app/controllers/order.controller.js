@@ -1,7 +1,7 @@
 const ApiError = require("../api-error");
 const MongoDB = require("../utils/mongodb.util");
 const OrderService = require("../services/order.service");
-
+const { getSocket } = require("../../socket");
 const { ObjectId } = require("mongodb");
 
 exports.create = async (req, res, next) => {
@@ -25,6 +25,7 @@ exports.create = async (req, res, next) => {
         if (document.statusCode && document.statusCode !==200) {
             return res.status(document.statusCode).json({ message: document.message });
         }
+         getSocket().emit("order_update", { action: "create", data: document });
         return res.send({
             message: document.message,
             data: document.data
@@ -133,6 +134,7 @@ exports.update = async (req, res, next) => {
         if (document.statusCode && document.statusCode !== 200) {
             return next(new ApiError(document.statusCode, document.message));
         }
+        getSocket().emit("order_update", { action: "update", data: document });
         return res.send({
             message: document.message,
             data: document.data
@@ -153,11 +155,11 @@ exports.delete = async (req, res, next) => {
         if (document.statusCode == 404) {
             return next(new ApiError(document.statusCode, document.message));
         }
-        return res.send({ message: "order đã được xóa thành công" });
+        getSocket().emit("order_update", { action: "delete", data: { _id: req.params.id } });
+        return res.send({ message: document.message});
     }
     catch (error) {
-        return next(
-        new ApiError(500, `Không thể xóa product`));
+        return res.send({ message: error.message });
     }
 };
 

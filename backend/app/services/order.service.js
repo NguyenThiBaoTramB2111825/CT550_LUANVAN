@@ -32,7 +32,7 @@ class OrderService {
             updatedBy: ObjectId.isValid(payload.updatedBy) ? new ObjectId(payload.updatedBy) : undefined,
             note: payload.note || "",
             paymentMethod: payload.paymentMethod || "COD", // "COD" | "Online"
-            paymentSattus: payload.paymentSattus || "Unpaid",//"Unpaid" | "Paid" | "Failed"
+            paymentStatus: payload.paymentStatus || "Unpaid",//"Unpaid" | "Paid" | "Failed"
             deliveryStatus: payload.deliveryStatus || "Pending", //"Pending", "Shipped", "Delivered", "Cancelled"
             address_id: ObjectId.isValid(payload.address_id) ? new ObjectId(payload.address_id) : undefined,
             transaction_id: payload.transaction_id || null,
@@ -194,6 +194,8 @@ class OrderService {
         }
 
         const allowedUpdates = [
+            "deliveryStatus",
+            "paymentStatus",
             "status",
             "approvedBy",
             "approvedDate",
@@ -240,6 +242,22 @@ class OrderService {
     
     } catch(error) {
         return { statusCode: 500, message: "Lỗi khi lấy dữ liệu giỏ hàng", error: error.message };
+    }
+
+
+    async delete(id) {
+        if (!ObjectId.isValid(id)) return { message: "ID không hợp lệ" };
+        let result = null;
+        const filter = { _id: new ObjectId(id) };
+
+        result = await this.Order.findOneAndDelete(filter);
+        return { ...result, message: "Đã xóa thành công" };
+        
+    }
+
+    async deleteAll() {
+        const result = await this.Order.deleteMany({});
+        return result.deletedCount;
     }
 }
 

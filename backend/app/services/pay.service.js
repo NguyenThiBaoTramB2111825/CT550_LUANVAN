@@ -85,7 +85,7 @@ class ZaloPayService {
       { _id: new ObjectId(orderId) },
       {
         $set: {
-          paymentSattus: "Paid",
+          paymentStatus: "Paid",
           paymentMethod: "ZaloPay",
           transaction_id: zp_trans_id
         }

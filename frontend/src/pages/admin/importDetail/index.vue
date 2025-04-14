@@ -8,7 +8,7 @@
             <input type="text" class="border border-radius" v-model="inputsearch" placeholder="Nhập tên sản phẩm">
         </div> -->
 
-        <table class="p-2 table table-bordered table-striped text-center">
+        <!-- <table class="p-2 table table-bordered table-striped text-center">
             <thead>
                 <tr>
                     <th>#</th>
@@ -39,7 +39,48 @@
                     </td>
                 </tr>
             </tbody>
-        </table>
+        </table> -->
+
+
+    <div v-for="(supplierGroup, sIdx) in groupedData" :key="supplierGroup.supplier_id" class="mb-4 border  rounded p-2 my-5">
+        <h6 class="fw-bold">Nhà cung cấp {{ supplierGroup.supplier_name }}</h6>
+
+        <div v-for="(product, pIdx) in supplierGroup.products" :key="pIdx" class="ms-5">
+            <p class="fw-bold m-0">  <span>{{ pIdx +1 }}</span>.  {{ product.product_name }}</p>
+
+            <div v-for="(colorGroup, cIdx) in product.colors" :key="cIdx" class="ms-4">
+                Màu: {{ colorGroup.color_name }}
+            <table class="table mt-2 text-center">
+                <thead>
+                <tr>
+                    <th>Size</th>
+                    <th>Số lượng</th>
+                    <th>Giá nhập</th>
+                    <th>Ngày nhập</th>
+                    <th>Nhân viên thêm</th>
+                    <th>Nhân viên cập nhật</th>
+                    <th>Thao tác</th>
+                </tr>
+                </thead>
+                <tbody>
+                <tr v-for="item in colorGroup.items" :key="item._id">
+                    <td>{{ item.size_name }}</td>
+                    <td>{{ item.quantity }}</td>
+                    <td>{{ formatCurrency(item.price_import) }}</td>
+                    <td>{{ formatDate(item.importDate) }}</td>
+                    <td>{{ item.employee_name }}</td>
+                    <td>{{ item.employee_name_update }}</td>
+                    <td>
+                    <button class="btn btn-danger" @click="deleteImportDetails(item._id)"> <i class="fa-solid fa-trash"></i></button>
+                    <button class="btn btn-success mx-1" @click="openModal(item)"> <i class="fa-solid fa-pen-to-square"></i></button>
+                    </td>
+                </tr>
+                </tbody>
+            </table>
+            </div>
+        </div>
+        </div>
+
         <span>Tổng chi tiết nhập hàng: {{ totalImportDetails }}</span>
         
         <div class="text-end">
@@ -52,24 +93,26 @@
         <div class="modal-content">
             <h5 class="text-center">{{ isEditing ? 'Cập nhật chi tiết nhập hàng' : 'Thêm chi tiết nhập hàng' }}</h5>
             <div class="mb-3" v-if="!isEditing">
-                <label>Tên nhập hàng</label>
+                <label>Tên sản phẩm cần nhập</label>
                 <select v-model="currentImportDetail.productDetail_id" class="form-control text-center" required>
                     <option value="">-- Chọn sản phẩm --</option>
                     <option v-for="productDetail in productDetails" :key="productDetail._id" :value="productDetail._id">
-                        {{ productDetail.product_name }}
+                        {{ truncateText(productDetail.product_name, 30) }} - {{ productDetail.color_name }} - {{ productDetail.size_name }}
                     </option>
                 </select>
             </div>
             <div class="mb-3" v-if="isEditing">
-                <label>Tên nhập hàng</label>
-                <select v-model="currentImportDetail.productDetail_id" class="form-control text-center" required disabled>
-                    <option value="">-- Chọn sản phẩm --</option>
-                    <option v-for="productDetail in productDetails" :key="productDetail._id" :value="productDetail._id">
-                        {{ productDetail.product_name }}
-                    </option>
-                </select>
+                <label>Tên sản phẩm</label>
+                <input type="text" class="form-control text-center"  required disabled :value="`${currentImportDetail.productName}`">
+    
             </div>
-            <div class="mb-3">
+
+            <div class="mb-3" v-if="isEditing">
+                <label>Nhà cung cấp</label>
+                <input type="text" class="form-control text-center"  required disabled :value="`${currentImportDetail.supplierName}`">
+    
+            </div>
+            <div class="mb-3" v-if="!isEditing">
               <label>Nhà cung cấp</label>
               <select v-model="currentImportDetail.supplier_id" class="form-control text-center" required>
                   <option value="">-- Chọn nhà cung cấp --</option>
@@ -112,6 +155,7 @@ const BASE_URL = "http://localhost:3000";
 import dayjs from "dayjs";
 import Cookies from 'js-cookie';
 import { io } from 'socket.io-client';
+import { groupBy } from 'lodash'; // nếu bạn chưa cài lodash thì dùng npm/yarn add lodash
 const socket = io(BASE_URL);
 export default {
     components: { Breadcrumb },
@@ -119,6 +163,7 @@ export default {
         const token = Cookies.get('accessToken');
         console.log("Giá trị của token được bắt: ", token);
 
+        const groupedData = ref([]);
         const productDetails = ref([]);
         const suppliers = ref([]);
         const importDetails = ref([]);
@@ -136,6 +181,7 @@ export default {
             try {
                 const response = await axios.get("http://127.0.0.1:3000/api/supplier");
                 suppliers.value = response.data;
+                console.log("Gái trị của fetchSuppliers: ", suppliers.value);
             }
             catch (error) {
                 console.error("Lỗi khi lấy danh sách product: ", error)
@@ -152,12 +198,28 @@ export default {
                         console.error("Lỗi lấy productDetail: ", error);
                     }),
                 );
+
+
                 const supplierRequests = importDetailsData.map(pd =>
                     axios.get(`${BASE_URL}/api/supplier/${pd.supplier_id}`).catch(() => null)
                 );
 
                 const suppliers = await Promise.all(supplierRequests);
                 let productDetails = await Promise.all(productDetailRequests);
+
+                console.log("Giá trị của productDetails: ", productDetails);
+
+                const colorRequests = productDetails.map(pd =>
+                    axios.get(`${BASE_URL}/api/color/${pd.color_id}`).catch(() => null)
+                );
+                const sizeRequests = productDetails.map(pd =>
+                    axios.get(`${BASE_URL}/api/size/${pd.size_id}`).catch(() => null)
+                );
+
+                const colors = await Promise.all(colorRequests);
+                console.log("Giá trị của colors: ", colors);
+                const sizes = await Promise.all(sizeRequests);
+                console.log("Giá trị của sizes: ", sizes);
 
                 const productRequests = productDetails
                     .filter(pd => pd?.product_id) // Loại bỏ null
@@ -168,13 +230,60 @@ export default {
                 importDetailsData.forEach((pd, index) => {
                     pd.supplier_name = suppliers[index]?.data?.name || "Không có nhà cung cấp";
                     pd.product_name = products[index]?.name || "Không có tên sản phẩm";
+                    pd.product_id = products[index]?._id || "Không có id sản phẩm";
+                    pd.color_name = colors[index]?.data.name || "Không có màu sắc";
+                    pd.size_name = sizes[index]?.data.name || "Không có kích cỡ";
+
                 });
 
                 importDetails.value = importDetailsData;
+                groupImportDetails(importDetailsData);
+                console.log("Giá trị của importDetail: ", importDetails.value);
             } catch (error) {
                 console.error("Lỗi khi lấy danh sách chi tiết nhập hàng:", error);
             }
         };
+
+        const groupImportDetails = (data) => {
+            const supplierGroups = groupBy(data, 'supplier_id');
+
+            const result = Object.entries(supplierGroups).map(([supplier_id, supplierItems]) => {
+                const productGroups = groupBy(supplierItems, 'product_name');
+
+                const products = Object.entries(productGroups).map(([product_name, productItems]) => {
+                    const colorGroups = groupBy(productItems, 'color_name');
+
+                    const colors = Object.entries(colorGroups).map(([color_name, colorItems]) => {
+                        return {
+                            color_name,
+                            items: colorItems.map(item => ({
+                                size_name: item.size_name,
+                                quantity: item.quantity,
+                                price_import: item.price_import,
+                                importDate: item.importDate,
+                                _id: item._id,
+                                employee_name: item.employee_name,
+                                employee_name_update: item.employee_name_update,
+                                productName: item.product_name,
+                                supplierName: item.supplier_name,
+                            }))
+                        };
+                    });
+
+                    return { product_name, colors };
+                });
+
+                return {
+                    supplier_id,
+                    supplier_name: supplierItems[0].supplier_name,
+                    products
+                };
+            });
+
+            groupedData.value = result;
+            console.log("Giá trị của groupData.value: ", groupedData.value);
+        };
+
 
         const fetchProductDetails = async () => {
             try {
@@ -186,12 +295,32 @@ export default {
                 );
                 const productResponses = await Promise.all(productRequests);
 
+                const colorRequests = productDetailsData.map(pd =>
+                    axios.get(`${BASE_URL}/api/color/${pd.color_id}`).catch(() => null)
+                );
+                const sizeRequests = productDetailsData.map(pd =>
+                    axios.get(`${BASE_URL}/api/size/${pd.size_id}`).catch(() => null)
+                );
+
+                const colors = await Promise.all(colorRequests);
+                console.log("Giá trị của colors: ", colors);
+                const sizes = await Promise.all(sizeRequests);
+                console.log("Giá trị của sizes: ", sizes);
+
                 // Gán product_name vào productDetailsData
                 productDetailsData.forEach((pd, index) => {
                     pd.product_name = productResponses[index]?.data?.name || "Không có tên sản phẩm";
+                    pd.color_name = colors[index]?.data?.name || "Không có màu";
+                    pd.size_name = sizes[index]?.data?.name || "Không có size";
                 });
 
+
+                productDetailsData.sort((a, b) => {
+                    return a.product_name.localeCompare(b.product_name, 'vi', { sensitivity: 'base' })
+                })
                 productDetails.value = productDetailsData;
+                console.log("Giá trị của productDetails trong fetchProductDetails: ", productDetails.value);
+
             } catch (error) {
                 console.error("Lỗi khi lấy danh sách sản phẩm:", error);
             }
@@ -235,32 +364,11 @@ export default {
             showModal.value = false;
         };
 
-        // const saveImportDetails = async () => {
-        //     try {
-        //         if (isEditing.value) {
-        //             await axios.put(`${BASE_URL}/api/importDetail/${currentImportDetail.value._id}`, currentImportDetail.value,
-        //                 {
-        //                     headers: {
-        //                         "Authorization": `Bearer ${token}` // Gửi token vào header
-        //                     }
-        //                 });
-        //         } else {
-        //             await axios.post(`${BASE_URL}/api/importDetail/`,
-        //                 currentImportDetail.value,
-        //                 {
-        //                     headers: {
-        //                         "Authorization": `Bearer ${token}` // Gửi token vào header
-        //                     }
-        //                 }
-        //             );
-        //         }
-        //         await fetchImportDetails();
-        //         Swal.fire('Thành công', isEditing.data ? 'Cập nhật chi tiết nhập hàng thành công' : 'Thêm chi tiết nhập hàng thành công', 'success');
-        //         closeModal();
-        //     } catch (error) {
-        //         Swal.fire('Lỗi!', error.response?.data?.message || 'Có lỗi xảy ra', 'error');
-        //     }
-        // };
+
+        const truncateText = (text, length) => {
+            return text.length > length ? text.slice(0, length) + '...' : text;
+        }
+
 
         const saveImportDetails = async () => {
             try {
@@ -322,7 +430,28 @@ export default {
         })
 
 
-        return { importDetails, inputsearch, deleteImportDetails, openModal, closeModal, saveImportDetails, showModal, isEditing, currentImportDetail, totalImportDetails, suppliers, productDetails, formatDate, formatCurrency, fetchImportDetails };
+        return {
+            importDetails,
+            inputsearch,
+            deleteImportDetails,
+            openModal,
+            closeModal,
+            saveImportDetails,
+            showModal,
+            isEditing,
+            currentImportDetail,
+            totalImportDetails,
+            suppliers,
+            productDetails,
+            formatDate,
+            formatCurrency,
+            fetchImportDetails,
+            groupImportDetails,
+            groupedData,
+            fetchProductDetails,
+            truncateText,
+            fetchSuppliers
+        }
     }
 }
 </script>
@@ -341,7 +470,7 @@ export default {
         background: white;
         padding: 20px;
         border-radius: 10px;
-        width: 400px;
+        width: 600px;
         text-align: center;
     }
 

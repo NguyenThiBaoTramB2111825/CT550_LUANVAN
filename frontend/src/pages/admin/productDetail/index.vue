@@ -9,10 +9,10 @@
         </div>
 
 
-        <div v-for="product in groupedData" :key="product.product_id" class="mb-6 m-4">
-          <h5 class="mt-3">{{ product.product_name }}</h5>
-          <div v-for="color in product.colors" :key="color.color_id" class="ms-3">
-            <p class="">Màu: {{ color.color_name }}</p>
+        <div v-for="product in filteredProductDetails" :key="product.product_id" class="mb-6 m-4">
+          <p class="mt-2 m-0"><span class="fw-bold">Tên sản phẩm: </span>{{ product.product_name }}</p>
+          <div v-for="color in product.colors" :key="color.color_id" class="">
+            <p class="m-0"><span class="fw-bold">Màu:</span> {{ color.color_name }}</p>
 
             <table class="ml-4 table table-bordered">
               <thead>
@@ -33,7 +33,7 @@
                     </span>
                   </td>
                   <td>
-                    <button class="btn btn-danger btn-sm" @click="deleteProductDetail(size._id)">X</button>
+                    <button class="btn btn-danger btn-sm" @click="deleteProductDetail(size._id)">  <i class="fa-solid fa-trash"></i></button>
                     <button class="btn btn-success btn-sm mx-1" 
                             @click="openModal({ 
                               ...size, 
@@ -231,25 +231,7 @@ export default {
       });
       console.log("Giá trị của grouped: ", grouped);
       return grouped;
-
-
-
     });
-
-    const getDuplicateCountByProduct = (productName) => {
-      return filteredProductDetails.value.filter(item => item.product_name === productName).length;
-    };
-
-    const isFirstOfProduct = (productDetail, index) => {
-      return filteredProductDetails.value.findIndex(item => item.product_name === productDetail.product_name) === index;
-    };
-    const getDuplicateCountByColor = (colorName) => {
-      return filteredProductDetails.value.filter(item => item.color_name === colorName).length;
-    };
-
-    const isFirstOfColor = (productDetail, index) => {
-      return filteredProductDetails.value.findIndex(item => item.color_name === productDetail.color_name) === index;
-    };
 
     const deleteProductDetail = async (id) => {
       const result = await Swal.fire({
@@ -304,7 +286,7 @@ export default {
     };
 
     const filteredProductDetails = computed(() => {
-      return productDetails.value.filter(product =>
+      return groupedData.value.filter(product =>
         product.product_name.toLowerCase().includes(inputsearch.value.toLowerCase())
       );
     });
@@ -340,10 +322,10 @@ export default {
       products,
       colors,
       sizes,
-      getDuplicateCountByProduct,
-      isFirstOfProduct,
-      getDuplicateCountByColor,
-      isFirstOfColor,
+      // getDuplicateCountByProduct,
+      // isFirstOfProduct,
+      // getDuplicateCountByColor,
+      // isFirstOfColor,
       groupedData
     }
   }
