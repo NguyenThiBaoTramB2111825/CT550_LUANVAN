@@ -1,22 +1,27 @@
 
 <template>
-  <div class="container-fluid py-1">
+
+  <div class="container-fluid py-1 text-white bg-primary">
     <div class="d-flex align-items-center justify-content-between mx-5">
-      <span style="font-family: Verdana; font-size: x-large; font-weight: bold;">FASHION SHOP</span>
-      <span class="fw-bold">Tiếp tục mua hàng >></span>
+      <div>
+          <img src="/src/assets/images/logo.jpg" alt="Logo" height="45"  class="me-2 border rounded my-2"> 
+          <span class="p-0 m-0 fw-bold" style="font-size: 20px;">FASHION SHOP</span> 
+      </div>
+      <div class="pt-2 breadcrumb">
+        <Breadcrumb />
+      </div>
     </div>
   </div>
 
   <div class="container-fluid" style="background-color: #2222;">
     <div class=" d-flex  align-items-center justify-content-center">
-      <span class="mx-2 my-2">Cart</span>
+      <span class="mx-2 my-2 fw-bold">Giỏ hàng</span>
       <span class="mx-2">></span>
-      <span class="mx-2">Place Order</span>
+      <span class="mx-2">Kiểm tra thông tin đơn hàng</span>
       <span class="mx-2">></span>
-      <span class="mx-2">Pay</span>
-      <span class="mx-2">></span>
-      <span class="mx-2">Order Complete</span>
+      <span class="mx-2" @click="gotoOrderHistoryPage()">Xem lịch sử đơn hàng</span>
     </div>
+
     
     <div style="width: 90%;" class="row justify-content-center my-4 mx-auto">
       <div class="col-md-8">
@@ -54,20 +59,23 @@
           <div v-else class="empty-cart">
             <p>Giỏ hàng của bạn đang trống </p>
           </div>
-      </div>
+      </div>  
       <div class="col-md-4 cart-summary">
-        <h6 class="text-center">TỔNG GIỎ HÀNG</h6>
-        <span style="font-size: 14px;">Tiến hành áp dụng chiết khấu và tính tổng giá bán của sản phẩm sau đó xác nhận giá cuối cùng.</span>
-        <div class="summary-content ">
-          <p><strong>Tổng giá bán lẻ:</strong><span class="float-end"> {{ formatCurrency(totalOriginalPrice) }} VNĐ</span></p>
-          <p><strong>Tổng giá giảm:</strong><span class="float-end"> -{{ formatCurrency(totalDiscount) }} VNĐ</span></p>
+        <div class="sticky-box my-5">
+          <h6 class="text-center">TỔNG GIỎ HÀNG</h6>
+          <span style="font-size: 14px;">Tiến hành áp dụng chiết khấu và tính tổng giá bán của sản phẩm sau đó xác nhận giá cuối cùng.</span>
+          <div class="summary-content ">
+            <p><strong>Tổng giá bán lẻ:</strong><span class="float-end"> {{ formatCurrency(totalOriginalPrice) }} VNĐ</span></p>
+            <p><strong>Tổng giá giảm:</strong><span class="float-end"> -{{ formatCurrency(totalDiscount) }} VNĐ</span></p>
+            <hr>
+            <p class="final-price"><strong>Giá ước tính: </strong> <span class="float-end" >{{ formatCurrency(totalDiscountedPrice) }} VNĐ</span></p>
+            <span class="float-end" style="color: red; font-size: 13px;" >Saved {{ formatCurrency(totalDiscount) }} VNĐ</span>
+            <button class="checkout-btn" @click="gotocheckoutPage()"  :disabled="totalItems === 0">Đặt hàng ({{ totalItems }})</button>
+          </div>
           <hr>
-          <p class="final-price"><strong>Giá ước tính: </strong> <span class="float-end" >{{ formatCurrency(totalDiscountedPrice) }} VNĐ</span></p>
-          <span class="float-end" style="color: red; font-size: 13px;" >Saved {{ formatCurrency(totalDiscount) }} VNĐ</span>
-          <button class="checkout-btn" @click="gotocheckoutPage()"  :disabled="totalItems === 0">Đặt hàng ({{ totalItems }})</button>
+          <p>Chúng tôi chấp nhận thanh toán khi nhận hàng và thanh toán trực tuyến</p>
         </div>
-        <hr>
-        <p>Chúng tôi chấp nhận thanh toán khi nhận hàng và thanh toán trực tuyến</p>
+
       </div>
 
 
@@ -77,15 +85,21 @@
 </template>
 
 <script>
-import { ref, onMounted, computed, watch } from 'vue';
+import { ref, onMounted,onUnmounted, computed, watch } from 'vue';
 import axios from 'axios';
 import { jwtDecode } from 'jwt-decode';
 import Cookies from 'js-cookie';
 import Swal from 'sweetalert2';
 import { useRouter, useRoute } from 'vue-router';
+import { io } from 'socket.io-client';
 const BASE_URL = 'http://localhost:3000';
 
+const socket = io(BASE_URL);
+import Breadcrumb from "@/components/Breadcrumb.vue";
 export default {
+  components: {
+    Breadcrumb
+  },
   setup() {
 
     const route = useRoute()
@@ -164,7 +178,7 @@ export default {
                 color_name: color.name,
                 size_id: size._id,
                 size_name: size.name,
-                image_url: image[0].url,
+                image_url: image?.[0]?.url || defaultImage,
                 sale: product.price_selling !== product.price_afterdiscount,
                 stock: productDetail.stock,
 
@@ -218,17 +232,20 @@ export default {
       router.push({ name: 'productDetail2', params: { id } });
 
     }
-    const gotocheckoutPage = async(customerId) => {
-      router.push({ name: 'checkoutPage', params: { customerId } });
+    const gotocheckoutPage = async () => {
+      router.push({ name: 'checkoutPage', params: { customerId: customerId.value } });
     }
 
+    const gotoOrderHistoryPage = () => {
+      router.push({ name: "OrderHistory", params: { customerId: customerId.value } });
+    };
     const updateCartItem = async (productDetailId, quantity, status) => {
       try {
         const response = await axios.put(`${BASE_URL}/api/cart/${customerId.value}`, {
           items: [{
             productDetail_id: productDetailId,
             quantity: quantity,
-            status: status 
+            status: status
           }]
         });
         await fetchCart();
@@ -255,7 +272,7 @@ export default {
           Swal.fire('Thông báo!', response_delete.data.message, 'success');
           await fetchCart();
         } catch (error) {
-          Swal.fire('Lỗi!', error.response_delete?.data?.message, 'error')
+          Swal.fire('Lỗi!', error.response?.data?.message || 'Xảy ra lỗi không xác định', 'error')
           console.error(error);
         }
       }
@@ -268,7 +285,7 @@ export default {
       const updatedItems = cart.value.items.map(item => ({
         productDetail_id: item.productDetail_id,
         quantity: item.quantity,
-        status: item.checked ? "Selected" :  "Pending"
+        status: item.checked ? "Selected" : "Pending"
       }));
 
       try {
@@ -281,6 +298,10 @@ export default {
       }
     };
 
+
+    const gotoHomePage = () => {
+      router.push({ name: 'home' });
+    };
     watch(
       () => cart.value.items,
       (items) => {
@@ -294,6 +315,12 @@ export default {
     );
 
     onMounted(() => {
+      socket.on('cart_update', async ({ action }) => {
+        if (["create", "update", "delete", "delete_cartItem"].includes(action)) {
+          await fetchCart();
+          // Swal.fire("Thông báo", "Dữ liệu sản phẩm đã được cập nhật!", "success");
+        }
+      });
       const token = Cookies.get("accessToken");
       if (!token) {
         Swal.fire("Thông báo", "Bạn cần đăng nhập để truy cập giỏ hàng.", "warning").then(() => {
@@ -324,6 +351,11 @@ export default {
       }
     });
 
+
+    onUnmounted(() => {
+      socket.off('cart_update');
+    })
+
     return {
       formatCurrency,
       formatDate,
@@ -346,7 +378,9 @@ export default {
       handleCheckboxChange,
       handleSelectedAllChange,
       selectAllChecked,
-      gotocheckoutPage
+      gotocheckoutPage,
+      gotoOrderHistoryPage,
+      gotoHomePage
     }
   }
 }
@@ -441,7 +475,7 @@ p{
 
 .cart-summary {
   flex: 1;
-  background: #f8f8f8;
+  /* background: #f8f8f8; */
   padding: 20px;
   margin-left: 5px;
   /* border:  solid 1px; */
@@ -490,5 +524,34 @@ p{
 .checkout-btn:disabled {
   opacity: 0.6;
   cursor: not-allowed;
+}
+
+
+
+.sticky-box {
+  position: sticky;
+  top: 150px;
+  background: white;
+  padding: 20px;
+  border: 1px solid #ccc;
+}
+.cart-summary {
+  overflow: visible !important;
+}
+
+::v-deep(.breadcrumb .breadcrumb-item a) {
+  color: white !important;
+}
+
+::v-deep(.breadcrumb .breadcrumb-item a:hover) {
+  color: #f8f9fa !important;
+}
+
+::v-deep(.breadcrumb .breadcrumb-item.active span) {
+  color: white !important;
+}
+
+::v-deep(.breadcrumb .breadcrumb-item + .breadcrumb-item::before) {
+  color: white !important;
 }
 </style>

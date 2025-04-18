@@ -61,6 +61,25 @@ export default {
                 crumbs.splice(1, 0, {  path: "/admin/product", label: "Quản lý sản phảm" });
             
             }
+            if (route.name === "orderDetail") {
+                crumbs.splice(1, 0, {  path: "/admin/order", label: "Quản lý đơn hàng" });
+            }
+            if (route.name === "OrderHistory") {
+               crumbs.unshift({ path: "/", label: "Trang chủ" });
+            }
+            if (route.name === "Cart") {
+               crumbs.unshift({ path: "/", label: "Trang chủ" });
+            }
+            if (route.name === "checkoutPage") {
+                crumbs.unshift({ path: "/", label: "Trang chủ" });
+                crumbs.splice(1, 0, {  path: "/admin/cart", label: "Giỏ hàng" });
+            }
+            if (route.name === "Profile") {
+                crumbs.unshift({ path: "/", label: "Trang chủ" });
+            }
+            if (route.name === "aboutUs") {
+                crumbs.unshift({ path: "/", label: "Trang chủ" });
+            }
 
             return crumbs;
 

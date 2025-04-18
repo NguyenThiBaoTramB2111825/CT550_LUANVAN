@@ -42,13 +42,6 @@
 
       <router-link to="" class="circle-wrapper">
         <div class="circle">
-            <img src="/src/assets/images/midi-dress.png" alt="Category Icon">
-        </div>
-        <span class="category-label">Váy midi</span>
-      </router-link> 
-
-      <router-link to="" class="circle-wrapper">
-        <div class="circle">
             <img src="/src/assets/images/skirt_short.png" alt="Category Icon">
         </div>
         <span class="category-label">Váy ngắn</span>
@@ -70,12 +63,6 @@
     </div>
 
     <div class="col-md-12 d-flex align-item-center justify-content-between mb-5 ">
-      <router-link to="" class="circle-wrapper">
-          <div class="circle">
-              <img src="/src/assets/images/sport_pant.png" alt="Category Icon">
-          </div>
-          <span class="category-label">Quần thể thao</span>
-      </router-link> 
 
       <router-link to="" class="circle-wrapper">
           <div class="circle">
@@ -128,7 +115,7 @@
       <div class="col-md-12 position-relative">
         <button class="prev-btn align-items-center justify-content-center" @click="prevSlide" ><</button>
         <div class="product-slider d-flex">
-          <div class="card mb-3 mx-1" v-for="product in visibleProducts " :key="product.product_id">
+          <div class="card mb-3 mx-1" v-for="product in visibleProducts "  :key="product.product_id">
             <div class="product-image" style="height: 285px; width: 215px;">
               <img v-if="product.images.length > 0" :src="`${BASE_URL}${product.images[0]}`" class="default-img">
               <img v-if="product.images.length > 1" :src="`${BASE_URL}${product.images[1]}`" class="hover-img">
@@ -246,15 +233,17 @@ export default {
     const fetchProductDetails = async () => {
       try {
         const response = await axios.get(`${BASE_URL}/api/productDetail`);
-        let productDetailsData = response.data.filter(p => p.stock >0);
-        console.log("Giá trị của productDetailsData: ", productDetailsData);
-
-        const [productsResponse, colorsResponse, sizesResponse, imagesResponse, discountsResponse] = await Promise.all([
+        console.log("Giá trị của response.data: ", response.data);
+        // let productDetailsData = response.data.filter(p => p.stock >0);
+    
+        const [productsResponse, colorsResponse, sizesResponse, imagesResponse, discountsResponse, brandsResponse, categorysResponse] = await Promise.all([
           axios.get(`${BASE_URL}/api/product`),  // Lấy toàn bộ sản phẩm
           axios.get(`${BASE_URL}/api/color`),    // Lấy toàn bộ màu sắc
           axios.get(`${BASE_URL}/api/size`),     // Lấy toàn bộ size
           axios.get(`${BASE_URL}/api/image`),    // Lấy toàn bộ hình ảnh
-          axios.get(`${BASE_URL}/api/discount`)  // Lấy toàn bộ discount
+          axios.get(`${BASE_URL}/api/discount`),  // Lấy toàn bộ discount
+          axios.get(`${BASE_URL}/api/brand`),  // Lấy toàn bộ brand
+          axios.get(`${BASE_URL}/api/category`)  // Lấy toàn bộ category
         ]);
 
         const products = productsResponse.data;
@@ -262,11 +251,15 @@ export default {
         const sizes = sizesResponse.data;
         const images = imagesResponse.data;
         const discounts = discountsResponse.data;
+        const brands = brandsResponse.data;
+        const categorys = categorysResponse.data;
 
         const productMap = new Map(products.map(p => [p._id, p]));
         const colorMap = new Map(colors.map(c => [c._id, c.name]));
         const sizeMap = new Map(sizes.map(s => [s._id, s.name]));
         const imageMap = new Map();
+        const brandMap = new Map(brands.map(b => [b._id, b]));
+        const categoryMap = new Map(categorys.map(c => [c._id, c]));
 
         images.forEach(img => {
           if (!imageMap.has(img.product_id)) {
@@ -277,9 +270,47 @@ export default {
 
         const discountMap = new Map(discounts.map(d => [d._id, d]));
 
+      let productDetailsRaw = response.data
+        // let productDetailsData = response.data.filter(p => {
+        //   if (p.stock < 1) return false;
+
+        //   const product = products.find(pr => pr._id === p.product_id);
+        //   if (!product || !product.isActive) return false;
+
+        //   const brand = brandMap.get(product.brand_id);
+        //   const category = categoryMap.get(product.category_id);
+
+        //   if (!brand || !brand.isActive || !category || !category.isActive) return false;
+        //   return true;
+        // });
+
+        const productDetailMap = new Map();
+          productDetailsRaw.forEach(detail => {
+            if (!productDetailMap.has(detail.product_id)) {
+              productDetailMap.set(detail.product_id, []);
+            }
+            productDetailMap.get(detail.product_id).push(detail);
+          })
+
+        const validProductIds = [];
+        for (const [productId, details] of productDetailMap.entries()) {
+          const product = productMap.get(productId);
+          if (!product || !product.isActive) continue;
+            const brand = brandMap.get(product.brand_id);
+            const category = categoryMap.get(product.category_id);
+          if (!brand || !brand.isActive || !category || !category.isActive) continue;
+            const hasStock = details.some(d => d.stock > 0);
+          if (hasStock) validProductIds.push(productId);
+        }
+
+        const productDetailsData = productDetailsRaw.filter(p => {
+          return validProductIds.includes(p.product_id) && p.stock > 0;
+        });
+
+
+        console.log("Giá trị của productDetailsData: ", productDetailsData);
         let groupedByDiscount = new Map();
         let groupByProducts = new Map();
-
         productDetailsData.forEach(pd => {
           const product = productMap.get(pd.product_id);
           if (!product) return;

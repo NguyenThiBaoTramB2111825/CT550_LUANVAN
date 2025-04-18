@@ -15,17 +15,30 @@
                   <label class="form-label">Tên đăng nhập</label>
                   <input v-model="customer.name" type="text" class="form-control form-control-lg" required />
                 </div>
-                <div class="mb-5 text-center">
+    
+                <div class="mb-5 text-center position-relative">
                   <label class="form-label">Mật khẩu</label>
-                  <input v-model="customer.password" type="password" class="form-control form-control-lg" required />
+                  <input
+                    :type="showPassword ? 'text' : 'password'"
+                    v-model="customer.password"
+                    class="form-control form-control-lg pe-5"
+                    required
+                  />
+                  <i
+                    class="bi"
+                    :class="showPassword ? 'bi-eye-slash' : 'bi-eye'"
+                    @click="togglePassword"
+                    style="position: absolute; top: 45px; right: 15px; cursor: pointer;"
+                  ></i>
                 </div>
+
                 <div class="d-grid">
                   <button type="submit" class="btn btn-primary btn-lg mb-3">Đăng nhập</button>
                   <button type="button"  @click="cancel" class="btn btn-danger btn-lg">Hủy</button>
                 </div>
               </form>
               <div class="text-center mt-3">
-                <a href="#" class="text-muted small">Quên mật khẩu?</a>
+                <a @click="gotoresetPass()" class="text-muted small">Quên mật khẩu?</a>
               </div>
               <div class="text-center mt-3">
                 <p class="mb-0">Bạn chưa có tài khoản? 
@@ -66,12 +79,28 @@ export default {
       }
     };
 
+        const showPassword = ref(false);
+
+    const togglePassword = () => {
+      showPassword.value = !showPassword.value;
+    };
+
     const gotoregisterPage = () => router.push({ name: 'register' });
     const cancel = () => {
       router.push({ name: 'home' });
     }
+    const gotoresetPass = () => router.push({ name: 'ResetPass' });
 
-    return { loginCustomer, customer, gotoregisterPage, cancel };
+    return {
+      loginCustomer,
+      customer,
+      gotoregisterPage,
+      cancel,
+      showPassword,
+      togglePassword,
+      gotoresetPass,
+
+    };
   },
 };
 </script> 

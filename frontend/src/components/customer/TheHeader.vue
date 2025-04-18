@@ -33,13 +33,13 @@
               </button>
                 <ul class="dropdown-menu" :class="{ 'show': isDropdownOpen }" aria-labelledby="userDropdown">
                     <li v-if="token" ><a class="dropdown-item" @click="logout">Đăng Xuất</a></li>
-                    <li v-if="token" ><a class="dropdown-item" @click="information">Trang thông tin cá nhân</a></li>
+                    <li v-if="token" ><a class="dropdown-item" @click="gotoProfilePage()">Trang thông tin cá nhân</a></li>
                     <li v-if="!token" ><a class="dropdown-item" @click="login">Đăng nhập</a></li>
                 </ul>
           </div>
           <div>
             <a @click="gotoCartPage()" class="btn btn-outline-dark">
-              <i class="bi bi-cart"></i> (0)
+              <i class="bi bi-cart"></i> (<span>{{ cartLength }}</span>)
             </a>
           </div>
 
@@ -90,8 +90,8 @@
             </li>
 
             <li class="nav-item"><a class="nav-link" @click="gotoOrderHistoryPage()">Xem lịch đơn hàng</a></li>
-            <li class="nav-item"><a class="nav-link" href="#">Liên hệ, hỗ trợ</a></li>
-            <li class="nav-item"><a class="nav-link" href="#">Về chúng tôi</a></li>
+            <li class="nav-item"><a class="nav-link" @click="gotofilterPage()">Lọc sản phẩm</a></li>
+            <li class="nav-item"><a class="nav-link" @click="gotoAboutUs()">Về chúng tôi</a></li>
           </ul>
         </div>
       </div>
@@ -111,6 +111,7 @@ const BASE_URL = "http://localhost:3000";
 const socket = io(BASE_URL, { transports: ["websocket", "polling"] });
 import { jwtDecode } from 'jwt-decode';
 import { Dropdown } from 'bootstrap';
+import { values } from "lodash";
 document.querySelectorAll('.dropdown-toggle').forEach(dropdown => {
   new Dropdown(dropdown);
 });
@@ -123,10 +124,11 @@ export default {
     const router = useRouter();
     const isDropdownOpen = ref(false);
     const token = Cookies.get("accessToken");
+    console.log("Giá trị token ở header: ", token);
     const brands = ref([]);
     const categorys = ref([]);
     const discounts = ref([]);
-    // const customerId = ref(null);
+    const cartLength = ref('0');
 
     const isHidden = ref(false);
     let lastScroll = window.scrollY;
@@ -171,10 +173,6 @@ export default {
       router.push({ name: "login" });
     }
 
-    const information = () => {
-      router.push();
-    }
-
     const toggleDropdown = () => {
       isDropdownOpen.value = !isDropdownOpen.value;
       console.log("Dropdown state:", isDropdownOpen.value);
@@ -182,67 +180,24 @@ export default {
 
     const fetchInfomation = async () => {
       try {
-        const response = await axios.get("http://127.0.0.1:3000/api/brand");
-        brands.value = response.data.filter(bd => bd.isActive);
-        // console.log("Giá trị của brands được fetch: ", brands);
+        const [brandRes, categoryRes, discountRes] = await Promise.all([
+          axios.get(`${BASE_URL}/api/brand`),
+          axios.get(`${BASE_URL}/api/category`),
+          axios.get(`${BASE_URL}/api/discount`),
+        ]);
 
-        const response_category = await axios.get("http://127.0.0.1:3000/api/category");
-        categorys.value = response_category.data.filter(ct => ct.isActive);
-        console.log("Giá trị của category sau khi fetch: ", categorys);
-
-        const response_discount = await axios.get("http://127.0.0.1:3000/api/discount");
-        discounts.value = response_discount.data.filter(dc =>
-          dc.isActive === true &&
-          dc.type === "percentage"
+        brands.value = brandRes.data.filter((bd) => bd.isActive);
+        categorys.value = categoryRes.data.filter((ct) => ct.isActive);
+        discounts.value = discountRes.data.filter(
+          (dc) => dc.isActive && dc.type === "percentage"
         );
-        console.log("Giá trị của disocunt sau khi fetch: ", discounts);
       } catch (error) {
-        console.error("Lỗi khi lấy danh sách người dùng:", error);
+        console.error("Lỗi khi lấy dữ liệu:", error);
       }
-    }
+    };
 
-    const gotoCartPage = async () => { // Thêm async để có thể sử dụng await
-      const token = Cookies.get("accessToken");
-      console.log("Current token:", token);
-
-      if (token) {
-        try {
-          const decoded = jwtDecode(token);
-          const expiresInMs = decoded.exp * 1000 - Date.now();
-
-          if (expiresInMs <= 0) {
-            await Swal.fire({
-              title: "Thông báo!",
-              text: "Phiên đăng nhập hết hạn, vui lòng đăng nhập lại",
-              icon: "error",
-              timer: 3000,
-              showConfirmButton: false,
-            });
-            Cookies.remove("accessToken");
-            router.push({ name: "login" });
-          } else {
-            setTimeout(async () => {
-              await Swal.fire({
-                title: "Thông báo!",
-                text: "Phiên đăng nhập hết hạn, vui lòng đăng nhập lại",
-                icon: "error",
-                timer: 3000,
-                showConfirmButton: false,
-              });
-              Cookies.remove("accessToken");
-              router.push({ name: "login" });
-            }, expiresInMs);
-
-            const customerId = decoded.id;
-            router.push({ name: "Cart", params: { customerId } });
-          }
-        } catch (error) {
-          console.error("Lỗi khi giải mã token:", error);
-          await Swal.fire("Lỗi", "Phiên đăng nhập không hợp lệ, vui lòng đăng nhập lại", "error");
-          Cookies.remove("accessToken");
-          router.push({ name: "login" });
-        }
-      } else {
+    const checkAnRedirect = async (callback) => {
+      if (!token) {
         const result = await Swal.fire({
           title: "Thông báo!",
           text: "Bạn cần đăng nhập để vào giỏ hàng",
@@ -251,67 +206,82 @@ export default {
           cancelButtonText: "Hủy",
           confirmButtonText: "Đăng nhập",
         });
+        return result.isConfirmed ? router.push({ name: "login" }) : router.push({ name: "home" });
 
-        if (result.isConfirmed) {
-          router.push({ name: "login" }); // Chỉ chuyển hướng khi người dùng nhấn "Đăng nhập"
-        } else {
-          router.push({ name: "home" });
-        }
+      }
+      try {
+        const decoded = jwtDecode(token);
+        const expiresInMs = decoded.exp * 1000 - Date.now();
+        if (expiresInMs <= 0) {
+          Cookies.remove("accessToken");
+          await Swal.fire({
+            title: "Thông báo!",
+            text: "Phiên đăng nhập hết hạn, vui lòng đăng nhập lại",
+            icon: "error",
+            timer: 3000,
+            showConfirmButton: false,
+          });
+          return router.push({ name: "login" });
+        };
+        setTimeout(async () => {
+          Cookies.remove("accessToken");
+          await Swal.fire({
+            title: "Thông báo!",
+            text: "Phiên đăng nhập hết hạn, vui lòng đăng nhập lại",
+            icon: "error",
+            timer: 3000,
+            showConfirmButton: false,
+          });
+          router.push({ name: "login" });
+        }, expiresInMs);
+
+        return callback(decoded.id);
+
+      } catch (error) {
+        console.error("Lỗi giải mã token:", error);
+        Cookies.remove("accessToken");
+        await Swal.fire("Lỗi", "Phiên đăng nhập không hợp lệ, vui lòng đăng nhập lại", "error");
+        router.push({ name: "login" });
+      }
+
+    }
+
+    const fetchCartLength = async () => {
+      if (!token) return;
+      try {
+        const decoded = jwtDecode(token);
+        const { data } = await axios.get(`${BASE_URL}/api/cart/customerId/${decoded.id}`);
+        cartLength.value = data.items.length;
+      } catch (err) {
+        console.error("Không thể lấy thông tin giỏ hàng:", err);
       }
     };
+
+    const gotoCartPage = () => checkAnRedirect(async (customerId) => {
+      router.push({ name: "Cart", params: { customerId } });
+    })
+    const gotoProfilePage = () => checkAnRedirect(async (customerId) => {
+      router.push({ name: "Profile", params: { customerId } });
+    })
 
     const gotoHomePage = () => {
       router.push({ name: "home" });
     }
 
-    const gotoOrderHistoryPage = async () => {
-      const token = Cookies.get("accessToken");
-      if (token) {
-        try {
-          const decoded = jwtDecode(token);
-          const expiresInMs = decoded.exp * 1000 - Date.now();
+    const gotoOrderHistoryPage = () => checkAnRedirect(async (customerId) => {
+      router.push({ name: "OrderHistory", params: { customerId } });
+    });
+    const gotoAboutUs = () => {
+      router.push({ name: "aboutUs" });
+    };
+    const gotofilterPage = () => {
+      router.push({ name: "filter" });
+    };
 
-          if (expiresInMs <= 0) {
-            await Swal.fire({
-              title: "Thông báo!",
-              text: "Phiên đăng nhập hết hạn, vui lòng đăng nhập lại",
-              icon: "error",
-              timer: 3000,
-              showConfirmButton: false,
-            });
-            Cookies.remove("accessToken");
-            router.push({ name: "login" });
-          } else {
-
-            const customerId = decoded.id;
-            router.push({ name: "OrderHistory", params: { customerId } });
-          }
-        } catch (error) {
-          console.error("Lỗi khi giải mã token:", error);
-          await Swal.fire("Lỗi", "Phiên đăng nhập không hợp lệ, vui lòng đăng nhập lại", "error");
-          Cookies.remove("accessToken");
-          router.push({ name: "login" });
-        }
-      } else {
-        const result = await Swal.fire({
-          title: "Thông báo!",
-          text: "Bạn cần đăng nhập để vào giỏ hàng",
-          icon: "warning",
-          showCancelButton: true,
-          cancelButtonText: "Hủy",
-          confirmButtonText: "Đăng nhập",
-        });
-
-        if (result.isConfirmed) {
-          router.push({ name: "login" }); // Chỉ chuyển hướng khi người dùng nhấn "Đăng nhập"
-        } else {
-          router.push({ name: "home" });
-        }
-      }
-    }
     onMounted(() => {
       fetchInfomation();
       window.addEventListener('scroll', handleScroll);
+      fetchCartLength();
       socket.on('brand_update', async ({ action }) => {
         if (["create", "update", "delete", "soft_delete"].includes(action)) {
           await fetchInfomation();
@@ -327,6 +297,11 @@ export default {
           await fetchInfomation();
         }
       });
+      socket.on('cart_update', async ({ action }) => {
+        if (["create", "update", "delete", "delete_cartItem"].includes(action)) {
+          await fetchCartLength();
+        }
+      });
     });
 
     onUnmounted(() => {
@@ -337,7 +312,6 @@ export default {
       token,
       logout,
       login,
-      information,
       isDropdownOpen,
       toggleDropdown,
       brands,
@@ -346,10 +320,14 @@ export default {
       categorys,
       discounts,
       gotoCartPage,
-      gotoHomePage, 
+      gotoHomePage,
       isHidden,
       handleScroll,
-      gotoOrderHistoryPage
+      gotoOrderHistoryPage,
+      cartLength, fetchCartLength,
+      gotoProfilePage,
+      gotoAboutUs, 
+      gotofilterPage
     }
   }
 }

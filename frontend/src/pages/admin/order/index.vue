@@ -1,6 +1,45 @@
 <template>
      <Breadcrumb class="text-end" />
         <h5 class="text-center">Danh sách order</h5>
+
+        <div class="row mb-3 text-center mx-auto">
+            <!-- <div class="col-md-3">
+                <input type="text" v-model="filter.customerName" name="" id="" placeholder="Tên khách hàng">
+
+            </div> -->
+            <div class="col-md-3 ">
+                <select class="form-select" v-model="filter.paymentStatus">
+                <option value="">Lọc theo trạng thái thanh toán</option>
+                <option value="Unpaid">Chưa thanh toán</option>
+                <option value="Paid">Đã thanh toán</option>
+                <option value="Failed">Thất bại</option>
+                </select>
+            </div>
+            <div class="col-md-3">
+                <select class="form-select" v-model="filter.deliveryStatus">
+                <option value="">Lọc theo trạng thái giao hàng</option>
+                <option value="Pending">Đang xử lý</option>
+                <option value="Confirm">Đã xác nhận</option>
+                <option value="Shipped">Vận chuyển</option>
+                <option value="Delivered">Đã giao</option>
+                <option value="Cancelled">Hủy</option>
+                </select>
+            </div>
+            <div class="col-md-3">
+                <select class="form-select" v-model="filter.paymentMethod">
+                <option value="">Lọc theo phương thức thanh toán</option>
+                <option value="ONLINE">Online</option>
+                <option value="COD">COD</option>
+                </select>
+            </div>
+
+            <div class="col-md-3 d-flex align-items-center">
+                <button class="btn btn-secondary" @click="resetFilter">Xóa lọc</button>
+            </div>
+        </div>
+
+
+
         <table class="py-3  table table-bordered table-striped justify-content-center align-items-center text-center">
             <thead>
                 <tr>
@@ -17,7 +56,7 @@
                 </tr>
             </thead>
             <tbody>
-                <tr v-for="(order, index) in orders" :key="order._id">
+                <tr v-for="(order, index) in filteredOrders" :key="order._id">
 
                     <td>{{ index + 1 }}</td>
                     <td>{{ order.customer_name || 'Chưa có khách hàng' }}</td>
@@ -74,7 +113,7 @@
                            <span class="" v-if="`${order.deliveryStatus}` === 'Delivered' "> Đã giao</span>
                            <span class="m-0" v-if="`${order.deliveryStatus}` === 'Cancelled' ">Hủy</span>
                         </button>
-                            <ul class="dropdown-menu" :class="{ 'show': dropdownOpenDelivery === order._id }">
+                            <ul v-if="order.status !== 'Cancelled'" class="dropdown-menu" :class="{ 'show': dropdownOpenDelivery === order._id }">
                                 <li ><a class="dropdown-item" @click="updateDeliveryStatus(order, 'Pending')">Đang xử lý</a></li>
                                 <li ><a class="dropdown-item" @click="updateDeliveryStatus(order, 'Confirm')">Đã xác nhận</a></li>
                                 <li ><a class="dropdown-item" @click="updateDeliveryStatus(order, 'Shipped')">Vận chuyển</a></li>
@@ -87,8 +126,8 @@
                     <td>{{ formatCurrency(order.totalPrice) }}</td>
                     <td>
                         <button @click="deleteOrderId(order._id)" class="btn btn-danger m-1" ><i class="fa-solid fa-trash"></i></button> 
+                        <button @click="gotoOrderDetail(order._id)" class="btn btn-info m-1" ><i class="fa-solid fa-eye"></i></button> 
                     </td>  
-                    
                 </tr>
             </tbody>
         </table>
@@ -105,6 +144,7 @@
     import dayjs from "dayjs";
     import utc from "dayjs/plugin/utc";
 import { Dropdown } from 'bootstrap';
+import router from '@/router';
 const BASE_URL = "http://localhost:3000";
   const socket = io(BASE_URL);
 export default {
@@ -117,6 +157,33 @@ export default {
         const orders = ref([]);
         const sortField = ref('');
         const sortAsc = ref(true);
+
+        const filter = ref({
+            // customerName: '',
+            paymentStatus: '',
+            deliveryStatus: '',
+            paymentMethod: ''
+        });
+
+        const resetFilter = () => {
+            filter.value = {
+                // customerName: '',
+                paymentStatus: '',
+                deliveryStatus: '',
+                paymentMethod: ''
+            };
+        };
+
+        const filteredOrders = computed(() => {
+            return orders.value.filter(order => {
+                // const matchCustomerName = filter.value.customerName ? order.customer_name === filter.value.customerName : true;
+                const matchPaymentStatus = filter.value.paymentStatus ? order.paymentStatus === filter.value.paymentStatus : true;
+                const matchDeliveryStatus = filter.value.deliveryStatus ? order.deliveryStatus === filter.value.deliveryStatus : true;
+                const matchPaymentMethod = filter.value.paymentMethod ? order.paymentMethod === filter.value.paymentMethod : true;
+                return matchPaymentStatus && matchDeliveryStatus && matchPaymentMethod;
+            })
+        })
+    
 
         const toggleDropdown = (orderId) => {
             dropdownOpenId.value = dropdownOpenId.value === orderId ? null : orderId;
@@ -166,78 +233,44 @@ export default {
             }
 
         };
-        // const updateDeliveryStatus = async (order, newStatus) => {
-        //     //Nếu thanh toán online mà chưa thanh toán thì không thể thay đổi trạng thái giao hàng
 
-        //     if (order.paymentMethod === "ONLINE" && order.paymentStatus !== "Paid") {
-        //         await Swal.fire("Thông báo", "Đơn hàng chưa được thanh toán. Không được thay đổi trạng thái giao hàng", "warning");
-        //         return;
-        //     }
+        const updateDeliveryStatus = async (order, newStatus) => {
+            // Với đơn hàng ONLINE: nếu chưa thanh toán, không cho thay đổi trạng thái giao hàng
+            if (order.paymentMethod === "ONLINE" && order.paymentStatus !== "Paid") {
+                await Swal.fire("Thông báo", "Đơn hàng chưa được thanh toán. Không thể thay đổi trạng thái giao hàng.", "warning");
+                return;
+            }
 
-        //     if (order.paymentMethod === "COD" && order.paymentStatus === "Paid") {
-        //         await Swal.fire("Thông báo", "Không thể thay đổi trạng thái đơn hàng, khi đã giao và thanh toán thành công", "warning");
-        //         return;
-        //     }
+            // Với đơn COD: nếu đã thanh toán thì không được thay đổi trạng thái nữa
+            if (order.paymentMethod === "COD" && order.paymentStatus === "Paid") {
+                await Swal.fire("Thông báo", "Đơn COD đã thanh toán. Không thể thay đổi trạng thái giao hàng.", "warning");
+                return;
+            }
 
-        //     if (order.paymentMethod === "COD" && newStatus === "Delivered") {
-        //         order.paymentStatus = "Paid";
-        //         await axios.put(`http://127.0.0.1:3000/api/order/${order._id}`, {
-        //             paymentStatus: "Paid",
-        //             deliveryStatus: newStatus,
-        //         });
-        //     }
-        //     else {
-        //     await axios.put(`http://127.0.0.1:3000/api/order/${order._id}`, {
-        //             deliveryStatus: newStatus,
-        //         });     
-                
-        //     }
+            try {
+                // Nếu đơn COD được giao thành công -> cập nhật cả deliveryStatus và paymentStatus
+                if (order.paymentMethod === "COD" && newStatus === "Delivered") {
+                    const response = await axios.put(`http://127.0.0.1:3000/api/order/${order._id}`, {
+                        paymentStatus: "Paid",
+                        deliveryStatus: newStatus,
+                    });
+                    order.paymentStatus = "Paid";
+                    order.deliveryStatus = newStatus;
+                } else {
+                    // Trường hợp khác -> chỉ cập nhật deliveryStatus
+                    const response = await axios.put(`http://127.0.0.1:3000/api/order/${order._id}`, {
+                        deliveryStatus: newStatus,
+                    });
+                    order.deliveryStatus = newStatus;
+                }
 
-        //     // order.deliveryStatus = newStatus;
-        //     dropdownOpenDelivery.value = null;
-        //     calculateOrderStatus(order);
-
-
-        // };
-
-
-const updateDeliveryStatus = async (order, newStatus) => {
-    // Với đơn hàng ONLINE: nếu chưa thanh toán, không cho thay đổi trạng thái giao hàng
-    if (order.paymentMethod === "ONLINE" && order.paymentStatus !== "Paid") {
-        await Swal.fire("Thông báo", "Đơn hàng chưa được thanh toán. Không thể thay đổi trạng thái giao hàng.", "warning");
-        return;
-    }
-
-    // Với đơn COD: nếu đã thanh toán thì không được thay đổi trạng thái nữa
-    if (order.paymentMethod === "COD" && order.paymentStatus === "Paid") {
-        await Swal.fire("Thông báo", "Đơn COD đã thanh toán. Không thể thay đổi trạng thái giao hàng.", "warning");
-        return;
-    }
-
-    try {
-        // Nếu đơn COD được giao thành công -> cập nhật cả deliveryStatus và paymentStatus
-        if (order.paymentMethod === "COD" && newStatus === "Delivered") {
-            const response = await axios.put(`http://127.0.0.1:3000/api/order/${order._id}`, {
-                paymentStatus: "Paid",
-                deliveryStatus: newStatus,
-            });
-            order.paymentStatus = "Paid";
-            order.deliveryStatus = newStatus;
-        } else {
-            // Trường hợp khác -> chỉ cập nhật deliveryStatus
-            const response = await axios.put(`http://127.0.0.1:3000/api/order/${order._id}`, {
-                deliveryStatus: newStatus,
-            });
-            order.deliveryStatus = newStatus;
-        }
-
-        dropdownOpenDelivery.value = null;
-        calculateOrderStatus(order);
-    } catch (error) {
-        console.error("Lỗi cập nhật trạng thái giao hàng:", error);
-        await Swal.fire("Lỗi", "Không thể cập nhật trạng thái giao hàng", "error");
-    }
-};
+                dropdownOpenDelivery.value = null;
+                calculateOrderStatus(order);
+            } catch (error) {
+                console.error("Lỗi cập nhật trạng thái giao hàng:", error);
+                await Swal.fire("Lỗi", "Không thể cập nhật trạng thái giao hàng", "error");
+            }
+        };
 
 
         const fetchOrder = async () => {
@@ -377,6 +410,10 @@ const updateDeliveryStatus = async (order, newStatus) => {
             }
         }
 
+        const gotoOrderDetail = (id) => {
+            router.push({ name: 'orderDetail', params: { id } });
+        }
+
         onMounted(async () => {
             fetchOrder();
             socket.on('order_update', async ({ action }) => {
@@ -409,7 +446,11 @@ const updateDeliveryStatus = async (order, newStatus) => {
             toggleDelivery,
             dropdownOpenDelivery,
             calculateOrderStatus,
-            deleteOrderId
+            deleteOrderId,
+            gotoOrderDetail,
+            filter,
+            filteredOrders,
+            resetFilter
         }
     }
 }

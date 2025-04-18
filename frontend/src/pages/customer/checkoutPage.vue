@@ -1,21 +1,28 @@
 
 <template>
-  <div class="container-fluid py-1">
+  <div class="container-fluid py-1 text-white bg-primary">
     <div class="d-flex align-items-center justify-content-between mx-5">
-      <span style="font-family: Verdana; font-size: x-large; font-weight: bold;">FASHION SHOP</span>
-      <span class="fw-bold">Tiếp tục mua hàng >></span>
+      <div>
+          <img src="/src/assets/images/logo.jpg" alt="Logo" height="45"  class="me-2 border rounded my-2"> 
+          <span class="p-0 m-0 fw-bold" style="font-size: 20px;">FASHION SHOP</span> 
+      </div>
+      <div class="pt-2 breadcrumb">
+        <Breadcrumb />
+      </div>
     </div>
   </div>
 
   <div class="container-fluid" style="background-color: #2222;">
     <div class=" d-flex  align-items-center justify-content-center">
-      <span class="mx-2 my-2">Cart</span>
+      <span @click="backtoCartPage()" class="mx-2 my-2">Giỏ hàng</span>
       <span class="mx-2">></span>
-      <span class="mx-2">Place Order</span>
+      <span class="mx-2  fw-bold">Kiểm tra thông tin đơn hàng</span>
       <span class="mx-2">></span>
-      <span class="mx-2">Pay</span>
+      <!-- <span class="mx-2">Thanh toán</span>
       <span class="mx-2">></span>
-      <span class="mx-2">Order Complete</span>
+      <span class="mx-2">Đơn hàng hoàn tất</span>
+      <span class="mx-2">></span> -->
+      <span @click="gotoOrderHistory()" class="mx-2">Xem lịch sử đơn hàng</span>
     </div>
     
     <div style="width: 90%;" class="row justify-content-center my-4 mx-auto">
@@ -282,8 +289,11 @@ import Cookies from 'js-cookie';
 import Swal from 'sweetalert2';
 import { useRouter, useRoute } from 'vue-router';
 const BASE_URL = 'http://localhost:3000';
-
+import Breadcrumb from "@/components/Breadcrumb.vue";
 export default {
+  components: {
+    Breadcrumb
+  },
   setup() {
     const showModal = ref(false);
     const customer_note = ref('');
@@ -441,6 +451,10 @@ export default {
 
     const gotoDetailPage = (id) => {
       router.push({ name: 'productDetail2', params: { id } });
+
+    }
+    const backtoCartPage = () => {
+      router.push({ name: 'Cart', params: { customerId: customerId.value } });
 
     }
 
@@ -645,7 +659,7 @@ export default {
       try {
         const address_select = address.value.find(a => a.isDefault);
         if (!address_select) {
-          alert("Vui lòng chọn địa chỉ mặc định");
+          alert("Vui lòng chọn địa chỉ mặc định"); c
           return;
         }
 
@@ -800,6 +814,7 @@ export default {
       gotoOrderHistory,
       customer_note,
       order_url,
+      backtoCartPage,
     }
   }
 }
@@ -957,5 +972,21 @@ p{
       width: 400px;
       text-align: center;
   }
+
+  ::v-deep(.breadcrumb .breadcrumb-item a) {
+  color: white !important;
+}
+
+::v-deep(.breadcrumb .breadcrumb-item a:hover) {
+  color: #f8f9fa !important;
+}
+
+::v-deep(.breadcrumb .breadcrumb-item.active span) {
+  color: white !important;
+}
+
+::v-deep(.breadcrumb .breadcrumb-item + .breadcrumb-item::before) {
+  color: white !important;
+}
 </style>
 

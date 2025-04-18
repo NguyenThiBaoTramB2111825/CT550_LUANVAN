@@ -250,6 +250,14 @@ const admin = [
           breadcrumb: 'Đơn hàng'
         },
       },
+      {
+        path: "orderDetail/:id",
+        name: "orderDetail",
+        component: () => import("../pages/admin/orderDetail/index.vue"),
+        meta: {
+          breadcrumb: 'Chi tiết đơn hàng'
+        },
+      },
       // {
       //   path: "cart",
       //   name: "cart",

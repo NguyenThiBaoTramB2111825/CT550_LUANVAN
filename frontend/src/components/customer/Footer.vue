@@ -45,7 +45,7 @@
       <div class="business-info">
         <h5>THÔNG TIN CÔNG TY</h5>
         <p>CÔNG TY TNHH THỜI TRANG FASHION SHOP</p>
-        <p>Địa chỉ: 123 Đường Thời Trang, Ninh Kiều, Cần Thơ</p>
+        <p>Địa chỉ: 3/2, Phường Xuân Khánh, Quận Ninh Kiều, Cần Thơ</p>
         <p>Mã số thuế: 0123456789 - Ngày cấp: 01/01/2020</p>
         <p>Email: support@fashionshop.vn</p>
       </div>

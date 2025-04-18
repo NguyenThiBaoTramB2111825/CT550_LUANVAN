@@ -1,12 +1,11 @@
 <template>
   <div class="container mt-4 justify-content-center">
-    <div class="row mx-auto mx-auto" style="width: 1300px;">
-      <div class="col-md-1 text-end m-0 p-0" v-if="productDetail.length">
-        <div v-if="productDetail[0].images.length">
-          <div v-for="(image, index) in productDetail[0].images" 
+    <div class="row mx-auto mx-auto pb-5" style="width: 1300px;">
+      <div class="col-md-1 text-end m-0 p-0" v-if="productDetailSelect?.images?.length">
+        <div v-if="productDetailSelect.images.length">
+          <div v-for="(image, index) in productDetailSelect.images" 
             :key="image" 
             @click="showImageIndex(index)" 
-            
             >
             <img style="width: 60px; height: 77px; cursor: pointer; border: 2px solid transparent"
               :src="`${BASE_URL}${image}`" class="mb-1 p-1" :class="{ 'border-dark' : index === selectedImageIndex }">
@@ -14,49 +13,59 @@
         </div>
       </div>
 
-      <div class="col-md-6 px-0 mx-1 p-0" v-if="productDetail.length">
-        <img class="mx-0" style="width: 100%; height: 790px;" v-if="productDetail[0].images.length" :src="`${BASE_URL}${productDetail[0].images[selectedImageIndex]}`">
+      <div class="col-md-6 px-0 mx-1 p-0" v-if="productDetailSelect">
+        <img class="mx-0" style="width: 100%; height: 790px;" v-if="productDetailSelect.images.length" :src="`${BASE_URL}${productDetailSelect.images[selectedImageIndex]}`">
       </div>
 
-
-      <div class="col-md-4 mx-auto" v-if="productDetail.length">
-        <p style=" font-size: 15px; font-weight: bold;">{{ productDetail[0]. product_name}}</p>
-        <div v-if="productDetail[0].sale" >
+      <div class="col-md-4 mx-auto" v-if="productDetailSelect">
+        <p style=" font-size: 15px; font-weight: bold;">{{ productDetailSelect.product_name}}</p>
+        <div v-if="productDetailSelect.sale" >
           <div class="d-inline">
-            <span class="old-price m-1">{{ formatCurrency(productDetail[0].price_selling) }} VND</span>
-            <span class="m-1 text-white fs-15" style="background-color: #fa6338; border-radius: 2px;">{{ -productDetail[0].discount_value }}%</span>
+            <span class="old-price m-1">{{ formatCurrency(productDetailSelect.price_selling) }} VND</span>
+            <span class="m-1 text-white fs-15" style="background-color: #fa6338; border-radius: 2px;">{{ -productDetailSelect.discount_value }}%</span>
           </div>
           <br>
-          <span class="new-price m-1">{{formatCurrency( productDetail[0].price_afterdiscount) }} VND</span> 
+          <span class="new-price m-1">{{formatCurrency( productDetailSelect.price_afterdiscount) }} VND</span> 
         </div>
-        <span class="m-1" v-else style=" font-weight: 500; font-size: 25px;" >{{ formatCurrency(productDetail[0].price_selling) }} VND</span>
+        <span class="m-1" v-else style=" font-weight: 500; font-size: 25px;" >{{ formatCurrency(productDetailSelect.price_selling) }} VND</span>
         
         <hr style="border: none; border-top: 1px dashed #999;">
-        <p class="m-0 ">Màu sắc sản phẩm: </p>
-        <div class="d-flex justify-content-start flex-wrap gap-2">
-          <span class="border rounded-circle p-2 mb-2 color-item" 
-            :class="{'selected': selectedColor === color.id}"
-            v-for="color in productDetail[0].colors" 
 
+        <label class="fw-semibold">Màu sắc:</label>
+        <div class="d-flex justify-content-start flex-wrap gap-2">
+          <button class="btn p-2 mb-2 color-item" 
+            :class="{'selected': selectedColor === color._id}"
+            v-for="color in productDetailSelect.colors" 
             :key="color.id"
-            @click="selectColor(color.id)">
+            @click="selectColor(color._id)">
             {{ color.name }}
-          </span>
+          </button>
         </div>
 
         <p class="m-0 ">Kích cỡ: </p>
         <div  class="d-flex justify-content-start flex-wrap gap-2">
-          <span v-for="size in productDetail[0].sizes" :key="size.id" 
-          class=" border rounded-circle p-2 size-item" 
-
-          :class="{'selected': selectedSize === size.id}"
-          @click="selectSize(size.id)"
+          <button v-for="size in productDetailSelect.sizes" :key="size._id" 
+          class="btn p-2 size-item" 
+          :class="{'selected': selectedSize === size._id}"
+          @click="selectSize(size._id)"
           >
           {{ size.name }}
-          </span>
+          </button>
         </div>
 
-        <div class="d-flex justify-content-center flex-wrap gap-3 mt-3">
+        <div class="m-0">
+          <p class=" d-flex justify-content-between align-items-center">
+            Hướng dẫn chọn kích cỡ
+            <button @click="toggleSection('size_intruction')" class="btn-toggle">
+              {{ isOpen.size_intruction ? '-' : '+' }}
+            </button>
+          </p>
+          <div class="image-wrapper ">
+             <img v-if="isOpen.size_intruction" class="img-fluid img-zoom"  src="../../assets/images/size2.png" alt="">
+            </div>
+        </div>
+
+        <div class="d-flex justify-content-center flex-wrap gap-3 ">
           <button type="submit" style="width: 300px;" class="btn border border-radius-2 fs-6 bg-dark fw-bold text-white" @click="addCart()">Thêm vào giỏ hàng</button>
           <div 
             class="border rounded-circle" 
@@ -70,81 +79,95 @@
 
       <hr style="border: none; border-top: 1px dashed #999;">
 
-        <h5 class="text-center mb-2">Thông tin chi tiết sản phẩm</h5>
-        <div>
-          <p class="fw-bold m-0 d-flex justify-content-between align-items-center">
-            Mô tả sản phẩm
-            <button @click="toggleSection('description')" class="btn-toggle">
-              {{ isOpen.description ? '-' : '+' }}
-            </button>
-          </p>
-          <span v-if="isOpen.description" class="m-1"> {{ productDetail[0].product_desciption }}</span>
-        </div>
-
-        <div>
-          <p class="m-0 d-flex justify-content-between align-items-center">
-            Hướng dẫn chọn kích cỡ
-            <button @click="toggleSection('size_intruction')" class="btn-toggle">
-              {{ isOpen.size_intruction ? '-' : '+' }}
-            </button>
-          </p>
-          <div class="image-wrapper ">
-             <img v-if="isOpen.size_intruction" class="img-fluid img-zoom"  src="../../assets/images/size.png" alt="">
+         <div class="accordion mt-5" id="productInfo">
+          <div class="accordion-item">
+            <h2 class="accordion-header">
+              <button class="accordion-button" type="button" data-bs-toggle="collapse" data-bs-target="#description">
+              <strong>  Mô tả sản phẩm</strong>
+              </button>
+            </h2>
+            <div id="description" class="accordion-collapse collapse show" data-bs-parent="#productInfo">
+              <div class="accordion-body">
+                {{productDetailSelect.product_desciption }}
+              </div>
             </div>
-        </div>
-
-        <div>
-          <p class="fw-bold m-0 d-flex justify-content-between align-items-center">
-            Danh mục sản phẩm
-            <button @click="toggleSection('category')" class="btn-toggle">
-              {{ isOpen.category ? '-' : '+' }}
-            </button>
-          </p>
-          <div v-if="isOpen.category" >
-            <span class="m-1">{{ productDetail[0].category_description }}</span>
-            <br>
-            <span class="m-1 text-decoration-underline">Xem các sản phẩm có cùng danh mục</span>
-          </div  >
-
-        </div>
-
-        <div>
-          <p class="fw-bold m-0 d-flex justify-content-between align-items-center">
-            Về thương hiệu
-            <button @click="toggleSection('brand')" class="btn-toggle">
-              {{ isOpen.brand ? '-' : '+' }}
-            </button>
-          </p>
-          <div  v-if="isOpen.brand" >
-            <span class="m-1">{{ productDetail[0].brand_description }}</span>
-            <span class="m-1">{{ productDetail[0].brand_website }}</span>
-            <br>
-            <span class="m-1 text-decoration-underline">Xem các sản phẩm có cùng thương hiệu</span>
           </div>
-        </div>
 
-        <div v-if="productDetail[0].sale">
-          <p class="fw-bold m-0 d-flex justify-content-between align-items-center">
-            Chương trình giảm giá
-            <button @click="toggleSection('discount')" class="btn-toggle">
-              {{ isOpen.discount ? '-' : '+' }}
-            </button>
-          </p>
-          <span v-if="isOpen.discount" class="m-1">{{ productDetail[0].discount_description }}</span>
+          <div class="accordion-item">
+            <h2 class="accordion-header">
+              <button class="accordion-button collapsed" type="button" data-bs-toggle="collapse" data-bs-target="#brand">
+            <strong>    Thương hiệu</strong>
+              </button>
+            </h2>
+            <div id="brand" class="accordion-collapse collapse" data-bs-parent="#productInfo">
+              <div class="accordion-body">
+                {{ productDetailSelect.brand_description }}
+                {{  productDetailSelect.brand_website  }}
+              </div>
+            </div>
+          </div>
+
+          <div class="accordion-item">
+            <h2 class="accordion-header">
+              <button class="accordion-button collapsed" type="button" data-bs-toggle="collapse" data-bs-target="#sizeGuide">
+           <strong>     Về danh mục sản phẩm</strong>
+              </button>
+            </h2>
+            <div id="sizeGuide" class="accordion-collapse collapse" data-bs-parent="#productInfo">
+              <div class="accordion-body">
+                {{ productDetailSelect.category_description }}
+              </div>
+            </div>
+          </div>
         </div>
       </div>
     </div>
 
-    <div class="row">
-<h1>Các sản phẩm có cùng category</h1>
+
+     <hr style="border: none; border-top: 3px dashed #999;">
+    <div class="row mb-3 pt-5">
+      <div v-for="product in productDetails" :key="product.product_id" style="width: 270px;">
+        <div class="card mb-4"  @click="gotoProductDetail(product.product_id)" >
+          <div class="product-image" style="height: 335px;">
+            <img :src="`${BASE_URL}${product.images[0]}`" class="default-img">
+            <img :src="`${BASE_URL}${product.images[1]}`" class="hover-img">
+          </div>
+          <div class="card-body">
+            <h6 class="card-title">{{ product.product_name }}</h6>
+
+            <p class="price-container">
+              <div v-if="product.sale" class="price-wrapper">
+                <div class="price-text">
+                  <span class="old-price">{{ formatCurrency(product.price_selling) }}</span>
+                  <span class="new-price2">{{ formatCurrency(product.price_afterdiscount) }} VNĐ</span>
+                </div>
+                <div class="cart-icon">
+                  <i class="fa-solid fa-cart-plus"></i>
+                </div>
+              </div>
+
+              <div v-if="!product.sale" class="price-wrapper">
+                <span>{{ formatCurrency(product.price_selling) }} VNĐ</span>
+                <div class="cart-icon">
+                  <i class="fa-solid fa-cart-plus"></i>
+                </div>
+              </div>
+            </p>
+            <span v-if="product.sale" class="badge bg-danger">SALE</span>
+          
+          </div>
+        </div>
+      </div>
     </div>
   </div>
+
 </template>
+
 
 <script>
 import axios from 'axios';
-import { ref, onMounted, computed, isProxy, resolveTransitionHooks } from 'vue';
-import { useRouter, useRoute } from 'vue-router';
+import { ref, onMounted, computed, isProxy, resolveTransitionHooks, watch } from 'vue';
+import { useRouter, useRoute, onBeforeRouteUpdate  } from 'vue-router';
 import Swal from "sweetalert2";
 import Cookies from 'js-cookie';
 const BASE_URL = "http://localhost:3000";
@@ -161,9 +184,10 @@ export default {
     const selectedColor = ref(null);
     const currentIndex = ref(0);
     const itemsPerPage = 6;
-    const productDetail = ref([]);
     const productSortByDiscount = ref([]);
     const selectedImageIndex = ref(0);
+    const productDetails = ref([]);
+    const productDetailSelect = ref(null);
 
     const isOpen = ref({
       description: false,
@@ -172,6 +196,7 @@ export default {
       discount: false,
       size_intruction: false,
     })
+
     const toggleSection = (section) => {
       isOpen.value[section] = !isOpen.value[section];
     }
@@ -199,123 +224,14 @@ export default {
       return Number(amount).toLocaleString("vi-VN");
     };
 
-    const fetchProductDetail = async () => {
-      try {
-        const response = await axios.get(`${BASE_URL}/api/productDetail/productId/${product_id}`);
-        const productDetails = response.data;
 
-        console.log("Giá trị của productDetails được fetch: ", productDetails);
-
-        // 1. Lấy danh sách color_id và size_id không trùng
-        const uniqueColorIds = [...new Set(productDetails.map(pd => pd.color_id))];
-        const uniqueSizeIds = [...new Set(productDetails.map(pd => pd.size_id))];
-
-        // 2. Fetch thông tin màu
-        const colorsRes = await Promise.all(
-          uniqueColorIds.map(id =>
-            axios.get(`${BASE_URL}/api/color/${id}`)
-              .then(res => ({ id, name: res.data.name }))
-              .catch(error => {
-                console.error("Lỗi lấy ColorId: ", error);
-                return null;
-              })
-          )
-        );
-
-        const sizesRes = await Promise.all(
-          uniqueSizeIds.map(id =>
-            axios.get(`${BASE_URL}/api/size/${id}`)
-              .then(res => ({ id, name: res.data.name }))
-              .catch(error => {
-                console.error("Lỗi lấy SizeId: ", error);
-                return null;
-              })
-          )
-        );
-
-        // Chuyển đổi thông tin từ màu sắc và kích cỡ thành Map
-        const colorMap = new Map(colorsRes.filter(Boolean).map(c => [c.id, c]));
-        const sizeMap = new Map(sizesRes.filter(Boolean).map(s => [s.id, s]));
-
-        console.log("Màu sắc không trùng:", Array.from(colorMap.values()));
-        console.log("Size không trùng:", Array.from(sizeMap.values()));
-
-        // 4. Lấy ảnh & product
-        let [imageData, productData] = await Promise.all([
-          axios.get(`${BASE_URL}/api/image/productId/${product_id}`),
-          axios.get(`${BASE_URL}/api/product/${product_id}`)
-        ]);
-
-        const images = imageData.data;
-        const product = productData.data;
-
-        // 5. Lấy category, brand, discount
-        const [categoryData, brandData, discountData] = await Promise.all([
-          axios.get(`${BASE_URL}/api/category/${product.category_id}`),
-          axios.get(`${BASE_URL}/api/brand/${product.brand_id}`),
-          axios.get(`${BASE_URL}/api/discount/${product.discount_id}`)
-        ]);
-
-        const category = categoryData.data;
-        const brand = brandData.data;
-        const discount = discountData.data;
-
-        // 6. Map ảnh
-        const imageMap = new Map();
-        images.forEach(img => {
-          if (!imageMap.has(img.product_id)) {
-            imageMap.set(img.product_id, []);
-          }
-          imageMap.get(img.product_id).push(img.url);
-        });
-
-        // 7. Map chi tiết sản phẩm
-        const productMap = new Map();
-        productDetails.forEach(detail => {
-          const colorName = colorMap.get(detail.color_id);
-          const sizeName = sizeMap.get(detail.size_id);
-          if (!productMap.has(detail.product_id)) {
-            productMap.set(detail.product_id, {
-              product_id: detail.product_id,
-              product_name: product.name,
-              category_name: category.name,
-              category_description: category.description,
-              brand_name: brand.name,
-              brand_description: brand.description,
-              brand_website: brand.website,
-              discount_id: discount._id,
-              discount_name: discount.name,
-              discount_value: discount.value,
-              discount_description: discount.description,
-              colors: [],
-              sizes: [],
-              images: imageMap.get(detail.product_id) || [],
-              stock: detail.stock,
-              price_selling: product.price_selling,
-              price_afterdiscount: product.price_afterdiscount,
-              product_desciption: product.description,
-              product_status: product.status,
-              sale: product.price_afterdiscount !== product.price_selling,
-            });
-          }
-
-          const productData = productMap.get(detail.product_id);
-          if (colorName && !productData.colors.includes(colorName)) productData.colors.push(colorName);
-          if (sizeName && !productData.sizes.includes(sizeName)) productData.sizes.push(sizeName);
-        });
-
-        const productList = Array.from(productMap.values());
-        productDetail.value = productList;
-        console.log("Chi tiết sản phẩm đã xử lý:", productDetail);
-        // console.log("Id của color đầu tiên trong productDetail:", productDetail.sizes.id);
-
-
-
-      } catch (error) {
-        console.error("Lỗi khi fetch chi tiết sản phẩm:", error);
+    const gotoProductDetail = (id) => {
+      if (route.params.id !== id) {
+        router.push({ name: 'productDetail2', params: { id } });
+      } else {
+        fetchProductDetails();
       }
-    }
-
+    };
 
     const addCart = async () => {
       let customerId = null;
@@ -361,8 +277,8 @@ export default {
       console.log("Giá trị của selectedSize được chọn: ", selectedSize.value);
       try {
         const response = await axios.get(`${BASE_URL}/api/productDetail/productId/${product_id}`);
-        const productDetails = response.data;
-        const productDetail_match = productDetails.find(item => item.color_id === selectedColor.value && item.size_id === selectedSize.value);
+        const productDetailsData = response.data;
+        const productDetail_match = productDetailsData.find(item => item.color_id === selectedColor.value && item.size_id === selectedSize.value);
         if (!productDetail_match) {
           await Swal.fire("Không tìm thấy", "Không tìm thấy bản ghi sản phẩm phù hợp", "error");
           return;
@@ -384,6 +300,11 @@ export default {
         try {
           const response_cart = await axios.post(`${BASE_URL}/api/cart`, cart);
           await Swal.fire('Thông báo!', response_cart.data.message, 'success');
+        selectedSize.value = null;
+          selectedColor.value = null;
+
+          console.log("Giá trị của selectedSize: ", selectSize.value);
+          console.log("Giá trị của selectedColor: ", selectColor.value);
         }
         catch (error) {
           console.log("Lỗi khi thêm sản phẩm:", error);
@@ -395,19 +316,175 @@ export default {
       }
     }
 
-    onMounted(
-      fetchProductDetail,
 
-    );
+    const fetchProductDetails = async () => {
+      try {
+        const product_id = route.params.id;
+        const response = await axios.get(`${BASE_URL}/api/productDetail`);
+        // console.log("Giá trị của response.data: ", response.data);
+        // let productDetailsData = response.data.filter(p => p.stock >0);
+
+        const [productsResponse, colorsResponse, sizesResponse, imagesResponse, discountsResponse, brandsResponse, categorysResponse] = await Promise.all([
+          axios.get(`${BASE_URL}/api/product`),
+          axios.get(`${BASE_URL}/api/color`),
+          axios.get(`${BASE_URL}/api/size`),
+          axios.get(`${BASE_URL}/api/image`),
+          axios.get(`${BASE_URL}/api/discount`),
+          axios.get(`${BASE_URL}/api/brand`),
+          axios.get(`${BASE_URL}/api/category`)
+        ]);
+
+        const products = productsResponse.data;
+        const colors = colorsResponse.data;
+        const sizes = sizesResponse.data;
+        const images = imagesResponse.data;
+        const discounts = discountsResponse.data;
+        const brands = brandsResponse.data;
+        const categorys = categorysResponse.data;
+
+        const productMap = new Map(products.map(p => [p._id, p]));
+        const colorMap = new Map(colors.map(c => [c._id, c]));
+        const sizeMap = new Map(sizes.map(s => [s._id, s]));
+        const imageMap = new Map();
+        const brandMap = new Map(brands.map(b => [b._id, b]));
+        const categoryMap = new Map(categorys.map(c => [c._id, c]));
+
+        images.forEach(img => {
+          if (!imageMap.has(img.product_id)) {
+            imageMap.set(img.product_id, [])
+          }
+          imageMap.get(img.product_id).push(img.url);
+        })
+
+        const discountMap = new Map(discounts.map(d => [d._id, d]));
+        let productDetailsRaw = response.data
+        const productDetailMap = new Map();
+        productDetailsRaw.forEach(detail => {
+          if (!productDetailMap.has(detail.product_id)) {
+            productDetailMap.set(detail.product_id, []);
+          }
+          productDetailMap.get(detail.product_id).push(detail);
+        })
+
+        const validProductIds = [];
+        for (const [productId, details] of productDetailMap.entries()) {
+          const product = productMap.get(productId);
+          if (!product || !product.isActive) continue;
+          const brand = brandMap.get(product.brand_id);
+          const category = categoryMap.get(product.category_id);
+          if (!brand || !brand.isActive || !category || !category.isActive) continue;
+          const hasStock = details.some(d => d.stock > 0);
+
+          if (hasStock) validProductIds.push(productId);
+          // if ((hasStock && sameBrand) || (hasStock && sameCate)) validProductIds.push(productId);
+        }
+
+        const productDetailsData = productDetailsRaw.filter(p => {
+          return validProductIds.includes(p.product_id) && p.stock > 0;
+        });
+
+        // console.log("Giá trị của productDetailsData: ", productDetailsData);
+        let groupByProducts = new Map();
+        productDetailsData.forEach(pd => {
+          const product = productMap.get(pd.product_id);
+          if (!product) return;
+
+          const discount = discountMap.get(product.discount_id);
+          const imageUrls = imageMap.get(pd.product_id);
+          const colorName = colorMap.get(pd.color_id);
+          const sizeName = sizeMap.get(pd.size_id);
+          const category = categoryMap.get(product.category_id);
+          const brand = brandMap.get(product.brand_id);
+
+          if (!groupByProducts.has(pd.product_id)) {
+            groupByProducts.set(pd.product_id, {
+              product_id: pd.product_id,
+              product_name: product.name,
+              price_selling: product.price_selling,
+              price_afterdiscount: product.price_afterdiscount || product.price_selling,
+              images: imageUrls || [],
+              colors: new Set(), // Dùng Set để tránh trùng lặp
+              sizes: new Set(),
+              sale: product.price_selling !== product.price_afterdiscount,
+              isActive: product.isActive,
+              category_name: category.name,
+              category_description: category.description,
+              brand_name: brand.name,
+              brand_description: brand.description,
+              brand_website: brand.website,
+              product_desciption: product.description,
+              product_isActive: product.isActive,
+              discount_id: discount?._id || null,
+              discount_name: discount?.name || null,
+              discount_value: discount?.value || 0,
+              discount_description: discount?.description,
+            })
+          }
+
+          const productData = groupByProducts.get(pd.product_id);
+          if (colorName) productData.colors.add(colorName);
+          if (sizeName) productData.sizes.add(sizeName);
+
+        });
+
+        //Chuyển set thành mảng
+        const productList = Array.from(groupByProducts.values()).map(product => ({
+          ...product,
+          colors: Array.from(product.colors),
+          sizes: Array.from(product.sizes),
+        }));
+
+        // console.log("Giá trị của productList: ", productList);
+
+        const product = productList.find(p => p.product_id === product_id);
+        productDetailSelect.value = product ? { ...product } : null;
+        // // productDetailSelect.value = productList.find(p => p.product_id === product_id);
+        console.log("Giá trị của productDetailSelect: ", productDetailSelect.value);
+        // console.log("Giá trị của productDetailSelect.product_name: ", productDetailSelect.value.product_name);
+
+        if (productDetailSelect.value) {
+          productDetails.value = productList.filter(p =>
+            p.category_name === productDetailSelect.value.category_name ||
+            p.brand_name === productDetailSelect.value.brand_name
+          );
+          console.log("productDetails trong fetchProductDetails : ", productDetails.value);
+        } else {
+          console.warn("Không tìm thấy productDetailSelect theo product_id:", product_id);
+        }
+
+      } catch (error) {
+        console.error("Lỗi khi lấy danh sách chi tiết sản phẩm:", error);
+      }
+    }
+
+    watch(() => route.params.id, (newId, oldId) => {
+      if (newId !== oldId) {
+        fetchProductDetails();
+      }
+    });
+
+
+    watch(productDetailSelect, (newVal) => {
+      console.log('productDetailSelect đã thay đổi: ', newVal);
+    });
+
+    onBeforeRouteUpdate((to, from, next) => {
+      if (to.params.id !== from.params.id) {
+        fetchProductDetails(); // có thể dùng to.params.id luôn
+      }
+      next();
+    });
+    onMounted(() => {
+      fetchProductDetails();
+    })
+
 
     return {
       formatCurrency,
       BASE_URL,
-      fetchProductDetail,
       productSortByDiscount,
       product,
       product_id,
-      productDetail,
       showImageIndex,
       selectedImageIndex,
       selectColor,
@@ -419,7 +496,11 @@ export default {
       isOpen,
       toggleSection,
       product,
-      addCart
+      addCart,
+      fetchProductDetails,
+      productDetails,
+      gotoProductDetail,
+      productDetailSelect
     }
   }
 }
@@ -550,6 +631,11 @@ export default {
 .new-price {
   color: red;
   font-size: 22px;
+  font-weight: bold;
+}
+.new-price2 {
+  color: red;
+  font-size: 18px;
   font-weight: bold;
 }
 

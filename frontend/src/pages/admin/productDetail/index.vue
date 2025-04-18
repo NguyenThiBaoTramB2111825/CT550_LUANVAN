@@ -322,10 +322,6 @@ export default {
       products,
       colors,
       sizes,
-      // getDuplicateCountByProduct,
-      // isFirstOfProduct,
-      // getDuplicateCountByColor,
-      // isFirstOfColor,
       groupedData
     }
   }
