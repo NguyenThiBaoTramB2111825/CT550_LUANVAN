@@ -17,8 +17,12 @@ class OrderService {
     }
 
     async extractOrderData(payload) {
+        const dateCreated = new Date();
+        const expectedDeliveryDate = new Date(dateCreated);
+        expectedDeliveryDate.setDate(expectedDeliveryDate.getDate() + 3);
         const order = {
             customer_id: ObjectId.isValid(payload.customer_id) ? new ObjectId(payload.customer_id) : undefined,
+            customer_name: '',
             items: [],
             shippingFee: payload.shippingFee ? parseFloat(payload.shippingFee) : 0,
             discount_id: ObjectId.isValid(payload.discount_id) ? new ObjectId(payload.discount_id) : undefined,
@@ -26,7 +30,11 @@ class OrderService {
             discount_value: 0,
             totalPrice: 0, // sẽ tính lại bên dưới
             status: payload.status || "Pending",
-            dateCreated: new Date(),
+            // dateCreated: new Date(),
+            // expectedDeliveryDate: dateCreated.getDate() + 3,
+            // deliveryDate  : new Date(),
+            dateCreated: dateCreated,
+            expectedDeliveryDate: expectedDeliveryDate,
             approvedBy: ObjectId.isValid(payload.approvedBy) ? new ObjectId(payload.approvedBy) : undefined,
             approvedDate: payload.approvedDate ? new Date(payload.approvedDate) : undefined,
             updatedBy: ObjectId.isValid(payload.updatedBy) ? new ObjectId(payload.updatedBy) : undefined,
@@ -36,7 +44,9 @@ class OrderService {
             deliveryStatus: payload.deliveryStatus || "Pending", //"Pending", "Shipped", "Delivered", "Cancelled"
             address_id: ObjectId.isValid(payload.address_id) ? new ObjectId(payload.address_id) : undefined,
             transaction_id: payload.transaction_id || null,
-            admin_note: payload.admin_note || ""
+            admin_note: payload.admin_note || "",
+            reasonCancel : '',
+            
 
         };
         let totalPrice = 0;
@@ -97,7 +107,8 @@ class OrderService {
                 order.discount_name = existingDiscount.name;
             }
         };
-            
+        const customer = await this.Customer.findOne({ _id: new ObjectId(payload.customer_id) });
+        order.customer_name = customer.name;
         order.items = order.items.filter(item => item !== null);
         order.totalPrice = totalPrice + order.shippingFee - order.discount_value;
 
@@ -194,6 +205,7 @@ class OrderService {
         }
 
         const allowedUpdates = [
+            "reasonCancel",
             "deliveryStatus",
             "paymentStatus",
             "status",
@@ -232,6 +244,16 @@ class OrderService {
             updateFields.updatedBy = new ObjectId(updateData.updatedBy);
         }
 
+        if (
+        (updateFields.deliveryStatus === "Delivered" || updateData.deliveryStatus === "Delivered") &&
+        (updateFields.paymentStatus === "Paid" || updateData.paymentStatus === "Paid")
+    ) {
+        updateFields.deliveryDate = new Date(); // ngày nhận hàng thực tế
+        }
+//         if (updateData.deliveryStatus === "Delivered") {
+//     updateFields.deliveryDate = new Date(); // Lưu thời điểm giao hàng
+// }
+
         const result = await this.Order.updateOne(
             { _id: existingOrder._id },
             {
@@ -253,6 +275,19 @@ class OrderService {
         result = await this.Order.findOneAndDelete(filter);
         return { ...result, message: "Đã xóa thành công" };
         
+    }
+
+    // async findByName(name) {
+    //     return await this.find({
+    //         name: {
+    //             $regex: new RegExp(`.*${name}.*`, "i") 
+    //         }
+    //     });
+    // }
+    async findByName(name) {
+        return await this.find({
+            name: { $regex: new RegExp(`.*${name}.*`, "i") }
+        });
     }
 
     async deleteAll() {

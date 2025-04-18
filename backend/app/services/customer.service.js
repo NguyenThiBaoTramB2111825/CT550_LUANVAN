@@ -219,7 +219,5 @@ class customerService {
             throw error;
         }
     };
-    
-
 }
 module.exports = customerService;

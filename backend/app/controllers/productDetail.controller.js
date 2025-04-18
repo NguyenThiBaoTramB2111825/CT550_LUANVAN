@@ -14,10 +14,6 @@ exports.create = async (req, res, next) => {
     if (!req.body?.size_id) {
         return next(new ApiError(400, "Không thể để trống tên size_id"));
     }
-    // console.log("Giá trị nhận được từ body ban đầu: req.body.product_id: ", req.body.product_id);
-    // console.log("Giá trị nhận được từ body ban đầu: req.body.color_id: ", req.body.color_id);
-    // console.log("Giá trị nhận được từ body ban đầu: req.body.size_id: ", req.body.size_id);
-
 
     try {
         const productDetailService = new ProductDetailService(MongoDB.client);
@@ -53,7 +49,6 @@ exports.findAll = async (req, res, next) => {
 };
 
 exports.findById = async (req, res, next) => {
-    
     try {
         const productDetailService = new ProductDetailService(MongoDB.client);
         const document = await productDetailService.findById(req.params.id);
@@ -67,7 +62,6 @@ exports.findById = async (req, res, next) => {
             new ApiError(500, "Lỗi truy xuất dữ liệu")
         )
     }
-    
 };
 
 exports.findByProductId = async (req, res, next) => {

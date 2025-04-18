@@ -73,6 +73,19 @@ exports.findById = async (req, res, next) => {
     
 };
 
+exports.findByName = async (req, res, next) => {
+    try {
+        const orderService = new OrderService(MongoDB.client);
+        const document = await orderService.findByName(req.params.name);
+        if (document.statusCode == 400) {
+            return res.status(400).json({ message: document.message });
+        }
+        return res.send(document);
+    } catch (error) {
+        return res.send({ message: error.message });
+    };
+};
+
 // exports.findOne = async (req, res, next) => {
 //     try {
 //         const orderService = new OrderService(MongoDB.client);

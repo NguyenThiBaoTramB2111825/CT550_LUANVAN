@@ -1,7 +1,7 @@
 const ApiError = require("../api-error");
 const MongoDB = require("../utils/mongodb.util");
 const CartService = require("../services/cart.service");
-
+const { getSocket } = require("../../socket");
 const { ObjectId } = require("mongodb");
 
 exports.create = async (req, res, next) => {
@@ -21,6 +21,7 @@ exports.create = async (req, res, next) => {
         if (document.statusCode !== 200) {
             return res.status(document.statusCode).json({ message: document.message });
         }
+        getSocket().emit("cart_update", { action: "create", data: document });
         return res.send({
             message: document.message,
             data: document.data
@@ -127,6 +128,7 @@ exports.update = async (req, res, next) => {
         if (document.statusCode && document.statusCode !== 200) {
             return next(new ApiError(document.statusCode, document.message));
         }
+        getSocket().emit("cart_update", { action: "update", data: document });
         return res.send({
             message: document.message,
             data: document.data
@@ -147,6 +149,7 @@ exports.delete = async (req, res, next) => {
         if (document.statusCode == 404) {
             return next(new ApiError(document.statusCode, document.message));
         }
+        getSocket().emit("cart_update", { action: "delete", data: { _id: req.params.id } });
         return res.send({ message: "cart đã được xóa thành công" });
     }
     catch (error) {
@@ -163,7 +166,8 @@ exports.removeCartItem = async (req, res, next) => {
         const cartService = new CartService(MongoDB.client);
         const document = await cartService.removeCartItem(req.params.customerId, req.params.productDetail_id);
         console.log("Giá trị của document sau khi gọi delete: ", document);
-
+       
+        getSocket().emit("cart_update", { action: "delete_cartItem", data: { _id: req.params.customerId } });
         if (document.statusCode == 404) {
             return next(new ApiError(document.statusCode, document.message));
         }

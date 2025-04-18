@@ -183,12 +183,10 @@ exports.update = [
                 return next(new ApiError(document.statusCode, document.message));
             }
 
-            return res.send({ message: "Customer was updated successfully" });
+            return res.send({ message: "Customer was updated successfully", data: document});
 
         } catch (error) {
-            return next(
-                new ApiError(500, `Error updating customer with id=${id}`)
-            );
+            return res.send({ message: error.message });
         }
     }
 ]
