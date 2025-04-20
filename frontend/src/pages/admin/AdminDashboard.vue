@@ -142,9 +142,9 @@ export default {
       storemanagersLength,
       warehouseLength,
       cards,
-    };
-  },
-};
+    }
+  }
+}
 </script>
 
 <style scoped>

@@ -1,15 +1,14 @@
 <template>
     <p><strong>Khảo sát doanh thu theo năm:</strong></p>
     <select v-model="selectedYear" @change="fetchRevenueByYear">
-  <option v-for="year in availableYears" :key="year" :value="year">
-    {{ year }}
-  </option>
-</select>
+      <option v-for="year in availableYears" :key="year" :value="year">
+        {{ year }}
+      </option>
+    </select>
 
-
-  <div>
-    <Line :data="chartData" :options="chartOptions" />
-  </div>
+    <div>
+      <Line :data="chartData" :options="chartOptions" />
+    </div>
 </template>
 
 <script>
@@ -34,23 +33,23 @@ const BASE_URL = "http://localhost:3000";
 export default {
   components: { Line },
   setup() {
-    const selectedYear = ref(new Date().getFullYear()); 
-    const availableYears = ref([ 2024, 2025, 2026]);
+    const selectedYear = ref(new Date().getFullYear());
+    const availableYears = ref([2024, 2025, 2026]);
     const revenueData = ref([]);
 
     const chartData = computed(() => ({
-    labels: revenueData.value.map(item => item.label),
-    datasets: [
+      labels: revenueData.value.map(item => item.label),
+      datasets: [
         {
-        label: 'Doanh thu',
-        data: revenueData.value.map(item => item.total),
-        fill: false,
-        borderColor: '#42A5F5',
-        tension: 0.4,
-        pointRadius: 5,
-        pointHoverRadius: 7
+          label: 'Doanh thu',
+          data: revenueData.value.map(item => item.total),
+          fill: false,
+          borderColor: '#42A5F5',
+          tension: 0.4,
+          pointRadius: 5,
+          pointHoverRadius: 7
         }
-    ]
+      ]
     }));
 
     const chartOptions = {
@@ -84,31 +83,31 @@ export default {
           const date = new Date(order.dateCreated);
           const year = date.getFullYear();
           const month = (date.getMonth() + 1).toString().padStart(2, '0');
-        //   const key = `${year}-${month}`; // ví dụ: '2025-04'
+          //   const key = `${year}-${month}`; // ví dụ: '2025-04'
 
 
-        if (year === selectedYear.value) {
-           const  key = `${year}-${month}`;
+          if (year === selectedYear.value) {
+            const key = `${year}-${month}`;
             if (!revenueMap[key]) {
-            revenueMap[key] = 0;
+              revenueMap[key] = 0;
             }
             revenueMap[key] += order.totalPrice;
+          }
         }
-        }
-    });
+      });
 
 
-    console.log("Giá trị của revenueMap: ", revenueMap);
-    const year = selectedYear.value;
-    let allMonths = Array.from({ length: 12 }, (_, i) => {
+      console.log("Giá trị của revenueMap: ", revenueMap);
+      const year = selectedYear.value;
+      let allMonths = Array.from({ length: 12 }, (_, i) => {
         const month = (i + 1).toString().padStart(2, '0');
         return `${year}-${month}`;
-        });
-        allMonths.forEach(month => {
-            if (!revenueMap[month]) {
-                revenueMap[month] = 0;
-            }
-    });
+      });
+      allMonths.forEach(month => {
+        if (!revenueMap[month]) {
+          revenueMap[month] = 0;
+        }
+      });
       const result = Object.entries(revenueMap)
         .sort(([a], [b]) => a.localeCompare(b))
         .map(([label, total]) => ({
@@ -117,14 +116,14 @@ export default {
         }));
 
       revenueData.value = result;
-        console.log("Giá trị của revenueData: ", revenueData.value);
+      console.log("Giá trị của revenueData: ", revenueData.value);
       chartData.labels = result.map(item => item.label);
       chartData.datasets = result.map(item => item.total);
     };
 
 
     watch(selectedYear, () => {
-         fetchRevenueByYear();
+      fetchRevenueByYear();
     });
 
     onMounted(() => {
@@ -138,8 +137,8 @@ export default {
       selectedYear,
       availableYears,
     }
-    }
-    }
+  }
+}
 </script>
 
 <style scoped>

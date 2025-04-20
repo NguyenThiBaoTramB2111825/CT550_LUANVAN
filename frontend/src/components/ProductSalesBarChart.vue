@@ -138,11 +138,9 @@ export default {
 
         const fetchSalesData = async () => {
             if (selectedRange.value === 'custom') {
-                if (!customFrom.value || !customTo.value) 
-                {  Swal.fire("Thông báo!", "Vui lòng điền đẩy đủ khoảng thời gian", "warning"); }
-                if (customFrom.value > customTo.value)
-                {
-                 Swal.fire("Thông báo!", "Ngày bắt đầu phải trước ngày kết thúc!", "warning")
+                if (!customFrom.value || !customTo.value) { Swal.fire("Thông báo!", "Vui lòng điền đẩy đủ khoảng thời gian", "warning"); }
+                if (customFrom.value > customTo.value) {
+                    Swal.fire("Thông báo!", "Ngày bắt đầu phải trước ngày kết thúc!", "warning")
                 }
             }
             try {
@@ -203,10 +201,6 @@ export default {
     }
 }
 </script>
-
-
 <style scoped>
-/* div{
-    background-color: rgb(124, 174, 200);
-} */
+
 </style>
