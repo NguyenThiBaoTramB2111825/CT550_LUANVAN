@@ -134,12 +134,10 @@ class ProductService {
             }
         }
 
-        // Kiểm tra nếu không có dữ liệu mới để cập nhật
         if (Object.keys(update).length === 0) {
             return { statusCode: 400, message: "Không có dữ liệu mới nào để cập nhật" };
         }
 
-        // Kiểm tra trùng lặp tên sản phẩm
         if (update.name) {
             const duplicate = await this.Product.findOne({ _id: { $ne: productId }, name: update.name });
             if (duplicate) {
@@ -147,7 +145,6 @@ class ProductService {
             }
         }
 
-        // Kiểm tra danh mục hợp lệ
         if (update.category_id && ObjectId.isValid(update.category_id)) {
             const category = await this.Category.findOne({ _id: new ObjectId(update.category_id) });
             if (!category) {
@@ -155,7 +152,6 @@ class ProductService {
             }
         }
 
-        // Kiểm tra thương hiệu hợp lệ
         if (update.brand_id && ObjectId.isValid(update.brand_id)) {
             const brand = await this.Brand.findOne({ _id: new ObjectId(update.brand_id) });
             if (!brand) {
@@ -167,26 +163,23 @@ class ProductService {
             return { statusCode: 400, message: "Giá bán không hợp lệ" }
         }
 
-        // Kiểm tra khuyến mãi hợp lệ
-        if (update.discount_id && ObjectId.isValid(update.discount_id)) {
-            const discount = await this.Discount.findOne({ _id: new ObjectId(update.discount_id) });
+        let discountIdToUse = update.discount_id ?? existingProduct.discount_id;
+        let discount = null;
+
+        if (discountIdToUse && ObjectId.isValid(discountIdToUse)) {
+            discount = await this.Discount.findOne({ _id: new ObjectId(discountIdToUse) });
             if (!discount) {
                 return { statusCode: 400, message: "Khuyến mãi không tồn tại" };
             }
-
-            // Nếu discount còn hiệu lực, tính lại giá sau giảm
-            if (discount.isActive) {
-                update.price_afterdiscount = discount.type === "percentage"
-                    ? (update.price_selling || existingProduct.price_selling) * (1 - discount.value / 100)
-                    : (update.price_selling || existingProduct.price_selling) - discount.value;
-
-                update.price_afterdiscount = Math.max(0, update.price_afterdiscount);
-            } else {
-                update.price_afterdiscount = update.price_selling || existingProduct.price_selling;
-            }
         }
-        else {
-            update.price_afterdiscount = update.price_selling || existingProduct.price_selling;
+
+        if (discount && discount.isActive) {
+            update.price_afterdiscount = price_selling * (discount.type === "percentage"
+                ? (1 - discount.value / 100)
+                : 1) - (discount.type === "amount" ? discount.value : 0);
+            update.price_afterdiscount = Math.max(0, update.price_afterdiscount);
+        } else {
+            update.price_afterdiscount = price_selling;
         }
 
         try {
@@ -206,7 +199,6 @@ class ProductService {
             return { statusCode: 500, message: "Lỗi server", error: error.message };
         }
     }
-
 
     async delete(id) {
         if (!ObjectId.isValid(id)) return { message: "ID không hợp lệ" };

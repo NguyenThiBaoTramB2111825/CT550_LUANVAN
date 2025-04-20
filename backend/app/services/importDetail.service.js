@@ -2,9 +2,11 @@
 const { ObjectId, ReturnDocument } = require("mongodb");
 const ApiError = require("../api-error");
 const MongoDB = require("../utils/mongodb.util");
+const ProductService = require("../services/product.service");
 class ImportDetailService{
     constructor() {
         this.ProductDetail = MongoDB.getClient().db().collection("productDetail");
+        this.Product = MongoDB.getClient().db().collection("product");
         this.Supplier = MongoDB.getClient().db().collection("supplier");
         this.ImportDetail = MongoDB.getClient().db().collection("importDetail");
     }
@@ -56,16 +58,57 @@ class ImportDetailService{
         return importDetail;
     }
 
+    async updateProductPrice(productId) {
+        try {
+            const productDetails = await this.ProductDetail.find({ product_id: productId }).toArray();
+            const detailIds = productDetails.map(item => item._id);
+
+            if (!detailIds.length) {
+                console.warn("Không có productDetail nào thuộc product này.");
+                return null;
+            }
+
+            const stats = await this.ImportDetail.aggregate([
+                { $match: { productDetail_id: { $in: detailIds } } },
+                {
+                    $group: {
+                        _id: null,
+                        totalQuantity: { $sum: "$quantity" },
+                        totalCost: { $sum: { $multiply: ["$quantity", "$price_import"] } }
+                    }
+                }
+            ]).toArray();
+
+            const { totalQuantity, totalCost } = stats[0] || { totalQuantity: 0, totalCost: 0 };
+            const avgImportPrice = totalQuantity > 0 ? totalCost / totalQuantity : 0;
+
+            const profitRate = 0.5; 
+            const sellingPrice = Math.round(avgImportPrice * (1 + profitRate));
+
+            const productService = new ProductService(MongoDB.client);
+           await productService.update(productId, { price_selling: sellingPrice });
+
+            return {sellingPrice };
+        } catch (error) {
+            console.error("Lỗi khi cập nhật giá sản phẩm:", error);
+            throw new Error("Không thể cập nhật giá sản phẩm");
+        }
+    }
+
     async create(req, payload) {
         try {
             const importDetail = this.extractImportDetailData(payload);
             console.log("Giá trị sau khi extract: ", importDetail);
-            const productDetailId = await this.ProductDetail.findOne({ _id: importDetail.productDetail_id });
-            if (!productDetailId) {
-                return { statusCode: 400, message: "ProductDetailId không tồn tại" };
+            const productDetail = await this.ProductDetail.findOne({ _id: importDetail.productDetail_id });
+            if (!productDetail) {
+                return { statusCode: 400, message: "ProductDetail không tồn tại" };
             }
-            console.log("Giá trị của productDetailId sau khi được tìm thấy: ", productDetailId);
+            console.log("Giá trị của productDetail sau khi được tìm thấy: ", productDetail);
 
+            const productId = productDetail.product_id;
+            if (!productId) {
+                return { statusCode: 400, message: "Product không tồn tại" };
+            }
             const supplierId = await this.Supplier.findOne({ _id: importDetail.supplier_id });
             if (!supplierId) {
                 return { statusCode: 404, message: "SupplierId không tồn tại" };
@@ -84,9 +127,19 @@ class ImportDetailService{
                 { $inc: { stock: importDetail.quantity } }
             );
 
-            return { statusCode: 200, _id: result.insertedId, ...importDetail };
+            const updateResult = await this.updateProductPrice(productId);
+          
+            return {
+                statusCode: 200,
+                message: "Tạo thành công",
+                _id: result.insertedId,
+                importDetail,
+                priceUpdated: updateResult
+            };
+
         } catch (error) {
-             throw new Error(`Lỗi truy vấn sản phẩm: ${error.message}`);
+            console.error("Lỗi khi tạo import detail:", error);
+            throw new Error(`Lỗi khi tạo chi tiết nhập hàng: ${error.message}`);
         }
     }
 

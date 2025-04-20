@@ -121,7 +121,7 @@ exports.update = async (req, res, next) => {
         if (document.statusCode && document.statusCode !== 200) {
             return next(new ApiError(document.statusCode, document.message));
         }
-                getSocket().emit("importDetail_update", { action: 'update', data: document });
+            getSocket().emit("importDetail_update", { action: 'update', data: document });
         return res.send({
             message:document.message,
             data: document.data

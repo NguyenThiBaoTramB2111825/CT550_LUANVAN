@@ -30,9 +30,6 @@ class OrderService {
             discount_value: 0,
             totalPrice: 0, // sẽ tính lại bên dưới
             status: payload.status || "Pending",
-            // dateCreated: new Date(),
-            // expectedDeliveryDate: dateCreated.getDate() + 3,
-            // deliveryDate  : new Date(),
             dateCreated: dateCreated,
             expectedDeliveryDate: expectedDeliveryDate,
             approvedBy: ObjectId.isValid(payload.approvedBy) ? new ObjectId(payload.approvedBy) : undefined,

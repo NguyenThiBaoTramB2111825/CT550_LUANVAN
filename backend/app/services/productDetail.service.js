@@ -52,7 +52,7 @@ class ProductDetailService{
 
             if (existingProductDetail) {
                 return {
-                    statusCode: 400, message: "ProductDetail đã tồn tại do product_id, color_id và size_id đã được sử dụng"
+                    statusCode: 400, message: "Chi tiết sản phẩm đã tồn tại"
                 }
             }
 

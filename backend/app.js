@@ -34,6 +34,7 @@ const dicstrictRouter = require("./app/routes/district.route");
 const wardRouter = require("./app/routes/ward.route");
 const payRouter = require("./app/routes/pay.route");
 const { ppid } = require("process");
+const reportRouter = require("./app/routes/report.route");
 
 app.use(cors());
 app.use(express.json());
@@ -60,6 +61,7 @@ app.use("/api/province", provinceRouter);
 app.use("/api/district", dicstrictRouter);
 app.use("/api/ward", wardRouter);
 app.use("/api/pay", payRouter);
+app.use("/api/report", reportRouter);
 
 // cho phép serve thư mục 'uploads' client truy cập ảnh
 app.use('/uploads', express.static(path.join(__dirname, 'app','uploads')));
@@ -67,22 +69,6 @@ app.get("/", (req, res) => {
     res.json({ message: "well come to fashion shop application." });
 });
 
-// app.post("/api/send-otp", async (req, res) => {
-//     const { phone } = req.body;
-//     const otp = Math.floor(100000 + Math.random() * 900000);
-//     const expiresAt = Date.now() + 5 * 60 * 1000; // Hết hạn sau 5 phút
-
-//     try {
-//       await sendOTP(phone, otp);
-//       await sendOTP('+84855191708', '123456');
-//         otpStorage[phone] = { otp, expiresAt };
-//         console.log("Giá trị của otp: ", otp);
-//         res.json({ success: true, message: 'Đã gửi OTP' });
-//     } catch (err) {
-//         console.error('Gửi OTP thất bại:', err.message);
-//         res.status(500).json({ success: false, message: 'Không gửi được OTP' });
-//     }
-// })
 
 app.post("/api/send-otp", async (req, res) => {
   const { email } = req.body;
@@ -100,26 +86,6 @@ app.post("/api/send-otp", async (req, res) => {
   }
 });
 
-// app.post('/api/verify-otp', (req, res) => {
-//   const { phone, otp } = req.body;
-//   const record = otpStorage[phone];
-
-//   if (!record) {
-//     return res.status(400).json({ success: false, message: 'Chưa gửi OTP' });
-//   }
-
-//   if (Date.now() > record.expiresAt) {
-//     return res.status(400).json({ success: false, message: 'OTP đã hết hạn' });
-//   }
-
-//   if (record.otp != otp) {
-//     return res.status(400).json({ success: false, message: 'Mã OTP không đúng' });
-//   }
-
-//   // Nếu đúng:
-//   delete otpStorage[phone]; // Xoá OTP sau khi dùng
-//   res.json({ success: true, message: 'Xác thực thành công' });
-// });
 
 app.post("/api/verify-otp", (req, res) => {
   const { email, otp } = req.body;             
