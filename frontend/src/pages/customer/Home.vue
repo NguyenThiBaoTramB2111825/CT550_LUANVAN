@@ -116,7 +116,7 @@
         <button class="prev-btn align-items-center justify-content-center" @click="prevSlide" ><</button>
         <div class="product-slider d-flex">
           <div class="card mb-3 mx-1" v-for="product in visibleProducts "  :key="product.product_id">
-            <div class="product-image" style="height: 285px; width: 215px;">
+            <div @click="gotoProductDetail(product.product_id)" class="product-image" style="height: 285px; width: 215px;">
               <img v-if="product.images.length > 0" :src="`${BASE_URL}${product.images[0]}`" class="default-img">
               <img v-if="product.images.length > 1" :src="`${BASE_URL}${product.images[1]}`" class="hover-img">
             </div>
@@ -216,6 +216,7 @@ export default {
     })
 
     const visibleProducts = computed(() => {
+    
       return filteredProducts.value.slice(currentIndex.value, currentIndex.value + itemsPerPage);
     });
 
@@ -235,7 +236,7 @@ export default {
         const response = await axios.get(`${BASE_URL}/api/productDetail`);
         console.log("Giá trị của response.data: ", response.data);
         // let productDetailsData = response.data.filter(p => p.stock >0);
-    
+
         const [productsResponse, colorsResponse, sizesResponse, imagesResponse, discountsResponse, brandsResponse, categorysResponse] = await Promise.all([
           axios.get(`${BASE_URL}/api/product`),  // Lấy toàn bộ sản phẩm
           axios.get(`${BASE_URL}/api/color`),    // Lấy toàn bộ màu sắc
@@ -270,7 +271,7 @@ export default {
 
         const discountMap = new Map(discounts.map(d => [d._id, d]));
 
-      let productDetailsRaw = response.data
+        let productDetailsRaw = response.data
         // let productDetailsData = response.data.filter(p => {
         //   if (p.stock < 1) return false;
 
@@ -285,21 +286,21 @@ export default {
         // });
 
         const productDetailMap = new Map();
-          productDetailsRaw.forEach(detail => {
-            if (!productDetailMap.has(detail.product_id)) {
-              productDetailMap.set(detail.product_id, []);
-            }
-            productDetailMap.get(detail.product_id).push(detail);
-          })
+        productDetailsRaw.forEach(detail => {
+          if (!productDetailMap.has(detail.product_id)) {
+            productDetailMap.set(detail.product_id, []);
+          }
+          productDetailMap.get(detail.product_id).push(detail);
+        })
 
         const validProductIds = [];
         for (const [productId, details] of productDetailMap.entries()) {
           const product = productMap.get(productId);
           if (!product || !product.isActive) continue;
-            const brand = brandMap.get(product.brand_id);
-            const category = categoryMap.get(product.category_id);
+          const brand = brandMap.get(product.brand_id);
+          const category = categoryMap.get(product.category_id);
           if (!brand || !brand.isActive || !category || !category.isActive) continue;
-            const hasStock = details.some(d => d.stock > 0);
+          const hasStock = details.some(d => d.stock > 0);
           if (hasStock) validProductIds.push(productId);
         }
 
@@ -376,18 +377,25 @@ export default {
         console.error("Lỗi khi lấy danh sách chi tiết sản phẩm:", error);
       }
     }
-       onMounted(async () => {
+
+    const goToDiscountFilter_home = (discountId) => {
+      router.push({
+        name: 'filter',
+        query: { discount: discountId }
+      });
+    };
+    onMounted(async () => {
       await fetchProductDetails(),
         socket.on('productDetail_update', async ({ action }) => {
           if (["create", "update", "delete", "soft_delete"].includes(action)) {
             await fetchProductDetails();
           }
         })
-        socket.on('product_update', async ({ action }) => {
-          if (["create", "update", "delete", "soft_delete"].includes(action)) {
-            await fetchProductDetails();
-          }
-        })
+      socket.on('product_update', async ({ action }) => {
+        if (["create", "update", "delete", "soft_delete"].includes(action)) {
+          await fetchProductDetails();
+        }
+      })
     });
     onUnmounted(() => {
       socket.off('productDetail_update');
@@ -407,7 +415,8 @@ export default {
       nextSlide,
       prevSlide,
       currentIndex,
-      gotoProductDetail
+      gotoProductDetail,
+      goToDiscountFilter_home
     }
   }
 }

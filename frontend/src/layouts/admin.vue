@@ -58,8 +58,8 @@ export default {
 
 <template>
 
-  <div class="d-flex vh-100 row">
-        <aside class="border-end" :class="{ 'collapsed': !menuStore.isMenuVisible}" :style="{width: menuStore.isMenuVisible ? '250px': '80px'}" >
+  <div class="d-flex vh-100">
+        <aside class="border-end  " :class="{ 'collapsed': !menuStore.isMenuVisible}" :style="{width: menuStore.isMenuVisible ? '250px': '60px'}" >
             <TheMenu />
         </aside>
 

@@ -8,7 +8,6 @@
             <input type="text" class="border rounded p-2" v-model="inputsearch" placeholder="Nhập tên sản phẩm">
         </div>
 
-
         <div v-for="product in filteredProductDetails" :key="product.product_id" class="mb-6 m-4">
           <p class="mt-2 m-0"><span class="fw-bold">Tên sản phẩm: </span>{{ product.product_name }}</p>
           <div v-for="color in product.colors" :key="color.color_id" class="">

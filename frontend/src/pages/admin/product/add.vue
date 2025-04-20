@@ -10,12 +10,12 @@
         </div>
         <div class="mb-3 d-flex">
             <label class="col-md-2">Mô tả</label>
-            <input type="text" v-model="product.description" class="form-control" required>
+            <input type="text" v-model="product.description" class="form-control">
         </div>
-        <div class="mb-3 d-flex">
+        <!-- <div class="mb-3 d-flex">
             <label class="col-md-2">Giá bán</label>
-            <input type="number" v-model="product.price_selling" class="form-control" required>
-        </div>
+            <input type="number" v-model="product.price_selling" class="form-control">
+        </div> -->
         <div class="mb-3 d-flex">
             <label class="col-md-2">Danh mục</label>
             <select v-model="product.category_id" class="form-control" required>
@@ -73,7 +73,7 @@ export default {
         const product = ref({
             name: '',
             description: '',
-            price_selling: '',
+            price_selling: null,
             brand_id: '',
             category_id: '',
             discount_id: '',
@@ -114,7 +114,7 @@ export default {
         }
                     
         const validateForm = () => {
-            if (!product.value.name || !product.value.description || !product.value.price_selling || !product.value.brand_id  || !product.value.category_id) {
+            if (!product.value.name|| !product.value.brand_id  || !product.value.category_id) {
                 Swal.fire("Lỗi", "Vui lòng điền đầy đủ thông tin!", "error");
                 return;
             }

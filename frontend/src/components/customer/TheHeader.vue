@@ -61,8 +61,8 @@
                 Thương hiệu
               </button>
               <ul class="dropdown-menu" aria-labelledby="BrandDropdown">
-                <li v-for="brand in brands" :key="brand.id">
-                  <a class="dropdown-item text-dark" href="#">{{ brand.name }}</a>
+                <li v-for="brand in brands" :key="brand._id">
+                  <a  @click.prevent="goToBrandFilter(brand._id)" class="dropdown-item text-dark" href="#">{{ brand.name }}</a>
                 </li>
               </ul>
             </li>
@@ -72,8 +72,8 @@
                 Danh mục
               </button>
               <ul class="dropdown-menu" aria-labelledby="CategoryDropdown">
-                <li v-for="category in categorys" :key="category.id">
-                  <a class="dropdown-item" href="#">{{ category.name }}</a>
+                <li v-for="category in categorys" :key="category._id">
+                  <a @click.prevent="goToCategory(category._id)" class="dropdown-item" href="#">{{ category.name }}</a>
                 </li>
               </ul>
             </li>
@@ -83,14 +83,14 @@
                 Khuyến mãi
               </button>
               <ul class="dropdown-menu" aria-labelledby="CategoryDropdown">
-                <li v-for="discount in discounts" :key="discount.id">
-                  <a class="dropdown-item" href="#">{{ discount.name }}</a>
+                <li v-for="discount in discounts" :key="discount._id">
+                  <a @click.prevent="goToDiscountFilter(discount._id)" class="dropdown-item" href="#">{{ discount.name }}</a>
                 </li>
               </ul>
             </li>
 
             <li class="nav-item"><a class="nav-link" @click="gotoOrderHistoryPage()">Xem lịch đơn hàng</a></li>
-            <li class="nav-item"><a class="nav-link" @click="gotofilterPage()">Lọc sản phẩm</a></li>
+            <!-- <li class="nav-item"><a class="nav-link" @click="gotofilterPage()">Lọc sản phẩm</a></li> -->
             <li class="nav-item"><a class="nav-link" @click="gotoAboutUs()">Về chúng tôi</a></li>
           </ul>
         </div>
@@ -191,6 +191,8 @@ export default {
         discounts.value = discountRes.data.filter(
           (dc) => dc.isActive && dc.type === "percentage"
         );
+
+        console.log("Giá trị của discounts: ", discounts.value);
       } catch (error) {
         console.error("Lỗi khi lấy dữ liệu:", error);
       }
@@ -278,6 +280,25 @@ export default {
       router.push({ name: "filter" });
     };
 
+    const goToCategory = (categoryId) => {
+      router.push({
+        name: 'filter',
+        query: { category: categoryId }
+      });
+    };
+    const goToBrandFilter = (brandId) => {
+      router.push({
+        name: 'filter',
+        query: { brand: brandId }
+      });
+    };
+    const goToDiscountFilter = (discountId) => {
+      router.push({
+        name: 'filter',
+        query: { discount: discountId }
+      });
+    };
+
     onMounted(() => {
       fetchInfomation();
       window.addEventListener('scroll', handleScroll);
@@ -326,8 +347,11 @@ export default {
       gotoOrderHistoryPage,
       cartLength, fetchCartLength,
       gotoProfilePage,
-      gotoAboutUs, 
-      gotofilterPage
+      gotoAboutUs,
+      gotofilterPage,
+      goToCategory,
+      goToDiscountFilter,
+      goToBrandFilter
     }
   }
 }

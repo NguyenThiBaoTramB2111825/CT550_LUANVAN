@@ -63,16 +63,7 @@ export default {
         const router = useRouter(); 
         const inputsearch = ref('');
         const brands = ref([]);
-
-        const fetchBrands = async () => {
-            try {
-                const response = await axios.get("http://127.0.0.1:3000/api/brand");
-                brands.value = response.data;
-                console.log("Giá trị của brands sau khi fetch: ", brands);
-            } catch (error) {
-                console.error("Lỗi khi lấy danh sách người dùng:", error);
-            }
-        };
+d
 
         const searchBrand = async()=> {
             if (inputsearch.value.trim() ===""){

@@ -50,6 +50,7 @@
                             <span v-if="product.hasImage"> <i class="fa-solid fa-eye"></i></span>
                             <span v-else><i class="fa-solid fa-upload"></i></span>
                     </button> 
+                    <button class="btn  btn-primary m-1" @click="productDetailInfo(product._id)"><i class="fa-solid fa-circle-info"></i></button> 
                     </td>
                     
                 </tr>
@@ -58,11 +59,14 @@
         <span>Tổng sản phẩm: {{totalProducts}}</span>
         
         <br>
-
         <div v-if="showModal" class="modal-overlay" @click="closeModal">
             <div class="modal-content" @click.stop>
+                <button class="btn-close-modal" @click="closeModal">
+                    <i class="fa-solid fa-xmark"></i>
+                </button>
+
                 <h5 class="text-center m-4"> {{ selectedProduct?.name }}</h5>
-                <div class="image-container m-4">
+                <div v-if="selectedImages && selectedImages.length > 0"  class="image-container m-4">
                     <div v-for="(image, index) in selectedImages" :key="image.id" class="image-wrapper">
                         <img :src="`${BASE_URL}${image.url}`" class="product-image">
                         <button class="delete-btn" @click="removeImage(image.id)">
@@ -71,15 +75,100 @@
                     </div>
                 </div>
 
+                <div v-else class="text-center text-muted m-4">
+                    <i class="fa-regular fa-image fa-2x mb-2"></i><br>
+                    Chưa có hình ảnh nào cho sản phẩm này.
+                </div>
                 <form @submit.prevent="uploadImages">
-                            <input ref="fileInput" type="file" multiple hidden @change="handleFileUpload">
+                    <input ref="fileInput" type="file" multiple hidden @change="handleFileUpload">
                     <div class=" justify-content-center align-items-center d-flex">
                         <button type="button" class="btn btn-info mx-4" @click="triggerFileInput">Chọn ảnh tải lên</button>
                         <button type="submit" class="btn btn-info">Tải lên</button>
                     </div>
-
                 </form>
-                <button class="btn btn-danger mt-3" @click="closeModal"><span>Đóng</span></button>
+                    <!-- <button class="btn btn-danger mt-3 text-center"  @click="closeModal">Đóng</button> -->
+         
+            </div>
+        </div>
+
+        <div v-if="showDetailModal" class="modal-overlay_2" @click="closeModalInfo">
+            <div class="modal-content_2" @click.stop>
+                <div v-if="!detailValue || detailValue.length === 0" class="text-center py-4">
+                    <p class="text-muted">Không có chi tiết sản phẩm nào được tìm thấy.</p>
+                </div>
+                <div v-else>
+                    <div v-for="item in detailValue" :key="item.product_id" class="mb-3" >
+                        <p class="mt-2 m-0">
+                        <span class="fw-bold">Tên sản phẩm: </span>{{ item.product_name }}
+                        </p>
+
+                        <!-- Lặp qua các màu -->
+                        <div v-for="color in item.colors" :key="color.color_id">
+                            <p class="m-0 text-start"><strong>Màu: </strong> {{ color.color_name }}</p>
+
+                            <!-- Bảng hiển thị kích thước -->
+                            <table class="ml-4 table table-bordered">
+                                <thead>
+                                <tr>
+                                    <th>Kích thước</th>
+                                    <th>Số lượng kho</th>
+                                    <th>Trạng thái</th>
+                                    <th>Thao tác</th>
+                                </tr>
+                                </thead>
+                                <tbody class="text-center">
+                                <tr v-for="size in color.sizes" :key="size.size_id">
+                                    <td>{{ size.size_name }}</td>
+                                    <td>{{ size.stock }}</td>
+                                    <td>
+                                    <span :class="size.isActive ? 'text-success' : 'text-danger'">
+                                        {{ size.isActive ? 'Đang hoạt động' : 'Đã xóa' }}
+                                    </span>
+                                    </td>
+                                    <td>
+                                        <button class="btn btn-danger btn-sm" @click="deleteProductDetail(size._id, item.product_id)" > <i class="fa-solid fa-trash"></i></button>
+                                        <!-- <button class="btn btn-success btn-sm mx-1" ><i class="fa-solid fa-pen-to-square"></i></button> -->
+                                    </td>
+                                </tr>
+                                </tbody>
+                            </table>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="text-center">
+                    <button class="btn btn-danger mt-3 text-center" @click="closeModalInfo">Đóng</button>
+                    <button class="btn btn-success mt-3 mx-3 text-center" @click="addInfo(detailValue?.[0]?.product_id ||productId_Detail)">Thêm</button>
+                </div>
+            
+                <div v-if="isadd" class="mt-4 border-top pt-3">
+                    <h5>Thêm chi tiết sản phẩm</h5>
+                    <div class="row">
+                        <!-- Màu sắc -->
+                        <div class="mb-3 col-md-6">
+                            <label>Màu sắc</label>
+                            <select v-model="currentProductDetail.color_id" class="form-control text-center" required>
+                                <option value="">-- Chọn màu sắc --</option>
+                                <option v-for="color in colors" :key="color._id" :value="color._id">
+                                    {{ color.name }}
+                                </option>
+                            </select>
+                        </div>
+
+                        <!-- Kích thước -->
+                        <div class="mb-3 col-md-6">
+                            <label>Kích thước</label>
+                            <select v-model="currentProductDetail.size_id" class="form-control text-center" required>
+                                <option value="">-- Chọn kích thước --</option>
+                                <option v-for="size in sizes" :key="size._id" :value="size._id">
+                                    {{ size.name }}
+                                </option>
+                            </select>
+                        </div>
+                    </div>
+
+                    <button class="btn btn-success mt-2" @click="addProductDetail">Xác nhận thêm</button>
+                </div>
             </div>
         </div>
 
@@ -97,11 +186,12 @@
                 <i class="fas fa-plus-circle"></i> Thêm sản phẩm
             </button>
         </div>
-        </div>
+    </div>
 </template>
+
 <script>
     import axios from 'axios';
-    import { ref, onMounted, onUnmounted,  computed } from 'vue';
+    import { ref, onMounted, onUnmounted,  computed, getCurrentInstance } from 'vue';
     import Breadcrumb from "@/components/Breadcrumb.vue";
     import Swal from "sweetalert2";
     import { useRouter } from 'vue-router';
@@ -117,10 +207,15 @@ export default {
         const files = ref([]);
         const MAX_IMAGES = 5;
         const showModal = ref(false);
+        const showModalInfo = ref(false);
         const selectedImages = ref([]);
         const selectedProduct = ref([]);
         const fileInput = ref(null);
-
+        const detailValue = ref(null);
+        const showDetailModal = ref(false);
+        const colors = ref([]);
+        const sizes = ref([]);
+        const currentProductDetail = ref({ product_id: '', color_id: '', size_id: '', isActive: true, _id: null });
         const filters = ref({
             searchText: '',
             isActive: null,
@@ -128,13 +223,15 @@ export default {
             searchBrand: '',
             searchDiscount: ''
         });
+        const productId_Detail = ref('');
 
         const router = useRouter();
         const inputsearch = ref('');
         const products = ref([]);
         const sortAsc = ref(true);
         const sortField = ref('');
-        const haveImage = ref(true);
+        // const haveImage = ref(true);
+        const isadd = ref(false);
 
         const sortBy = (field) => {
             if (sortField.value === field) {
@@ -144,6 +241,55 @@ export default {
                 sortField.value = field;
                 sortAsc.value = true;
             }
+        }
+
+        const addProductDetail = async () => {
+            try {
+                const response = await axios.post(`${BASE_URL}/api/productDetail`, {
+                    product_id: currentProductDetail.value.product_id,
+                    color_id: currentProductDetail.value.color_id,
+                    size_id: currentProductDetail.value.size_id,
+                    stock: 0
+                });
+                Swal.fire('Thành công', response.data.message, 'success');
+                await productDetailInfo(currentProductDetail.value.product_id);
+
+                isadd.value = false;
+                currentProductDetail.value = {};
+                // closeModalInfo();
+            } catch (error) {
+                Swal.fire('Lỗi!', error.response?.data.message, 'error');
+            }
+        };
+
+        const deleteProductDetail = async (id, productId) => {
+            const result = await Swal.fire({
+                title: "Xác nhận xóa",
+                text: "Bạn có chắc chắn muốn xóa chi tiết sản phẩm này không?",
+                icon: 'warning',
+                showCancelButton: true,
+                confirmButtonText: 'Xóa',
+                cancelButtonText: "Hủy"
+            });
+
+            if (result.isConfirmed) {
+                try {
+                    const response = await axios.delete(`${BASE_URL}/api/productDetail/${id}`);
+                    Swal.fire('Thông báo!', response?.data?.message, 'success');
+                    await productDetailInfo(productId);
+                } catch (error) {
+                    Swal.fire('Lỗi!', 'Có lỗi khi xóa chi tiết sản phẩm', 'error');
+                }
+            }
+        };
+
+        const fetch = async () => {
+            const [colorsResponse, sizesResponse,] = await Promise.all([
+                axios.get(`${BASE_URL}/api/color`),
+                axios.get(`${BASE_URL}/api/size`),
+            ]);
+            colors.value = colorsResponse.data.filter(c => c.isActive);
+            sizes.value = sizesResponse.data.filter(s => s.isActive);
         }
 
         const filterProducts = computed(() => {
@@ -162,8 +308,6 @@ export default {
                 const matchesDiscount = filters.value.searchDiscount.trim()
                     ? product.discount_name && product.discount_name.toLowerCase().includes(filters.value.searchDiscount.toLowerCase())
                     : true;
-
-                // console.log("Giá trị của filters.value.isActive: ", filters.value.isActive);
 
                 const matchesActive = filters.value.isActive
                     ? product.isActive === (filters.value.isActive)
@@ -203,9 +347,11 @@ export default {
                     id: img._id,
                     url: img.url
                 }));
+
+                console.log("Giá trị của selectedImages: ", selectedImages.value);
                 const product = products.value.find(p => p._id === productId);
                 selectedProduct.value = product || null;
-                haveImage.value = selectedProduct.value ? true : false;
+                // haveImage.value = selectedProduct.value ? true : false;
                 showModal.value = true;
 
             }
@@ -218,6 +364,15 @@ export default {
         const closeModal = () => {
             showModal.value = false;
             selectedImages.value = [];
+        }
+
+        const closeModalInfo = () => {
+            showDetailModal.value = false;
+            isadd.value = false;
+        }
+        const addInfo = (productId) => {
+            isadd.value = true;
+            currentProductDetail.value.product_id = productId;
         }
 
         const removeImage = async (imageId) => {
@@ -349,17 +504,19 @@ export default {
                     }
 
                     const ImageRes = await axios.get(`http://127.0.0.1:3000/api/image/productId/${product._id}`);
-                    console.log("Giá trị của ImageRes: ", ImageRes);
                     if (Array.isArray(ImageRes.data) && ImageRes.data.length > 0) {
                         product.hasImage = true;
                     }
                     else {
                         product.hasImage = false;
                     }
-
                 }
-
                 products.value = productsData;
+
+                products.value.sort((a, b) => {
+                    return b._id.localeCompare(a._id); // sản phẩm mới có _id lớn hơn
+                });
+       
                 console.log("Danh sách sản phẩm sau khi cập nhật:", productsData);
             } catch (error) {
                 console.error("Lỗi khi lấy danh sách sản phẩm:", error);
@@ -408,43 +565,81 @@ export default {
         }
 
         const totalProducts = computed(() => filterProducts.value.length);
+
+        const productDetailInfo = async (productId) => {
+             productId_Detail.value = productId;
+            try {
+                const response = await axios.get(`${BASE_URL}/api/productDetail/productId/${productId}`);
+                let productDetailsData = response.data;
+
+                const colorRequests = productDetailsData.map(pd =>
+                    axios.get(`${BASE_URL}/api/color/${pd.color_id}`).catch(() => null)
+                );
+                const sizeRequests = productDetailsData.map(pd =>
+                    axios.get(`${BASE_URL}/api/size/${pd.size_id}`).catch(() => null)
+                );
+                const productRequests = productDetailsData.map(pd =>
+                    axios.get(`${BASE_URL}/api/product/${pd.product_id}`).catch(() => null)
+                );
+
+                const colors = await Promise.all(colorRequests);
+                const sizes = await Promise.all(sizeRequests);
+                const products = await Promise.all(productRequests);
+
+                productDetailsData.forEach((pd, index) => {
+                    pd.color_name = colors[index]?.data?.isActive ? colors[index]?.data?.name : `${colors[index]?.data?.name} - Đã bị xóa`;
+                    pd.size_name = sizes[index]?.data?.isActive ? sizes[index]?.data?.name : `${sizes[index]?.data?.name} - Đã bị xóa`;
+                    pd.product_name = products[index]?.data?.isActive ? products[index]?.data?.name : `${products[index]?.data?.name} - Đã bị xóa`;
+                });
+
+                const grouped = [];
+                productDetailsData.forEach(detail => {
+                    let productGroup = grouped.find(p => p.product_id === detail.product_id);
+                    if (!productGroup) {
+                        productGroup = {
+                            product_id: detail.product_id,
+                            product_name: detail.product_name,
+                            colors: [],
+                        };
+                        grouped.push(productGroup);
+                    }
+
+                    let colorGroup = productGroup.colors.find(c => c.color_id === detail.color_id);
+                    if (!colorGroup) {
+                        colorGroup = {
+                            color_id: detail.color_id,
+                            color_name: detail.color_name,
+                            sizes: [],
+                        };
+                        productGroup.colors.push(colorGroup);
+                    }
+
+                    colorGroup.sizes.push({
+                        size_id: detail.size_id,
+                        size_name: detail.size_name,
+                        stock: detail.stock,
+                        isActive: detail.isActive,
+                        _id: detail._id
+                    });
+                });
+                detailValue.value = grouped;
+                showDetailModal.value = true;
+                console.log("Giá trị của detailValue: ", detailValue.value);
+                console.log("Giá trị của name: ", detailValue.value[0].product_name);
+            } catch (error) {
+                console.error("❌ Lỗi khi lấy thông tin chi tiết sản phẩm:", error);
+            }
+        }
+
         onMounted(() => {
             fetchProduct();
-
-            // socket.on('product_update', async ({ action, data }) => {
-            //     if (action === "create") {
-            //         await fetchProductDetails(data); // Lấy thông tin đầy đủ trước khi thêm vào danh sách
-            //         products.value.push(data);
-            //         Swal.fire("Thông báo", "Thêm sản phẩm thành công!", "success");
-
-            //     } else if (action === "update") {
-            //         const index = products.value.findIndex(b => b._id === data._id);
-            //         if (index !== -1) {
-            //             await fetchProductDetails(data); // Lấy thông tin đầy đủ trước khi cập nhật
-            //             products.value[index] = data;
-            //             Swal.fire("Thông báo", "Cập nhật sản phẩm thành công!", "success");
-            //         }
-            //     }
-            //     else if (action === "delete") {
-            //         products.value = products.value.filter(b => b._id !== data._id);
-            //         Swal.fire("Thông báo", "Sản phẩm đã bị xóa!", "info");
-            //     }
-            //     else if (action === "soft_delete") {
-            //         const index = products.value.findIndex(b => b._id === data._id);
-            //         if (index !== -1) {
-            //             products.value[index].isActive = false;
-            //             Swal.fire("Thông báo", "Sản phẩm đã được ẩn!", "warning");
-            //         }
-            //     }
-            // });
-
+            fetch();
             socket.on('product_update', async ({ action }) => {
                 if (["create", "update", "delete", "soft_delete"].includes(action)) {
                     await fetchProduct();
                     // Swal.fire("Thông báo", "Dữ liệu sản phẩm đã được cập nhật!", "success");
                 }
             });
-
         });
 
         onUnmounted(() => {
@@ -478,7 +673,21 @@ export default {
             triggerFileInput,
             fileInput,
             sortAsc,
-            sortBy
+            sortBy,
+            showModalInfo,
+            closeModalInfo,
+            productDetailInfo,
+            showDetailModal,
+            detailValue,
+            colors,
+            sizes,
+            currentProductDetail,
+            isadd,
+            currentProductDetail,
+            addProductDetail,
+            addInfo,
+            deleteProductDetail,
+            productId_Detail,
         }
     }
 }
@@ -528,7 +737,24 @@ export default {
         background-color: #138496;
     }
 
-    .modal-overlay {
+    .modal-overlay_2 {
+        position: fixed;
+        top: 0; left: 0; right: 0; bottom: 0;
+        background-color: rgba(0, 0, 0, 0.5);
+        display: flex; align-items: center; justify-content: center;
+        z-index: 1000;
+    }
+
+    .modal-content_2 {
+        width: 90%;
+        max-height: 80vh;
+        background: #fff;
+        overflow-y: auto;
+        padding: 20px;
+        border-radius: 12px;
+    }
+
+        .modal-overlay {
         position: fixed;
         top: 0;
         left: 0;
@@ -547,7 +773,6 @@ export default {
         text-align: center;
         max-width: 900px;
     }
-
     .image-container {
         margin: 2px;
         display: flex;
@@ -621,6 +846,22 @@ export default {
         border-radius: 10px;
         border: 2px solid #ddd;
     }
+    .btn-close-modal {
+    position: absolute;
+    top: 10px;
+    right: 15px;
+    background: transparent;
+    border: none;
+    font-size: 1.5rem;
+    color: #888;
+    cursor: pointer;
+    z-index: 10;
+    }
+
+    .btn-close-modal:hover {
+    color: #000;
+    }
+
 
     ::v-deep(.table thead th) {
   vertical-align: middle !important;

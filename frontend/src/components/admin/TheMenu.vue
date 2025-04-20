@@ -1,6 +1,6 @@
 
 <template>
-    <div class="bg-light mt-3" :class="{'collapsed': !menuStore.isMenuVisible}">
+    <div class=" bg-light mt-3 " :class="{'collapsed': !menuStore.isMenuVisible}">
         <div class="align-items-center justify-content-center text-center fs-4 fw-bold py-2"  >
             <div>
                 <span v-show="menuStore.isMenuVisible">
@@ -53,7 +53,7 @@ export default defineComponent({
         const openIndex = ref(null);
         const menuItems = [
             {
-                title: "Quản lý đơn hàng",
+                title: "Tổng quan cửa hàng",
                 icon: "fa-solid fa-sort-down",
                 route: "admin-dashboard"
             },
@@ -135,4 +135,5 @@ export default defineComponent({
         border: none !important;  
         padding-left: 2px; 
 }
+
 </style>

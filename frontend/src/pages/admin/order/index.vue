@@ -316,6 +316,7 @@ export default {
                         }))
                 }
 
+                    
                 orderData.sort((a, b) => {
 
                     const field = sortField.value;
