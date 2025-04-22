@@ -1,12 +1,26 @@
 <template>
-    <Breadcrumb  class="text-end" />
+<div style="display: flex; justify-content: flex-start; padding: 10px">
+  <Breadcrumb />
+</div>
     <div class="m-4">
 
         <h5 class="text-center">Danh sách thương hiệu sản phẩm</h5>
-          <div class="text-end mb-2">
-            <input type="text" class="border border-radius" v-model="inputsearch"  placeholder="Nhập tên thương hiệu" @input="searchBrand">
+    <div class="d-flex justify-content-between align-items-center my-3">
+        <div class="">
+            <button class="btn btn-outline-primary" @click="addBrand">
+                + Thêm mới
+            </button>
+        </div>
+          <div class="">
+             <input type="text" class="border border-radius" v-model="inputsearch"  placeholder="Nhập tên thương hiệu" @input="searchBrand">
           </input>
         </div>
+        </div>
+
+          <!-- <div class="text-end mb-2">
+            <input type="text" class="border border-radius" v-model="inputsearch"  placeholder="Nhập tên thương hiệu" @input="searchBrand">
+          </input>
+        </div> -->
 
         <table class="p-2 table table-bordered table-striped text-center">
             <thead>
@@ -39,11 +53,11 @@
         </table>
         <span>Tổng thương hiệu: {{totalBrands}}</span>
 
-        <div class="text-end">
+        <!-- <div class="text-end">
             <button class="btn btn-info" @click="addBrand">
                 Thêm thương hiệu
             </button>
-        </div>
+        </div> -->
     </div>
 </template>
 <script>
@@ -63,7 +77,18 @@ export default {
         const router = useRouter(); 
         const inputsearch = ref('');
         const brands = ref([]);
-d
+
+        
+        const fetchBrands = async () => {
+            try {
+                const response = await axios.get("http://127.0.0.1:3000/api/brand");
+                brands.value = response.data;
+
+                console.log("Giá trị của category sau khi fetch: ", brands);
+            } catch (error) {
+                console.error("Lỗi khi lấy danh sách người dùng:", error);
+            }
+        };
 
         const searchBrand = async()=> {
             if (inputsearch.value.trim() ===""){

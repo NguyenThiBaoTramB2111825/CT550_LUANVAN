@@ -1,12 +1,26 @@
 <template>
-    <Breadcrumb  class="text-end" />
+<div style="display: flex; justify-content: flex-start; padding: 10px">
+  <Breadcrumb />
+</div>
     <div class="m-4">
 
         <h5 class="text-center">Danh sách nhà cung cấp sản phẩm</h5>
-        <div class="text-end mb-2">
-            <input type="text" class="border border-radius" v-model="inputsearch"  placeholder="Nhập tên nhà cung cấp" @input="searchSupplier">
+            <div class="d-flex justify-content-between align-items-center my-3">
+        <div class="">
+            <button class="btn btn-outline-primary" @click="addSupplier">
+                + Thêm mới
+            </button>
+        </div>
+          <div class="">
+          <input type="text" class="border border-radius" v-model="inputsearch"  placeholder="Nhập tên nhà cung cấp" @input="searchSupplier">
           </input>
         </div>
+        </div>
+
+        <!-- <div class="text-end mb-2">
+            <input type="text" class="border border-radius" v-model="inputsearch"  placeholder="Nhập tên nhà cung cấp" @input="searchSupplier">
+          </input>
+        </div> -->
 
         <table class="p-2 table table-bordered table-striped text-center">
             <thead>
@@ -41,11 +55,11 @@
         </table>
         <span>Tổng nhà cung cấp: {{totalSupplier}}</span>
 
-        <div class="text-end">
+        <!-- <div class="text-end">
             <button class="btn btn-info" @click="addSupplier">
                 Thêm nhà cung cấp
             </button>
-        </div>
+        </div> -->
     </div>
 </template>
 <script>

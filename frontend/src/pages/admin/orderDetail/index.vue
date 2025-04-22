@@ -67,7 +67,9 @@
 
 <template>
   <div class="container py-4">
-    <Breadcrumb class="text-end mb-3" />
+<div style="display: flex; justify-content: flex-start; padding: 10px">
+  <Breadcrumb />
+</div>
 
     <h4 class="text-center mb-4">Chi tiết đơn hàng</h4>
 

@@ -3215,49 +3215,577 @@ export default {
 
 
 
---------------report
+-------------importDetail
 
-const express = require('express');
-const router = express.Router();
-const { ObjectId } = require('mongodb');
-const MongoDB = require('../utils/mongodb.util');
+<template>
+    <Breadcrumb class="text-end" />
+    <div class="m-4">
+        <h5 class="text-center">Danh sách chi tiết nhập hàng</h5>
 
-router.get('/sold-products', async (req, res) => {
-  const Order = MongoDB.getClient().db().collection('order');
-  const { range } = req.query;
-  const now = new Date();
-  let from;
+        <div class="col-md-4">
+            <label class="form-label">Chọn sản phẩm </label>
+             <input
+                type="text" v-model="searchQuery"
+                class="form-control"
+                placeholder="Nhập tên sản phẩm"
+                />
+                <ul v-if="filteredProducts.length > 0 && searchQuery" class="list-group" >
+                    <li
+                        v-for="product in filteredProducts"
+                        :key="product._id"
+                        class="list-group-item list-group-item-action"
+                        @click="selectProduct(product)"
+                    >
+                        {{ product.name }}
+                    </li>
+                </ul>
 
-  if (range === "week") {
-    from = dayjs(now).startOf("week").toDate();
-  } else if (range === "month") {
-    from = dayjs(now).startOf("month").toDate();
-  } else if (range === "year") {
-    from = dayjs(now).startOf("year").toDate();
-  }
+        </div>
 
-  try {
-    const result = await Order.aggregate([
+        <div class="col-md-4">
+            <label class="form-label">Màu sắc</label>
+            <select v-model="selectedColorId" class="form-select" required>
+            <option disabled value="">Chọn màu sắc</option>
+            <option v-for="color in colors" :value="color._id" :key="color._id">
+                {{ color.name }}
+            </option>
+            </select>
+        </div>
     
-      { $match: { status: "Completed" } },
-      { $unwind: "$items" },
-      {
-        $group: {
-          _id: "$items.product_id",
-          totalQuantity: { $sum: "$items.quantity" },
-          productName: { $first: "$items.product_name" }
+        <div class="col-md-4">
+            <label class="form-label">Kích cỡ</label>
+            <select v-model="selectedSizeId" class="form-select" required>
+            <option disabled value="">Chọn kích cỡ</option>
+            <option v-for="size in sizes" :value="size._id" :key="size._id">
+                {{ size.name }}
+            </option>
+            </select>
+        </div>
+
+        <div class="col-md-4">
+            <label class="form-label">Nhà cung cấp</label>
+            <select v-model="selectedSupplierId" class="form-select" required>
+            <option disabled value="">Chọn nhà cung cấp</option>
+            <option v-for="supplier in suppliers" :value="supplier._id" :key="supplier._id">
+                {{ supplier.name }}
+            </option>
+            </select>
+        </div>
+
+        <div class="mb-3">
+            <label>Số lượng nhập</label>
+            <input type="number" v-model="quantityImport" class="form-control text-center" required>
+        </div>
+            <div class="mb-3">
+                <label>Giá nhập</label>
+                <div class="d-flex">
+                    <input type="number" v-model="priceImport" class="form-control text-center"  required>
+                    <span class="input-group-text">VND</span>
+                </div>
+
+        </div>
+
+
+        <button @click="saveImportDetails" type="button">Nhập hàng</button>
+
+    <div v-for="(supplierGroup, sIdx) in groupedData" :key="supplierGroup.supplier_id" class="mb-4 border  rounded p-2 my-5">
+        <h6 class="fw-bold">Nhà cung cấp {{ supplierGroup.supplier_name }}</h6>
+
+        <div v-for="(product, pIdx) in supplierGroup.products" :key="pIdx" class="ms-5">
+            <p class="fw-bold m-0">  <span>{{ pIdx +1 }}</span>.  {{ product.product_name }}</p>
+
+            <div v-for="(colorGroup, cIdx) in product.colors" :key="cIdx" class="ms-4">
+                Màu: {{ colorGroup.color_name }}
+            <table class="table mt-2 text-center">
+                <thead>
+                <tr>
+                    <th>Size</th>
+                    <th>Số lượng</th>
+                    <th>Giá nhập</th>
+                    <th>Ngày nhập</th>
+                    <th>Nhân viên thêm</th>
+                    <th>Nhân viên cập nhật</th>
+                    <th>Thao tác</th>
+                </tr>
+                </thead>
+                <tbody>
+                <tr v-for="item in colorGroup.items" :key="item._id">
+                    <td>{{ item.size_name }}</td>
+                    <td>{{ item.quantity }}</td>
+                    <td>{{ formatCurrency(item.price_import) }}</td>
+                    <td>{{ formatDate(item.importDate) }}</td>
+                    <td>{{ item.employee_name }}</td>
+                    <td>{{ item.employee_name_update }}</td>
+                    <td>
+                    <button class="btn btn-danger" @click="deleteImportDetails(item._id)"> <i class="fa-solid fa-trash"></i></button>
+                    <button class="btn btn-success mx-1" @click="openModal(item)"> <i class="fa-solid fa-pen-to-square"></i></button>
+                    </td>
+                </tr>
+                </tbody>
+            </table>
+            </div>
+        </div>
+        </div>
+
+        <span>Tổng chi tiết nhập hàng: {{ totalImportDetails }}</span>
+        
+
+    </div>
+
+    <!-- Modal thêm/cập nhật chi tiết nhập hàng -->
+    <div v-if="showModal" class="modal-overlay">
+        <div class="modal-content">
+            <h5 class="text-center">{{ isEditing ? 'Cập nhật chi tiết nhập hàng' : 'Thêm chi tiết nhập hàng' }}</h5>
+            <div class="mb-3" v-if="!isEditing">
+                <label>Tên sản phẩm cần nhập</label>
+                <select v-model="currentImportDetail.productDetail_id" class="form-control text-center" required>
+                    <option value="">-- Chọn sản phẩm --</option>
+                    <option v-for="productDetail in productDetails" :key="productDetail._id" :value="productDetail._id">
+                        {{ truncateText(productDetail.product_name, 30) }} - {{ productDetail.color_name }} - {{ productDetail.size_name }}
+                    </option>
+                </select>
+            </div>
+            <div class="mb-3" v-if="isEditing">
+                <label>Tên sản phẩm</label>
+                <input type="text" class="form-control text-center"  required disabled :value="`${currentImportDetail.productName}`">
+    
+            </div>
+
+            <div class="mb-3" v-if="isEditing">
+                <label>Nhà cung cấp</label>
+                <input type="text" class="form-control text-center"  required disabled :value="`${currentImportDetail.supplierName}`">
+    
+            </div>
+            <div class="mb-3" v-if="!isEditing">
+              <label>Nhà cung cấp</label>
+              <select v-model="currentImportDetail.supplier_id" class="form-control text-center" required>
+                  <option value="">-- Chọn nhà cung cấp --</option>
+                  <option v-for="supplier in suppliers" :key="supplier._id" :value="supplier._id">
+                      {{ supplier.name }}
+                  </option>
+              </select>
+            </div>
+
+
+            <div class="mb-3">
+                <label>Ngày nhập</label>
+                    <input type="date" v-model="currentImportDetail.importDate" class="form-control text-center" required>
+            </div>
+            <div class="text-center">
+                <button class="btn btn-success" @click="saveImportDetails">{{ isEditing ? 'Cập nhật' : 'Thêm' }}</button>
+                <button class="btn btn-secondary mx-2" @click="closeModal">Hủy</button>
+            </div>
+        </div>
+    </div>
+</template>
+
+<script>
+import axios from 'axios';
+import { ref, onMounted, onUnmounted, computed, watch } from 'vue';
+import { useRoute, useRouter } from 'vue-router';
+import Breadcrumb from "@/components/Breadcrumb.vue";
+import Swal from "sweetalert2";
+const BASE_URL = "http://localhost:3000";
+import Cookies from 'js-cookie';
+import { io } from 'socket.io-client';
+import { groupBy } from 'lodash'; // nếu bạn chưa cài lodash thì dùng npm/yarn add lodash
+const socket = io(BASE_URL);
+import dayjs from 'dayjs';
+export default {
+    components: { Breadcrumb },
+    setup() {
+        const token = Cookies.get('accessToken');
+        console.log("Giá trị của token được bắt: ", token);
+        const route = useRoute();
+        const router = useRouter();
+        const groupedData = ref([]);
+        const productDetails = ref([]);
+        const importDetails = ref([]);
+        const inputsearch = ref("");
+        const showModal = ref(false);
+        const isEditing = ref(false);
+        const products = ref([]);
+        const searchQuery = ref('');
+        const selectedColorId = ref('');
+        const selectedProductId = ref('');
+        const selectedSizeId = ref('');
+        const selectedSupplierId = ref('');
+        const selectedProduct = ref(null);
+        const currentImportDetail = ref({ productDetail_id: '', supplier_id: '', quantity: '', price_import: '', importDate: null, _id: null });
+        const colors = ref([]);
+        const sizes = ref([]);
+        const suppliers = ref([]);
+        const quantityImport = ref(null);
+        const priceImport = ref(null);
+
+        const formatDate = (dateString) => {
+            return dateString ? dayjs(dateString).format("DD/MM/YYYY") : "N/A";
+        };
+        const fetchSuppliers = async () => {
+            const response = await axios.get(`${BASE_URL}/api/supplier/`);
+            suppliers.value = response.data.filter(s => s.isActive);
         }
-      },
-      { $sort: { totalQuantity: -1 } },
-      { $limit: 10 }
-    ]).toArray()
 
-    res.json(result)
-  } catch (err) {
-    console.error("Lỗi tại API /sold-products:", err) // ← Log lỗi ra
-    res.status(500).json({ error: "Lỗi khi lấy dữ liệu", detail: err.message })
-  }
-})
+        const fetchProduct = async () => {
+            const response = await axios.get(`${BASE_URL}/api/product`);
+            products.value = response.data.filter(p => p.isActive);
+            console.log("Giá trị của products.value: ", products.value);
+        }
+        const fetchColors = async () => {
+            try {
+
+                const responseDetail = await axios.get(`${BASE_URL}/api/productDetail/productId/${selectedProductId.value}`);
+                const productDetails = responseDetail.data; // Mảng các productDetail
+
+                const colorIds = [...new Set(productDetails.map(detail => detail.color_id))];
+
+                const responseColors = await axios.get(`${BASE_URL}/api/color`);
+                const allColors = responseColors.data.filter(c => c.isActive);
+
+                colors.value = allColors.filter(color => colorIds.includes(color._id));
+
+                console.log("Màu tương ứng với sản phẩm:", colors.value);
+            } catch (error) {
+                console.error("Lỗi khi fetch colors:", error);
+            }
+        };
+        const fetchSizes = async () => {
+            try {
+                // Lấy các productDetail có product_id và color_id phù hợp
+                const responseDetail = await axios.get(`${BASE_URL}/api/productDetail/productId/${selectedProductId.value}`);
+                const productDetails = responseDetail.data.filter(
+                    detail => detail.color_id === selectedColorId.value
+                );
+
+                // Lấy ra các size_id từ các bản ghi chi tiết
+                const sizeIDs = [...new Set(productDetails.map(detail => detail.size_id))];
+
+                // Lấy toàn bộ size có isActive = true
+                const responseSizes = await axios.get(`${BASE_URL}/api/size`);
+                const allSizes = responseSizes.data.filter(size => size.isActive);
+
+                // Lọc danh sách size phù hợp với sizeIDs
+                sizes.value = allSizes.filter(size => sizeIDs.includes(size._id));
+
+                console.log("Size tương ứng với sản phẩm và màu:", sizes.value);
+            } catch (error) {
+                console.error("Lỗi khi fetch sizes:", error);
+            }
+        };
 
 
-module.exports = router
+
+        const filteredProducts = computed(() => {
+            const query = searchQuery.value.toLowerCase();
+            return products.value.filter(p =>
+                p.name.toLowerCase().includes(query)
+            )
+        })
+
+        const selectProduct = (product) => {
+            selectedProduct.value = product;
+            selectedProductId.value = product._id;
+            searchQuery.value = product.name;
+            filteredProducts.value = [];
+        }
+
+        const fetchImportDetails = async () => {
+            try {
+                const response = await axios.get(`${BASE_URL}/api/importDetail`);
+                let importDetailsData = response.data;
+
+                const productDetailRequests = importDetailsData.map(pd =>
+                    axios.get(`${BASE_URL}/api/productDetail/${pd.productDetail_id}`).then(res => res.data).catch(error => {
+                        console.error("Lỗi lấy productDetail: ", error);
+                    }),
+                );
+
+
+                const supplierRequests = importDetailsData.map(pd =>
+                    axios.get(`${BASE_URL}/api/supplier/${pd.supplier_id}`).catch(() => null)
+                );
+
+                const suppliers = await Promise.all(supplierRequests);
+                let productDetails = await Promise.all(productDetailRequests);
+
+                console.log("Giá trị của productDetails: ", productDetails);
+
+                const colorRequests = productDetails.map(pd =>
+                    axios.get(`${BASE_URL}/api/color/${pd.color_id}`).catch(() => null)
+                );
+                const sizeRequests = productDetails.map(pd =>
+                    axios.get(`${BASE_URL}/api/size/${pd.size_id}`).catch(() => null)
+                );
+
+                const colors = await Promise.all(colorRequests);
+                console.log("Giá trị của colors: ", colors);
+                const sizes = await Promise.all(sizeRequests);
+                console.log("Giá trị của sizes: ", sizes);
+
+                const productRequests = productDetails
+                    .filter(pd => pd?.product_id) // Loại bỏ null
+                    .map(pd => axios.get(`${BASE_URL}/api/product/${pd.product_id}`).then(res => res.data).catch(() => null));
+
+                const products = await Promise.all(productRequests);
+                console.log("Dữ liệu products:", products);
+                importDetailsData.forEach((pd, index) => {
+                    pd.supplier_name = suppliers[index]?.data?.name || "Không có nhà cung cấp";
+                    pd.product_name = products[index]?.name || "Không có tên sản phẩm";
+                    pd.product_id = products[index]?._id || "Không có id sản phẩm";
+                    pd.color_name = colors[index]?.data.name || "Không có màu sắc";
+                    pd.size_name = sizes[index]?.data.name || "Không có kích cỡ";
+
+                });
+
+                importDetails.value = importDetailsData;
+                groupImportDetails(importDetailsData);
+                console.log("Giá trị của importDetail: ", importDetails.value);
+            } catch (error) {
+                console.error("Lỗi khi lấy danh sách chi tiết nhập hàng:", error);
+            }
+        };
+
+        const groupImportDetails = (data) => {
+            const supplierGroups = groupBy(data, 'supplier_id');
+
+            const result = Object.entries(supplierGroups).map(([supplier_id, supplierItems]) => {
+                const productGroups = groupBy(supplierItems, 'product_name');
+
+                const products = Object.entries(productGroups).map(([product_name, productItems]) => {
+                    const colorGroups = groupBy(productItems, 'color_name');
+
+                    const colors = Object.entries(colorGroups).map(([color_name, colorItems]) => {
+                        return {
+                            color_name,
+                            items: colorItems.map(item => ({
+                                size_name: item.size_name,
+                                quantity: item.quantity,
+                                price_import: item.price_import,
+                                importDate: item.importDate,
+                                _id: item._id,
+                                employee_name: item.employee_name,
+                                employee_name_update: item.employee_name_update,
+                                productName: item.product_name,
+                                supplierName: item.supplier_name,
+                            }))
+                        };
+                    });
+
+                    return { product_name, colors };
+                });
+
+                return {
+                    supplier_id,
+                    supplier_name: supplierItems[0].supplier_name,
+                    products
+                };
+            });
+
+            groupedData.value = result;
+            console.log("Giá trị của groupData.value: ", groupedData.value);
+        };
+
+
+        const fetchProductDetails = async () => {
+            try {
+                const response = await axios.get(`${BASE_URL}/api/productDetail`);
+                let productDetailsData = response.data;
+
+                const productRequests = productDetailsData.map(pd =>
+                    axios.get(`${BASE_URL}/api/product/${pd.product_id}`).catch(() => null)
+                );
+                const productResponses = await Promise.all(productRequests);
+
+                const colorRequests = productDetailsData.map(pd =>
+                    axios.get(`${BASE_URL}/api/color/${pd.color_id}`).catch(() => null)
+                );
+                const sizeRequests = productDetailsData.map(pd =>
+                    axios.get(`${BASE_URL}/api/size/${pd.size_id}`).catch(() => null)
+                );
+
+                const colors = await Promise.all(colorRequests);
+                console.log("Giá trị của colors: ", colors);
+                const sizes = await Promise.all(sizeRequests);
+                console.log("Giá trị của sizes: ", sizes);
+
+                // Gán product_name vào productDetailsData
+                productDetailsData.forEach((pd, index) => {
+                    pd.product_name = productResponses[index]?.data?.name || "Không có tên sản phẩm";
+                    pd.color_name = colors[index]?.data?.name || "Không có màu";
+                    pd.size_name = sizes[index]?.data?.name || "Không có size";
+                });
+
+
+                productDetailsData.sort((a, b) => {
+                    return a.product_name.localeCompare(b.product_name, 'vi', { sensitivity: 'base' })
+                })
+                productDetails.value = productDetailsData;
+                console.log("Giá trị của productDetails trong fetchProductDetails: ", productDetails.value);
+
+            } catch (error) {
+                console.error("Lỗi khi lấy danh sách sản phẩm:", error);
+            }
+        };
+
+        const deleteImportDetails = async (id) => {
+            const result = await Swal.fire({
+                title: "Xác nhận xóa",
+                text: "Bạn có chắc chắn muốn xóa chi tiết nhập hàng này không?",
+                icon: 'warning',
+                showCancelButton: true,
+                confirmButtonText: 'Xóa',
+                cancelButtonText: "Hủy"
+            });
+
+            if (result.isConfirmed) {
+                try {
+                    const response = await axios.delete(`${BASE_URL}/api/importDetail/${id}`);
+                    Swal.fire('Thông báo!', response.data.message, 'success');
+                    fetchImportDetails();
+                } catch (error) {
+                    Swal.fire('Lỗi!', 'Có lỗi khi xóa chi tiết nhập hàng', 'error');
+                }
+            }
+        };
+
+        const truncateText = (text, length) => {
+            return text.length > length ? text.slice(0, length) + '...' : text;
+        }
+
+        const saveImportDetails = async () => {
+            try {
+                const detailData = await axios.get(`${BASE_URL}/api/productDetail/`);
+                const productDetailData = detailData.data.find(
+                    d => d.product_id === selectedProductId.value &&
+                        d.color_id === selectedColorId.value &&
+                        d.size_id === selectedSizeId.value
+                )?._id;
+                console.log("Giá trị của productDetail_id: ", productDetailData);
+                console.log("Giá trị của quantityImport: ", quantityImport.value);
+                console.log("Giá trị của selectedSupplierId: ", selectedSupplierId.value);
+                console.log("Giá trị của new Date().toISOString().split('T')[0],: ", dayjs().format('YYYY-MM-DD'));
+
+                const config = {
+                    headers: {
+                        "Authorization": `Bearer ${token}`
+                    }
+                };
+
+                const response = await axios.post(`${BASE_URL}/api/importDetail/`, {
+                    productDetail_id: productDetailData,
+                    quantity: quantityImport.value,
+                    supplier_id: selectedSupplierId.value,
+                    importDate: dayjs().format('YYYY-MM-DD')
+                }, config);
+
+                console.log("Giá trị của response: ", response.data);
+                // socket.emit('importDetail_updated', { action: "create", data: response.data });
+
+                // await fetchImportDetails();
+                // Swal.fire('Thành công', isEditing.value ? 'Cập nhật chi tiết nhập hàng thành công' : 'Thêm chi tiết nhập hàng thành công', 'success');
+
+            } catch (error) {
+                console.error("Lỗi khi lưu chi tiết nhập hàng:", error);
+                Swal.fire('Lỗi!', error.response?.data?.message || 'Có lỗi xảy ra', 'error');
+            }
+        };
+
+        const formatCurrency = (amount) => {
+            if (amount === undefined || amount === null) {
+                return "0"; // hoặc có thể trả về một chuỗi trống ""
+            }
+            return Number(amount).toLocaleString("vi-VN");
+        };
+
+
+        const totalImportDetails = computed(() => importDetails.value.length);
+        onMounted(async () => {
+            await fetchProduct();
+            await fetchImportDetails();
+            await fetchSuppliers();
+            await fetchProductDetails();
+            socket.on('importDetail_update', async ({ action }) => {
+                if (["create", "update", "delete", "soft_delete"].includes(action)) {
+                    await fetchImportDetails();
+                    // Swal.fire("Thông báo", "Dữ liệu sản phẩm đã được cập nhật!", "success");
+                }
+            });
+        });
+        onUnmounted(() => {
+            socket.off('productDetail_update');
+        })
+        watch(selectedProductId, (newVal) => {
+            if (newVal) {
+                fetchColors();
+            }
+        });
+        watch(selectedColorId, (newVal) => {
+            if (newVal) {
+                fetchSizes();
+            }
+        });
+
+        return {
+            importDetails,
+            inputsearch,
+            deleteImportDetails,
+
+            saveImportDetails,
+            showModal,
+            isEditing,
+            currentImportDetail,
+            totalImportDetails,
+            suppliers,
+            productDetails,
+            formatDate,
+            formatCurrency,
+            fetchImportDetails,
+            groupImportDetails,
+            groupedData,
+            fetchProductDetails,
+            truncateText,
+            fetchSuppliers,
+            fetchProduct,
+            products,
+            selectedProductId,
+            selectedProduct,
+            selectProduct,
+            filteredProducts,
+            searchQuery,
+            colors,
+            selectedColorId,
+            sizes,
+            selectedSizeId,
+            suppliers,
+            fetchSuppliers,
+            selectedSupplierId,
+            priceImport,
+            quantityImport
+        }
+    }
+}
+</script>
+
+<style scoped>
+    .modal-overlay {
+        position: fixed;
+        top: 0; left: 0;
+        width: 100%; height: 100%;
+        background: rgba(0, 0, 0, 0.5);
+        display: flex;
+        align-items: center;
+        justify-content: center;
+    }
+    .modal-content {
+        background: white;
+        padding: 20px;
+        border-radius: 10px;
+        width: 600px;
+        text-align: center;
+    }
+
+    ::v-deep(.table thead th) {
+  vertical-align: middle !important;
+  text-align: center !important;
+}
+</style>

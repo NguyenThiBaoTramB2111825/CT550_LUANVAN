@@ -59,11 +59,15 @@ export default {
             }
             if (route.name === "size"|| route.name === "color") {
                 crumbs.splice(1, 0, {  path: "/admin/product", label: "Quản lý sản phảm" });
-            
             }
             if (route.name === "orderDetail") {
                 crumbs.splice(1, 0, {  path: "/admin/order", label: "Quản lý đơn hàng" });
             }
+
+            if (route.name === "addimport") {
+                crumbs.splice(1, 0, {  path: "/admin/importDetail", label: "Quản lý chi tiết nhập" });
+            }
+
             if (route.name === "OrderHistory") {
                crumbs.unshift({ path: "/", label: "Trang chủ" });
             }
@@ -80,6 +84,7 @@ export default {
             if (route.name === "aboutUs") {
                 crumbs.unshift({ path: "/", label: "Trang chủ" });
             }
+       
 
             return crumbs;
 

@@ -1,5 +1,7 @@
 <template>
-    <Breadcrumb  class="text-end" />
+    <div style="display: flex; justify-content: flex-start; padding: 10px">
+  <Breadcrumb />
+</div>
     <div class="m-4">
 
         <h5 class="text-center">Danh Sách khách hàng</h5>

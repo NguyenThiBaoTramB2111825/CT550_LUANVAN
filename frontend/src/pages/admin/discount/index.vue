@@ -1,9 +1,35 @@
 <template>
-    <Breadcrumb  class="text-end" />
+<div style="display: flex; justify-content: flex-start; padding: 10px">
+  <Breadcrumb />
+</div>
     <div class="m-4">
 
         <h5 class="text-center">Danh sách chương trình giảm giá sản phẩm</h5>
-        <div class="text-end mb-2">
+
+        <div class="d-flex justify-content-between align-items-center my-3">
+            <div >
+                <button class="btn btn-outline-primary" @click="addDiscount">
+                    + Thêm mới
+                </button>
+            </div>
+            <div class="">
+                <input type="text" class="border border-radius" v-model="filters.searchText" placeholder="Nhập tên giảm giá">
+
+                <input type="date" class="border border-radius mx-1" v-model="filters.startDate">
+                <input type="date" class="border border-radius mx-1" v-model="filters.endDate">
+
+                <select class="border border-radius mx-1" v-model="filters.status">
+                    <option value="">Tất cả</option>
+                    <option value="active">Đang hoạt động</option>
+                    <option value="expired">Đã kết thúc</option>
+                    <option value="upcoming">Chưa bắt đầu</option>
+                </select>
+
+                <button class="btn btn-primary mx-1" @click="filterDiscounts">Lọc</button>
+            </div>
+        </div>
+
+        <!-- <div class="text-end mb-2">
             <input type="text" class="border border-radius" v-model="filters.searchText" placeholder="Nhập tên giảm giá">
 
             <input type="date" class="border border-radius mx-1" v-model="filters.startDate">
@@ -17,7 +43,7 @@
             </select>
 
             <button class="btn btn-primary mx-1" @click="filterDiscounts">Lọc</button>
-        </div>
+        </div> -->
 
           <!-- <div class="text-end mb-2">
             <input type="text" class="border border-radius" v-model="inputsearch"  placeholder="Nhập tên giảm giá" @input="searchDiscount">
@@ -65,11 +91,11 @@
         </table>
         <span>Tổng chương trình giảm giá: {{totalDiscounts}}</span>
 
-        <div class="text-end">
+        <!-- <div class="text-end">
             <button class="btn btn-info" @click="addDiscount">
                 Thêm chương trình giảm
             </button>
-        </div>
+        </div> -->
     </div>
 </template>
 <script>

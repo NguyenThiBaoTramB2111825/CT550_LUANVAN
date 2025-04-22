@@ -243,6 +243,14 @@ const admin = [
         },
       },
       {
+        path: "addimport",
+        name: "addimport",
+        component: () => import("../pages/admin/addimport/index.vue"),
+        meta: {
+          breadcrumb: 'Thêm'
+        },
+      },
+      {
         path: "order",
         name: "order",
         component: () => import("../pages/admin/order/index.vue"),

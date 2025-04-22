@@ -1,6 +1,8 @@
 <template>
-    <Breadcrumb class="text-end" />
-        <div class="m-3 ">
+<div style="display: flex; justify-content: flex-start; padding: 10px">
+  <Breadcrumb />
+</div>
+        <div class="m-0 ">
             <h5 class="text-center">Danh sách sản phẩm</h5>
             <br>
             <div class="d-flex flex-column align-items-center mx-auto mb-2 w-50 fs-15">
@@ -16,6 +18,21 @@
 
         </div>
         <br>
+                <div class="d-flex justify-content-between align-items-center my-2">
+            <button class="btn-custom" @click="toImageManager">
+                <i class="fas fa-image"></i> Hình ảnh sản phẩm
+            </button>
+            <button class="btn-custom" @click="toColorManager">
+                <i class="fas fa-palette"></i> Màu sắc sản phẩm
+            </button>
+            <button class="btn-custom" @click="toSizeManager">
+                <i class="fas fa-ruler"></i> Kích thước chung
+            </button>
+            <button class="btn-custom btn-add" @click="addProduct">
+                <i class="fas fa-plus-circle"></i> Thêm sản phẩm
+            </button>
+        </div>
+        
         <table class="p-2 table table-bordered table-striped justify-content-center align-items-center text-center">
             <thead>
                 <tr>
@@ -172,20 +189,7 @@
             </div>
         </div>
 
-        <div class="d-flex justify-content-between align-items-center my-2">
-            <button class="btn-custom" @click="toImageManager">
-                <i class="fas fa-image"></i> Hình ảnh sản phẩm
-            </button>
-            <button class="btn-custom" @click="toColorManager">
-                <i class="fas fa-palette"></i> Màu sắc sản phẩm
-            </button>
-            <button class="btn-custom" @click="toSizeManager">
-                <i class="fas fa-ruler"></i> Kích thước chung
-            </button>
-            <button class="btn-custom btn-add" @click="addProduct">
-                <i class="fas fa-plus-circle"></i> Thêm sản phẩm
-            </button>
-        </div>
+
     </div>
 </template>
 

@@ -1,5 +1,7 @@
 <template>
-       <Breadcrumb  class="text-end" />
+  <div style="display: flex; justify-content: flex-start; padding: 10px">
+  <Breadcrumb />
+</div>
         <h5 class="text-center">Cập nhật danh mục</h5>
 
         <form class="col-md-8 offset-md-2 ">

@@ -1,8 +1,10 @@
 <template>
-    <Breadcrumb  class="text-end" />
+<div style="display: flex; justify-content: flex-start; padding: 10px">
+  <Breadcrumb />
+</div>
     <div class="m-4">
 
-        <h5 class="text-center">Danh Sách Nhân viên cửa hàng</h5>
+        <h5 class="text-center">Danh Sách Nhân viên kho</h5>
           <div class="text-end mb-2">
             <input type="text" class="border border-radius" v-model="inputsearch"  placeholder="Nhập tên nhân viên" @input="searchWarehouseManager">
           </input>

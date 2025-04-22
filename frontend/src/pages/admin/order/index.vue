@@ -1,5 +1,7 @@
 <template>
-     <Breadcrumb class="text-end" />
+  <div style="display: flex; justify-content: flex-start; padding: 10px">
+  <Breadcrumb />
+</div>
         <h5 class="text-center">Danh sách order</h5>
 
         <div class="row mb-3 text-center mx-auto">
@@ -122,7 +124,14 @@
                             </ul>
                     </div>
                      </td>
-                    <td class="fw-bold">{{ order.status }}</td>
+                    <td class="fw-bold">
+                        <span v-if="order.status === 'Pending'">Chờ xác nhận</span>
+                        <span v-else-if="order.status === 'Confirm'">Đã xác nhận</span>
+                        <span v-else-if="order.status === 'Processing'">Đang giao</span>
+                        <span v-else-if="order.status === 'Completed'">Hoàn thành</span>
+                        <span v-else-if="order.status === 'Cancelled'">Đã hủy</span>
+                        <span v-else>Không xác định</span>
+                    </td>
                     <td>{{ formatCurrency(order.totalPrice) }}</td>
                     <td>
                         <button @click="deleteOrderId(order._id)" class="btn btn-danger m-1" ><i class="fa-solid fa-trash"></i></button> 
@@ -326,6 +335,8 @@ export default {
                     return sortAsc.value ? aVal.localeCompare(bVal, 'vi', { sensitivity: 'base' })
                         : bVal.localeCompare(aVal, 'vi', { sensitivity: 'base' });
                 });
+                 orderData.sort((a, b) => new Date(b.dateCreated) - new Date(a.dateCreated));
+
                 orders.value = orderData;
                 console.log("Danh sách sản phẩm sau khi cập nhật:", orders.value);
             } catch (error) {

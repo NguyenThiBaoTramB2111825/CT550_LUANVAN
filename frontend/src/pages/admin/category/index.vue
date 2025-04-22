@@ -1,12 +1,22 @@
 <template>
-    <Breadcrumb  class="text-end" />
+<div style="display: flex; justify-content: flex-start; padding: 10px">
+  <Breadcrumb />
+</div>
     <div class="m-4">
 
         <h5 class="text-center">Danh sách danh mục sản phẩm</h5>
-          <div class="text-end mb-2">
+        <div class="d-flex justify-content-between align-items-center my-3">
+        <div class="">
+            <button class="btn btn-outline-primary" @click="addCategory">
+                + Thêm mới
+            </button>
+        </div>
+          <div class="">
             <input type="text" class="border border-radius" v-model="inputsearch"  placeholder="Nhập tên danh mục" @input="searchCategory">
           </input>
         </div>
+        </div>
+
 
         <table class="p-2 table table-bordered table-striped text-center">
             <thead>
@@ -35,11 +45,7 @@
         </table>
         <span>Tổng danh mục sản phẩm: {{totalCategorys}}</span>
 
-        <div class="text-end">
-            <button class="btn btn-info" @click="addCategory">
-                Thêm danh mục
-            </button>
-        </div>
+
     </div>
 </template>
 <script>
