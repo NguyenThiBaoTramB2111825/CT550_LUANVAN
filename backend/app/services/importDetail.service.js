@@ -127,14 +127,14 @@ class ImportDetailService{
                 { $inc: { stock: importDetail.quantity } }
             );
 
-            const updateResult = await this.updateProductPrice(productId);
+            // const updateResult = await this.updateProductPrice(productId);
           
             return {
                 statusCode: 200,
                 message: "Tạo thành công",
                 _id: result.insertedId,
                 importDetail,
-                priceUpdated: updateResult
+                // priceUpdated: updateResult
             };
 
         } catch (error) {
