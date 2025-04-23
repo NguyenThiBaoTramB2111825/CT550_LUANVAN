@@ -63,6 +63,7 @@ class employeeService {
 
     async login(payload) {
         const employeeData = this.extractEmployeeData(payload);
+        console.log("Giá trị của employeeData: ", employeeData);
         const employee = await this.Employee.findOne({ name: employeeData.name });
         if (!employee) {
             throw new Error("Tài khoản nhân viên không tồn tại (Không tìm thấy tên đăng nhập)");

@@ -15,13 +15,31 @@
             </a>
           </div>
 
-          <div class="col-md-6">
-            <div class="input-group">
-              <input type="text" class="form-control border" style="font-style: italic;" placeholder="Nhập các từ khóa tìm kiếm...">
-              <button class="btn btn-dark border" type="button">
+
+          <!-- <div class="col-md-6">
+            <div class="input-group" >
+              <input type="text" class="form-control border" style="font-style: italic;" v-model="searchName" placeholder="Nhập các từ khóa tìm kiếm..."> 
+              <button class="btn btn-dark border" type="submit" @click.prevent="goToProductFilter(searchName)">
                 <i class="fa-solid fa-magnifying-glass text-white"></i>
               </button>
             </div>
+          </div> -->
+
+          <div class="col-md-6">
+            <form @submit.prevent="goToProductFilter(searchName)">
+              <div class="input-group">
+                <input 
+                  type="text" 
+                  class="form-control border" 
+                  style="font-style: italic;" 
+                  v-model="searchName" 
+                  placeholder="Nhập các từ khóa tìm kiếm..."
+                >
+                <button class="btn btn-dark border" type="submit">
+                  <i class="fa-solid fa-magnifying-glass text-white"></i>
+                </button>
+              </div>
+            </form>
           </div>
 
           <div class="col-md-3 ms-auto justify-content-end align-items-center  d-flex">      
@@ -101,8 +119,8 @@
 </template>
 
 <script>
-import { useRouter } from "vue-router";
-import { onMounted, onUnmounted,  ref } from "vue";
+import { useRouter, useRoute } from "vue-router";
+import { onMounted, onUnmounted,  ref, watch } from "vue";
 import Swal from 'sweetalert2';
 import Cookies from 'js-cookie';
 import axios from 'axios';
@@ -122,6 +140,7 @@ export default {
   setup() {
 
     const router = useRouter();
+    const route = useRoute();
     const isDropdownOpen = ref(false);
     const token = Cookies.get("accessToken");
     console.log("Giá trị token ở header: ", token);
@@ -129,7 +148,7 @@ export default {
     const categorys = ref([]);
     const discounts = ref([]);
     const cartLength = ref('0');
-
+    const searchName = ref('');
     const isHidden = ref(false);
     let lastScroll = window.scrollY;
     const handleScroll = () => {
@@ -249,7 +268,11 @@ export default {
     }
 
     const fetchCartLength = async () => {
-      if (!token) return;
+      if (!token) {
+        cartLength.value = 0;
+        return;
+      }
+      
       try {
         const decoded = jwtDecode(token);
         const { data } = await axios.get(`${BASE_URL}/api/cart/customerId/${decoded.id}`);
@@ -298,6 +321,18 @@ export default {
         query: { discount: discountId }
       });
     };
+    const goToProductFilter = (searchName) => {
+      router.push({
+        name: 'filter',
+        query: { product_name: searchName }
+      });
+      searchName.value = ''; 
+    };
+
+    watch(() => route.query.product_name, () => {
+  searchName.value = ''; // Xoá nội dung input sau khi chuyển trang filter
+    });
+
 
     onMounted(() => {
       fetchInfomation();
@@ -351,7 +386,8 @@ export default {
       gotofilterPage,
       goToCategory,
       goToDiscountFilter,
-      goToBrandFilter
+      goToBrandFilter, searchName, 
+      goToProductFilter
     }
   }
 }

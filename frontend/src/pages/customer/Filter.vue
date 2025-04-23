@@ -3,6 +3,14 @@
   <div class=" container my-3 ">
     <div class="row col-md-12 mx-auto">
 
+      <div v-if="searchProuduct_Name" class="alert alert-info d-flex align-items-center mt-3" role="alert">
+        <i class="fa fa-search me-2"></i>
+        <div>
+          Kết quả tìm kiếm cho: <strong>"{{ searchProuduct_Name }}"</strong>
+        </div>
+      </div>
+
+
     <div class="col-md-2 border rounded">
         <div class=" d-flex justify-content-between align-items-center pt-3"><strong>GIÁ TRỊ LỌC</strong><i  @click="clearFilter" class="fa-solid fa-minus"></i></div>
         
@@ -184,6 +192,7 @@ export default {
     const selectedColorId = ref('');
     const selectedSizeId = ref('');
     const selectedDiscountId = ref('');
+    const searchProuduct_Name = ref('');
     const sortOption = ref('none');
     // const filterproduct = ref([]);
     const priceFilter = ref({
@@ -424,8 +433,8 @@ export default {
         const isValidColor = !selectedColorId.value || product.colors.some(color => color._id === selectedColorId.value);
         const isValidSize = !selectedSizeId.value || product.sizes.some(size => size._id === selectedSizeId.value);
         const isValidDiscount = !selectedDiscountId.value || product.discount_id === selectedDiscountId.value;
-
-        return isValidPrice && isValidCategory && isValidBrand && isValidColor && isValidSize && isValidDiscount;
+        const isValidProduct = !searchProuduct_Name.value || product.product_name.toLowerCase().includes(searchProuduct_Name.value.toLowerCase());
+        return isValidPrice && isValidCategory && isValidBrand && isValidColor && isValidSize && isValidDiscount && isValidProduct;
       });
 
       switch (sortOption.value) {
@@ -449,6 +458,7 @@ export default {
       return result;
     });
 
+             
     watch(
       () => route.query,
       () => {
@@ -459,6 +469,7 @@ export default {
         selectedSizeId.value = route.query.size || '';
         priceFilter.value.min = route.query.min || null;
         priceFilter.value.max = route.query.max || null;
+        searchProuduct_Name.value = route.query.product_name || '';
       },
       { immediate: true, deep: true }
     );
@@ -472,7 +483,8 @@ export default {
           color: selectedColorId.value || undefined,
           size: selectedSizeId.value || undefined,
           min: priceFilter.value.min ?? undefined,
-          max: priceFilter.value.max ?? undefined
+          max: priceFilter.value.max ?? undefined,
+          product_name: searchProuduct_Name.value || undefined,
         }
       });
     };
@@ -516,6 +528,8 @@ export default {
       clearFilter,
       filteredProducts,
       updateRouteWithFilter,
+      searchProuduct_Name,
+
     }
   }
 }

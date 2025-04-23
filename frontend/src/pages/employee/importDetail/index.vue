@@ -486,7 +486,7 @@ export default {
         // });
 
         const addimportDetail = async () => {
-            router.push({ name: 'addimport' });
+            router.push({ name: 'employee_addimport' });
         }
 
         const totalImportDetails = computed(() => groupedData.value.length);

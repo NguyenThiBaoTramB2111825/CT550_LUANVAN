@@ -21,8 +21,9 @@ class OrderService {
         const expectedDeliveryDate = new Date(dateCreated);
         expectedDeliveryDate.setDate(expectedDeliveryDate.getDate() + 3);
         const order = {
-            customer_id: ObjectId.isValid(payload.customer_id) ? new ObjectId(payload.customer_id) : undefined,
-            customer_name: '',
+            customer_id: payload.customer_id && ObjectId.isValid(payload.customer_id) ? new ObjectId(payload.customer_id) : null,
+            // customer_id: ObjectId.isValid(payload.customer_id) ? new ObjectId(payload.customer_id) : undefined,
+            customer_name: payload.customer_id ? '' : payload.customer_name || 'Khách hàng không đăng nhập',
             items: [],
             shippingFee: payload.shippingFee ? parseFloat(payload.shippingFee) : 0,
             discount_id: ObjectId.isValid(payload.discount_id) ? new ObjectId(payload.discount_id) : undefined,
@@ -104,8 +105,19 @@ class OrderService {
                 order.discount_name = existingDiscount.name;
             }
         };
-        const customer = await this.Customer.findOne({ _id: new ObjectId(payload.customer_id) });
-        order.customer_name = customer.name;
+
+        if (!payload.customer_id) {
+            order.customer_id = null;
+            order.customer_name = payload.customer_name || 'Khách hàng không đăng nhập';
+        } else {
+            order.customer_id = ObjectId.isValid(payload.customer_id) ? new ObjectId(payload.customer_id) : null;
+            const customer = await this.Customer.findOne({ _id: order.customer_id });
+            if (customer) {
+                order.customer_name = customer.name;
+            }
+        }
+        // const customer = await this.Customer.findOne({ _id: new ObjectId(payload.customer_id) });
+        // order.customer_name = customer.name;
         order.items = order.items.filter(item => item !== null);
         order.totalPrice = totalPrice + order.shippingFee - order.discount_value;
 
@@ -116,10 +128,10 @@ class OrderService {
     }
 
     async create(payload) {
-        const existingCustomer = await this.Customer.findOne({ _id: new ObjectId(payload.customer_id) });
-        if (!existingCustomer) {
-            return { statusCode: 400, message: "Lỗi vì Customer được truyền không đúng" }
-        }
+        // const existingCustomer = await this.Customer.findOne({ _id: new ObjectId(payload.customer_id) });
+        // if (!existingCustomer) {
+        //     return { statusCode: 400, message: "Lỗi vì Customer được truyền không đúng" }
+        // }
         for (const item of payload.items) {
             const productDetail = await this.ProductDetail.findOne({ _id: new ObjectId(item.productDetail_id) });
             if (!productDetail) {

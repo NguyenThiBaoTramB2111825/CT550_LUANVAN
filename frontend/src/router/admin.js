@@ -266,14 +266,6 @@ const admin = [
           breadcrumb: 'Chi tiết đơn hàng'
         },
       },
-      // {
-      //   path: "cart",
-      //   name: "cart",
-      //   component: () => import("../pages/admin/cart/index.vue"),
-      //   meta: {
-      //     breadcrumb: 'Giỏ hàng'
-      //   },
-      // },
     ],
   },
   {

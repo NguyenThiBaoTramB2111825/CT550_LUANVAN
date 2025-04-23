@@ -76,6 +76,7 @@
           </div>
           <div class="col-md-6">
             <p><strong>Phí vận chuyển: </strong>{{ formatCurrency(order.shippingFee) }}</p>
+            <p><strong>Chương trình giảm giá: </strong>{{ order?.discount_name }}</p>
             <p><strong>Ngày nhận hàng dự kiến: </strong>{{ formatDate(order.dateCreated) }}</p>
             <p v-if="order.deliveryDate"><strong>Ngày nhận hàng thực tế: </strong>{{ formatDate(order.deliveryDate) }}</p>
             <p><strong>Trạng thái thanh toán:</strong> {{ order.paymentStatus ==="Unpaid"  ? "Chưa thanh toán" : "Đã thanh toán"}}</p>

@@ -26,35 +26,36 @@
     </div>
     <div class="col-md-12 d-flex align-item-center justify-content-between mb-4">
 
-      <router-link to="" class="circle-wrapper">
+      <!-- 67d9b53755485036f2e3f285 -->
+      <router-link to="/filter?category=67d9b53755485036f2e3f285" class="circle-wrapper">
         <div class="circle">
             <img src="/src/assets/images/skirt.png" alt="Category Icon">
         </div>
         <span class="category-label">Váy dài</span>
       </router-link> 
 
-      <router-link to="" class="circle-wrapper">
+      <router-link to="filter?category=67d9b5cb55485036f2e3f288" class="circle-wrapper">
         <div class="circle">
             <img src="/src/assets/images/maxi-dress.png" alt="Category Icon">
         </div>
         <span class="category-label">Váy maxi</span>
       </router-link> 
 
-      <router-link to="" class="circle-wrapper">
+      <router-link to="/filter?category=67f8e0766f4765dbb0f57f4e" class="circle-wrapper">
         <div class="circle">
             <img src="/src/assets/images/skirt_short.png" alt="Category Icon">
         </div>
         <span class="category-label">Váy ngắn</span>
       </router-link> 
 
-      <router-link to="" class="circle-wrapper">
+      <router-link to="/filter?category=67f8e0876f4765dbb0f57f4f" class="circle-wrapper">
         <div class="circle">
             <img src="/src/assets/images/tshirt.png" alt="Category Icon">
         </div>
         <span class="category-label">Áo phông</span>
       </router-link> 
 
-      <router-link to="" class="circle-wrapper">
+      <router-link to="/filter?category=67f8e0926f4765dbb0f57f50" class="circle-wrapper">
         <div class="circle">
             <img src="/src/assets/images/women.png" alt="Category Icon">
         </div>
@@ -64,35 +65,35 @@
 
     <div class="col-md-12 d-flex align-item-center justify-content-between mb-5 ">
 
-      <router-link to="" class="circle-wrapper">
+      <router-link to="/filter?category=67f8e0b16f4765dbb0f57f52" class="circle-wrapper">
           <div class="circle">
               <img src="/src/assets/images/jeans_pant.png" alt="Category Icon">
           </div>
           <span class="category-label">Quần jean</span>
       </router-link> 
 
-      <router-link to="" class="circle-wrapper">
+      <router-link to="/filter?category=67f8e0be6f4765dbb0f57f53" class="circle-wrapper">
           <div class="circle">
               <img src="/src/assets/images/short.png" alt="Category Icon">
           </div>
           <span class="category-label">Quần short</span>
       </router-link> 
 
-      <router-link to="" class="circle-wrapper">
+      <router-link to="/filter?category=67f8e0cf6f4765dbb0f57f54" class="circle-wrapper">
           <div class="circle">
               <img src="/src/assets/images/dress-shirt.png" alt="Category Icon">
           </div>
           <span class="category-label">Áo sơ mi</span>
       </router-link> 
 
-      <router-link to="" class="circle-wrapper">
+      <router-link to="/filter?category=67f8e0de6f4765dbb0f57f55" class="circle-wrapper">
           <div class="circle">
               <img src="/src/assets/images/pijama (1).png" alt="Category Icon">
           </div>
           <span class="category-label">Đồ bộ</span>
       </router-link> 
 
-      <router-link to="" class="circle-wrapper">
+      <router-link to="/filter?category=67f8e0ea6f4765dbb0f57f56" class="circle-wrapper">
           <div class="circle">
               <img src="/src/assets/images/jacket.png" alt="Category Icon">
           </div>
@@ -216,7 +217,7 @@ export default {
     })
 
     const visibleProducts = computed(() => {
-    
+
       return filteredProducts.value.slice(currentIndex.value, currentIndex.value + itemsPerPage);
     });
 
@@ -296,7 +297,7 @@ export default {
         const validProductIds = [];
         for (const [productId, details] of productDetailMap.entries()) {
           const product = productMap.get(productId);
-          if (!product || !product.isActive) continue;
+          if (!product || !product.isActive || !product.price_selling) continue;
           const brand = brandMap.get(product.brand_id);
           const category = categoryMap.get(product.category_id);
           if (!brand || !brand.isActive || !category || !category.isActive) continue;

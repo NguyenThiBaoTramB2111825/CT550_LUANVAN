@@ -1,12 +1,12 @@
 
 <template>
-<div style="display: flex; justify-content: flex-start; padding: 10px">
+<div style="display: flex; justify-content: flex-start; padding: 5px">
   <Breadcrumb />
 </div>
-    <div class="m-4">
+    <div class="">
         <h5 class="text-center">Danh sách chi tiết sản phẩm</h5>
         
-        <div class="text-end mb-5">
+        <div class="text-end">
             <input type="text" class="border rounded p-2" v-model="inputsearch" placeholder="Nhập tên sản phẩm">
         </div>
 

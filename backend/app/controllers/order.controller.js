@@ -6,9 +6,9 @@ const { ObjectId } = require("mongodb");
 
 exports.create = async (req, res, next) => {
     const { customer_id, items } = req.body;
-    if (!ObjectId.isValid(customer_id)) {
-        return next(new ApiError(400, "Customer_id không hợp lệ"));
-    }
+    // if (!ObjectId.isValid(customer_id)) {
+    //     return next(new ApiError(400, "Customer_id không hợp lệ"));
+    // }
 
     for (const item of items) {
         if (!ObjectId.isValid(item.productDetail_id)) {

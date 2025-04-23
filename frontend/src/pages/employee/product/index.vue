@@ -4,7 +4,7 @@
     </div>
     <div>
         <div class="row justify-content-center mb-4">
-            <div class="d-flex flex-wrap justify-content-start gap-3 mb-4 mx-3">
+            <!-- <div class="d-flex flex-wrap justify-content-start gap-3 mb-4 mx-3">
                 <button class="btn btn-outline-primary" @click="toImageManager">
                     <i class="fas fa-image me-1"></i> Hình ảnh sản phẩm
                 </button>
@@ -17,7 +17,7 @@
                 <button class="btn btn-success" @click="addProduct">
                     <i class="fas fa-plus-circle me-1"></i> Thêm sản phẩm
                 </button>
-            </div>
+            </div> -->
 
             <div class="col-md-6">
                 <input type="text" class="form-control mb-2" v-model="filters.searchText" placeholder="Nhập tên sản phẩm">
@@ -62,8 +62,8 @@
                     <td>{{ formatCurrency(product.suggessPrice) }}</td>
                     <td>{{ product.isActive ? "Đang hoạt động" : "Đã xóa"}}</td>
                     <td>
-                        <button class="btn  btn-danger m-1" @click="deleteProduct(product._id)"><i class="fa-solid fa-trash"></i></button> 
-                        <button class="btn  btn-success m-1" @click="goToUpdatePage(product._id)"><i class="fa-solid fa-pen-to-square"></i></button> 
+                        <!-- <button class="btn  btn-danger m-1" @click="deleteProduct(product._id)"><i class="fa-solid fa-trash"></i></button> 
+                        <button class="btn  btn-success m-1" @click="goToUpdatePage(product._id)"><i class="fa-solid fa-pen-to-square"></i></button>  -->
                         <button class="btn  btn-info " @click="openModal(product._id)">
                             <span v-if="product.hasImage"> <i class="fa-solid fa-eye"></i></span>
                             <span v-else><i class="fa-solid fa-upload"></i></span>
