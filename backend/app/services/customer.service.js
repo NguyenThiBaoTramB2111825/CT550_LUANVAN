@@ -18,6 +18,7 @@ class customerService {
             address: payload.address || null,
             profileImage: payload.profileImage,
             status: payload.status || "Đang hoạt động",
+            newpassword: payload.newpassword || null,
         };
         // Remove undefined fields
         Object.keys(customer).forEach(
@@ -63,6 +64,35 @@ class customerService {
             }
         }
     }
+
+  async updatePass(id, payload) {
+      const filter = { _id: new ObjectId(id) };
+      
+        const existingCustomer = await this.Customer.findOne(filter);
+        if (!existingCustomer) {
+            return { statusCode: 404, message: "Khách hàng không tồn tại" };
+        }
+      const customerData = this.extractCustomerData(payload);
+      console.log("Giá trị của customerData sau khi extract: ", customerData);
+
+        const isPasswordValid = await bcrypt.compare(customerData.password, existingCustomer.password);
+        if (!isPasswordValid) {
+            return { statusCode: 400, message: "Mật khẩu hiện tại không đúng" };
+        }
+
+        const salt = await bcrypt.genSalt(10);
+        const hashedNewPassword = await bcrypt.hash(customerData.newpassword, salt);
+
+        await this.Customer.updateOne(filter, {
+            $set: { password: hashedNewPassword }
+        });
+
+        return {
+            statusCode: 200,
+            message: "Cập nhật mật khẩu thành công"
+        };
+    }
+
 
     async login(payload) {
         const customerData = this.extractCustomerData(payload);

@@ -36,6 +36,8 @@ const payRouter = require("./app/routes/pay.route");
 const { ppid } = require("process");
 const reportRouter = require("./app/routes/report.route");
 const suggestedPriceRouter = require("./app/routes/suggestedPrice.route ");
+const wishlistRouter = require("./app/routes/wishlist.route");
+
 
 app.use(cors());
 app.use(express.json());
@@ -64,6 +66,8 @@ app.use("/api/ward", wardRouter);
 app.use("/api/pay", payRouter);
 app.use("/api/report", reportRouter);
 app.use("/api/suggestedPrice", suggestedPriceRouter);
+app.use("/api/wishlist", wishlistRouter);
+
 
 // cho phép serve thư mục 'uploads' client truy cập ảnh
 app.use('/uploads', express.static(path.join(__dirname, 'app','uploads')));

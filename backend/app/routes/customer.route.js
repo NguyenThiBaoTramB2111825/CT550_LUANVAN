@@ -34,4 +34,5 @@ router
     .post(customer.logoutCustomer);
 
 router.route("/refresh-token").post(customer.refreshToken);
+router.route("/updatePass/:id").put(customer.updatePass);
 module.exports = router;

@@ -190,6 +190,22 @@ exports.update = [
         }
     }
 ]
+exports.updatePass = async (req, res, next) => {
+    const id = req.params.id;
+    const payload = req.body;
+
+    try {
+        const customerService = new CustomerService(MongoDB.client);
+        const document = await customerService.updatePass(id, payload);
+        if (document.statusCode && document.statusCode !== 200) {
+            return next(new ApiError(document.statusCode, document.message));
+        }
+        return res.send({ message: "Đã cập nhật mật khẩu thành công", data: document });
+
+    } catch (error) {
+        return res.send({ message: error.message });
+    }
+}
 
 exports.delete = async (req, res, next) => {
     console.log("Giá trị id nhận vào để delete: ", req.params.id);
