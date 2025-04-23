@@ -43,7 +43,8 @@
           </div>
 
           <div class="col-md-3 ms-auto justify-content-end align-items-center  d-flex">      
-            <a href="#" class="btn btn-outline-dark me-2"><i class="bi bi-heart"></i></a>
+            <a href="#" class="btn btn-outline-dark me-2"><i class="bi bi-heart"></i> (<span>{{ wishListLength }}</span>)
+            </a>
             <div class="dropdown">
               <button type="button" id="userDropdown" class="btn btn-outline-dark me-2 dropdown-toggle"
                 @click="toggleDropdown">
@@ -148,6 +149,7 @@ export default {
     const categorys = ref([]);
     const discounts = ref([]);
     const cartLength = ref('0');
+    const wishListLength = ref('0');
     const searchName = ref('');
     const isHidden = ref(false);
     let lastScroll = window.scrollY;
@@ -281,6 +283,20 @@ export default {
         console.error("Không thể lấy thông tin giỏ hàng:", err);
       }
     };
+    const fetchWishListLength = async () => {
+      if (!token) {
+        wishListLength.value = 0;
+        return;
+      }
+      
+      try {
+        const decoded = jwtDecode(token);
+        const { data } = await axios.get(`${BASE_URL}/api/wishlist/customer_id/${decoded.id}`);
+        wishListLength.value = data.length;
+      } catch (err) {
+        console.error("Không thể lấy thông tin giỏ hàng:", err);
+      }
+    };
 
     const gotoCartPage = () => checkAnRedirect(async (customerId) => {
       router.push({ name: "Cart", params: { customerId } });
@@ -338,6 +354,7 @@ export default {
       fetchInfomation();
       window.addEventListener('scroll', handleScroll);
       fetchCartLength();
+      fetchWishListLength();
       socket.on('brand_update', async ({ action }) => {
         if (["create", "update", "delete", "soft_delete"].includes(action)) {
           await fetchInfomation();
@@ -356,6 +373,11 @@ export default {
       socket.on('cart_update', async ({ action }) => {
         if (["create", "update", "delete", "delete_cartItem"].includes(action)) {
           await fetchCartLength();
+        }
+      });
+      socket.on('wishlist_update', async ({ action }) => {
+        if (["create", "update", "delete", "delete_all"].includes(action)) {
+          await fetchWishListLength();
         }
       });
     });
@@ -381,6 +403,7 @@ export default {
       handleScroll,
       gotoOrderHistoryPage,
       cartLength, fetchCartLength,
+      wishListLength, fetchWishListLength,
       gotoProfilePage,
       gotoAboutUs,
       gotofilterPage,

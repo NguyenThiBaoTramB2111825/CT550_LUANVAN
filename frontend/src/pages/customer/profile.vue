@@ -2,8 +2,7 @@
   <div class="container-fluid py-1 text-white bg-primary">
     <div class="d-flex align-items-center justify-content-between mx-5">
       <div>
-        <!-- <p class="p-0 m-0 fw-bold" style="font-size: 20px;">FASHION SHOP</p> -->
-         <!-- <P>Hãy quản lý thông tin cá nhân cẩn thận</P> -->
+
           <img src="/src/assets/images/logo.jpg" alt="Logo" height="45"  class="me-2 border rounded my-2"> 
           <span class="p-0 m-0 fw-bold" style="font-size: 20px;">FASHION SHOP</span> 
       </div>
@@ -13,23 +12,26 @@
     </div>
   </div>
 
-  <!-- <div class="container-fluid py-1 text-white bg-primary">
-    <div class="d-flex align-items-center justify-content-between mx-5">
-      <div>
-        <p class="p-0 m-0 fw-bold" style="font-size: 20px;">QUẢN LÝ TÀI KHOẢN</p>
-        <P>Hãy quản lý thông tin cá nhân cẩn thận</P>
-      </div>
-      <span @click="gotoHomePage()" class="fw-bold">Về trang chủ >></span>
-    </div>
-  </div> -->
-
   <div class="row mx-3">
 
     <div class="col-md-3 mt-4">
       <div class="bg-white rounded shadow">
         <h4 class="font-semibold text-lg pt-5 text-center">TÀI KHOẢN</h4>
-        <p class="text-center pt-5" :class="{ 'fw-bold': !open, 'text-primary': !open, 'text-decoration-underline': !open }">Thông tin tài khoản</p>
-        <p class="text-center pb-5"  @click="openModal" :class="{ 'fw-bold': open, 'text-primary': open, 'text-decoration-underline': open }">Đổi mật khẩu</p>
+
+
+        <p class="text-center pt-4 cursor-pointer" :class="{ 'fw-bold text-primary text-decoration-underline': activeTab === 'info' }" @click="activeTab = 'info'; open = false">
+            Thông tin tài khoản
+        </p>
+        <p class="text-center pt-2 cursor-pointer" :class="{ 'fw-bold text-primary text-decoration-underline': activeTab === 'favorites' }"  @click="activeTab = 'favorites'; open = false">
+          Sản phẩm yêu thích
+        </p>
+        <p class="text-center pt-2 cursor-pointer" :class="{ 'fw-bold text-primary text-decoration-underline': open }" @click="open = true" >
+          Đổi mật khẩu
+        </p>
+
+
+        <!-- <p class="text-center pt-5" :class="{ 'fw-bold': !open, 'text-primary': !open, 'text-decoration-underline': !open }">Thông tin tài khoản</p>
+        <p class="text-center pb-5"  @click="openModal" :class="{ 'fw-bold': open, 'text-primary': open, 'text-decoration-underline': open }">Đổi mật khẩu</p> -->
       </div>
     </div>
 
@@ -37,7 +39,7 @@
       <div class="bg-white shadow rounded p-6">
         <h4 class="text-xl font-bold mb-4 text-blue-600 text-center pt-5">THÔNG TIN TÀI KHOẢN</h4>
 
-        <div class="row">
+        <div  v-if="activeTab === 'info'" class=" row">
           <div class=" col-md-4 flex flex-col items-center mb-4 text-center my-1>">
             <img
             :src= "`${BASE_URL}${customer.profileImage}`"
@@ -116,7 +118,7 @@
 
         <div v-if="open" class="modal fade show d-block" tabindex="-1" style="background-color: rgba(0, 0, 0, 0.5);">
           <div class="modal-dialog modal-dialog-centered">
-            <div class="modal-content">
+            <div class="modal-content text-center">
 
               <div class="modal-header">
                 <h5 class="modal-title">Đổi mật khẩu</h5>
@@ -143,7 +145,7 @@
                   ></i>
                 </div>
 
-                <!-- Mật khẩu mới -->
+      
                 <div class="mb-3 position-relative">
                   <label class="form-label">Mật khẩu mới</label>
                   <input
@@ -188,6 +190,28 @@
            </div>
           </div>
         </div>
+
+
+
+        <!-- Nội dung hiển thị khi ở tab "Sản phẩm yêu thích" -->
+        <div v-else-if="activeTab === 'favorites'" class="p-4">
+          <h5 class="text-center text-secondary mb-4">Danh sách sản phẩm yêu thích</h5>
+          <!-- <div v-if="favorites.length === 0" class="text-center text-muted">
+            Chưa có sản phẩm yêu thích nào.
+          </div>
+          <div v-else class="row">
+            <div v-for="item in favorites" :key="item._id" class="col-md-4 mb-4">
+              <div class="card h-100 shadow-sm">
+                <img :src="`${BASE_URL}${item.image}`" class="card-img-top" alt="Sản phẩm" />
+                <div class="card-body">
+                  <h6 class="card-title text-primary">{{ item.name }}</h6>
+                  <p class="card-text">{{ item.price.toLocaleString() }} đ</p>
+                </div>
+              </div>
+            </div>
+          </div> -->
+        </div>
+
 
       </div>
     </div>
@@ -307,43 +331,74 @@ export default {
     }
 
     const updatePass = async () => {
-      if (customer.password !== pass.value) {
-        Swal.fire('Lỗi', 'Mật khẩu cũ không đúng', 'danger');
+  
+      if (newPass.value !== renewPass.value) {
+        Swal.fire('Lỗi', 'Kiểm tra lại mật khẩu cập nhật', 'warning');
         return;
       }
-      if (newPass !== renewPass) {
-        Swal.fire('Lỗi', 'Kiểm tra lại pass cập nhật', 'danger');
-        return;
-      }
-      if (newPass.value.length < 6) {
-        await Swal.fire('Lỗi', 'Mật khẩu mới phải có ít nhất 6 ký tự', 'error');
+      if (newPass.value.length< 5) {
+        await Swal.fire('Lỗi', 'Mật khẩu mới phải có ít nhất 5 ký tự', 'error');
         return;
       }
       try {
-
-        const response = await axios.put(`${BASE_URL}/api/customer/${customerId.value}`, {
-          password: newPass.value,
+        const response = await axios.put(`${BASE_URL}/api/customer/updatePass/${customerId.value}`, {
+          password: pass.value,
+          newpassword: newPass.value
         });
 
-        if (response.data.success) {
-          Swal.fire("Thành công", "Cập nhật mật khẩu mới thành công", "success");
+        if (response.data) {
+          Swal.fire("Thành công", response.data.message, "success");
           open.value = false;
         }
       }
       catch (error) {
-        Swal.fire("Lỗi", "Không thể cập nhật mật khẩu", "error");
+        Swal.fire("Lỗi", "Mật khẩu chưa đúng ", "warning");
       }
     };
 
+const wishlists = ref([]);
+    const activeTab = ref('info');
+const product = ref([]);
+    const fetchWislist = async () => {
+        try {
+          const response = await axios.get(`${BASE_URL}/api/wishlist/customer_id/${customerId.value}`);
+          wishlists.value = response.data || [];
+          console.log("Giá trị của wishlists: ", wishlists.value);
+        } catch (err) {
+          console.error("Lỗi khi fetch wishlist:", err);
+          wishlists.value = [];
+        }
+      }
+
+      const fetchProduct = async ()=>{
+        try{
+            const products = await Promise.all(
+              wishlists.data.map(async (wishlist) => {
+                const response = await axios.get(`${BASE_URL}/api/product/${wishlist.product_id}`);
+                return response.data;
+              })
+            );
+            products.value = response.data;
+            console.log("Giá trị của product được lọc: ", products.value);
+        }
+        catch(error){
+          console.log("Giá trị lỗi");
+        }
+      }
 
     const gotoHomePage = () => {
       router.push({ name: "home" });
     }
     onMounted(async () => {
       fetchUserInfo();
+      fetchWislist();
+      fetchProduct();
 
     })
     return {
+      product,
+      fetchProduct,
+      activeTab,
       customer,
       fetchUserInfo,
       BASE_URL,
@@ -358,10 +413,10 @@ export default {
       openModal,
       newPass,
       renewPass,
-      updatePass
-    }
-  }
-}
+      updatePass, 
+      pass, 
+      wishlists,
+    }}}
 </script>
 
 <style scoped>

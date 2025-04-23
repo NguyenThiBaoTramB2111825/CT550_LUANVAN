@@ -68,14 +68,16 @@
         <div class="d-flex justify-content-center flex-wrap gap-3 ">
           <button type="submit" style="width: 300px;" class="btn border border-radius-2 fs-6 bg-dark fw-bold text-white" @click="addCart()">Thêm vào giỏ hàng</button>
           <div 
-            class="border rounded-circle" 
-            @click="toggleFavorite"
-            :class="{'border-3 border-danger': isFavorite, 'border-1 border-dark': !isFavorite}">
-            <i class="fa-heart p-3 align-items-center"
-              :class="{'fa-solid text-danger': isFavorite, 'fa-regular text-dark': !isFavorite}">
-            </i>
+              class="border rounded-circle d-flex align-items-center justify-content-center"
+              :class="{'border-3 border-danger': isFavorite, 'border-1 border-dark': !isFavorite}"
+              style="width: 60px; height: 60px; cursor: pointer;"
+              @click="handleFavorite"
+            >
+              <i class="fa-heart fs-4"
+                :class="{'fa-solid text-danger': isFavorite, 'fa-regular text-dark': !isFavorite}">
+              </i>
+            </div>
           </div>
-        </div>
 
       <hr style="border: none; border-top: 1px dashed #999;">
 
@@ -166,11 +168,13 @@
 
 <script>
 import axios from 'axios';
-import { ref, onMounted, computed, isProxy, resolveTransitionHooks, watch } from 'vue';
+import { ref, onMounted, computed, isProxy, resolveTransitionHooks, watch, onUnmounted } from 'vue';
 import { useRouter, useRoute, onBeforeRouteUpdate  } from 'vue-router';
 import Swal from "sweetalert2";
 import Cookies from 'js-cookie';
+import { io } from 'socket.io-client';
 const BASE_URL = "http://localhost:3000";
+const socket = io(BASE_URL);
 import { jwtDecode } from 'jwt-decode';
 export default {
   setup() {
@@ -178,7 +182,8 @@ export default {
     const product = ref([]);
     const router = useRouter();
     const route = useRoute();
-    const product_id = route.params.id;
+    // const product_id = route.params.id;
+    const product_id = computed(() => route.params.id);
     const isFavorite = ref(false);
     const selectedSize = ref(null);
     const selectedColor = ref(null);
@@ -188,6 +193,13 @@ export default {
     const selectedImageIndex = ref(0);
     const productDetails = ref([]);
     const productDetailSelect = ref(null);
+    const token = Cookies.get("accessToken");
+    const customer_id = ref(null);
+
+    if (token) {
+      const decoded = jwtDecode(token);
+      customer_id.value = decoded.id;
+    }
 
     const isOpen = ref({
       description: false,
@@ -232,35 +244,89 @@ export default {
         fetchProductDetails();
       }
     };
+    const wishlists = ref([]);
+    const wishlistProduct = ref(null);
+
+    const handleFavorite = async () => {
+      if (!token) {
+        await Swal.fire("Thông báo", "Bạn cần đăng nhập để thêm sản phẩm vào danh sách yêu thích.", "warning").then(() => {
+          router.push({ name: "login" });
+        });
+        return;
+      }
+
+      if (isFavorite.value) {
+        await removeFromWishlist(); // gọi và đợi hoàn tất
+      } else {
+        await addToWishlist();
+      }
+
+      await fetchWislist(); // đảm bảo cập nhật lại trạng thái chính xác
+    };
+
+
+    const fetchWislist = async () => {
+      if (token) {
+        try {
+          const response = await axios.get(`${BASE_URL}/api/wishlist`);
+          wishlists.value = response.data || [];
+
+          wishlistProduct.value = wishlists.value.find(
+            w => w.product_id === product_id.value && w.customer_id === customer_id.value
+          );
+
+          isFavorite.value = !!wishlistProduct.value;
+        } catch (err) {
+          console.error("Lỗi khi fetch wishlist:", err);
+          wishlists.value = [];
+          isFavorite.value = false;
+          // Có thể thêm hiển thị thông báo nếu muốn
+          // Swal.fire("Lỗi", "Không thể tải danh sách yêu thích", "warning");
+        }
+      } else {
+        isFavorite.value = false;
+      }
+    };
+
+
+
+    const addToWishlist = async () => {
+      try {
+        const response = await axios.post(`${BASE_URL}/api/wishlist`, {
+          product_id: product_id.value,
+          customer_id: customer_id.value
+        });
+        await Swal.fire('Thông báo!', "Đã thêm sản phẩm vào danh sách yêu thích", 'success');
+        // await addToWishlist();
+        await fetchWislist();
+      }
+      catch (error) {
+        console.log("Lỗi khi thêm vào wishlist:", error);
+        Swal.fire("Lỗi", error.response?.data?.message || "Có lỗi xảy ra", "warning");
+      }
+    }
+
+    const removeFromWishlist = async () => {
+      try {
+        if (wishlistProduct.value && wishlistProduct.value._id) {
+          const response = await axios.delete(`${BASE_URL}/api/wishlist/${wishlistProduct.value._id}`);
+          await Swal.fire('Thông báo!', "Đã xóa khỏi danh sách yêu thích", 'success');
+          await fetchWislist();
+        }
+      } catch (error) {
+        console.log("Lỗi khi xóa wishlist:", error);
+        Swal.fire("Lỗi", error.response?.data?.message || "Có lỗi xảy ra", "warning");
+      }
+    };
 
     const addCart = async () => {
-      let customerId = null;
+      // let customerId = null;
       console.log("Bắt đầu thực hiện addCart.......");
-      try {
-        const token = Cookies.get("accessToken");
-        if (!token) {
-          await Swal.fire("Thông báo", "Bạn cần đăng nhập để thêm sản phẩm vào giỏ hàng.", "warning").then(() => {
-            router.push({ name: "login" });
-          });
-          return;
-        }
-
-        const decoded = jwtDecode(token);
-        const expiresInMs = decoded.exp * 1000 - Date.now();
-        if (expiresInMs <= 0) {
-          await Swal.fire("Hết hạn", "Phiên đăng nhập đã hết hạn, vui lòng đăng nhập lại.", "error").then(() => {
-            Cookies.remove("accessToken");
-            router.push({ name: "login" });
-          });
-          return;
-        }
-
-        customerId = decoded.id;
-        console.log("Giá trị của customerId: ", customerId);
-
-      } catch (err) {
-        console.error("Lỗi khi xử lý token:", err);
-        await Swal.fire("Lỗi!", "Có lỗi khi xác thực đăng nhập", "error");
+      const token = Cookies.get("accessToken");
+      if (!token) {
+        await Swal.fire("Thông báo", "Bạn cần đăng nhập để thêm sản phẩm vào giỏ hàng.", "warning").then(() => {
+          router.push({ name: "login" });
+        });
         return;
       }
 
@@ -276,7 +342,7 @@ export default {
       }
       console.log("Giá trị của selectedSize được chọn: ", selectedSize.value);
       try {
-        const response = await axios.get(`${BASE_URL}/api/productDetail/productId/${product_id}`);
+        const response = await axios.get(`${BASE_URL}/api/productDetail/productId/${product_id.value}`);
         const productDetailsData = response.data;
         const productDetail_match = productDetailsData.find(item => item.color_id === selectedColor.value && item.size_id === selectedSize.value);
         if (!productDetail_match) {
@@ -286,7 +352,7 @@ export default {
         console.log("Giá trị của productDetail_match được chọn: ", productDetail_match);
 
         const cart = {
-          customer_id: customerId,
+          customer_id: customer_id.value,
           items: [
             {
               "productDetail_id": productDetail_match._id,
@@ -300,11 +366,12 @@ export default {
         try {
           const response_cart = await axios.post(`${BASE_URL}/api/cart`, cart);
           await Swal.fire('Thông báo!', response_cart.data.message, 'success');
-        selectedSize.value = null;
+          await fetchProductDetails();
+          selectedSize.value = null;
           selectedColor.value = null;
 
-          console.log("Giá trị của selectedSize: ", selectSize.value);
-          console.log("Giá trị của selectedColor: ", selectColor.value);
+          console.log("Giá trị của selectedSize: ", selectedSize.value);
+          console.log("Giá trị của selectedColor: ", selectedColor.value);
         }
         catch (error) {
           console.log("Lỗi khi thêm sản phẩm:", error);
@@ -457,9 +524,17 @@ export default {
       }
     }
 
+    watch(() => product_id.value, (newVal, oldVal) => {
+      if (newVal !== oldVal) {
+        fetchProductDetails();       // nếu có
+        fetchWislist();       // lấy lại wishlist
+      }
+    });
+
     watch(() => route.params.id, (newId, oldId) => {
       if (newId !== oldId) {
         fetchProductDetails();
+        fetchWislist();
       }
     });
 
@@ -470,13 +545,27 @@ export default {
 
     onBeforeRouteUpdate((to, from, next) => {
       if (to.params.id !== from.params.id) {
-        fetchProductDetails(); // có thể dùng to.params.id luôn
+        productDetailSelect.value = null;
+        fetchProductDetails();
+        fetchWislist();
       }
       next();
     });
     onMounted(() => {
       fetchProductDetails();
+      fetchWislist();
+      // socket.on('wishlist_update', async ({ action }) => {
+      //   if (["create", "update", "delete", "soft_delete"].includes(action)) {
+      //     await fetchWislist();
+      //   }
+      // });
+      // socket.on('cart_update', async ({ action }) => {
+      //   if (["create", "update", "delete", "delete_cartItem"].includes(action)) {
+      //     await fetchProductDetails();
+      //   }
+      // })
     })
+
 
 
     return {
@@ -500,7 +589,13 @@ export default {
       fetchProductDetails,
       productDetails,
       gotoProductDetail,
-      productDetailSelect
+      productDetailSelect,
+      handleFavorite,
+      removeFromWishlist,
+      addCart,
+      fetchWislist,
+      wishlistProduct,
+      wishlists
     }
   }
 }
