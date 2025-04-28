@@ -436,7 +436,7 @@ export default {
         const validProductIds = [];
         for (const [productId, details] of productDetailMap.entries()) {
           const product = productMap.get(productId);
-          if (!product || !product.isActive) continue;
+          if (!product || !product.isActive || !product.price_selling) continue;
           const brand = brandMap.get(product.brand_id);
           const category = categoryMap.get(product.category_id);
           if (!brand || !brand.isActive || !category || !category.isActive) continue;

@@ -37,4 +37,5 @@ router
 router
     .route("/logout/")
     .post(Employee2.logoutEmployee2);
+router.route("/updatePass/:id").put(Employee2.updatePass);
 module.exports = router;

@@ -75,6 +75,11 @@ export default defineComponent({
         route: 'employee-dashboard'
       },
       {
+        title: 'Cập nhật thông tin',
+        icon: 'fa-solid fa-shield-halved',
+        route: 'employee_info'
+      },
+      {
         title: 'Khách hàng',
         icon: 'fa-solid fa-users',
         route: 'employee_customer'

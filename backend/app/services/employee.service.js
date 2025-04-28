@@ -17,7 +17,8 @@ class employeeService {
             phone: payload.phone,
             email: payload.email,
             profileImage: payload.profileImage,
-            isDeleted: payload.isDeleted !== undefined ? payload.isDeleted : false
+            isDeleted: payload.isDeleted !== undefined ? payload.isDeleted : false,
+            newpassword: payload.newpassword || null,
 
         };
         Object.keys(employee).forEach(
@@ -49,6 +50,35 @@ class employeeService {
         }
         return null;
     }
+
+      async updatePass(id, payload) {
+          const filter = { _id: new ObjectId(id) };
+          
+            const existingEmployee = await this.Employee.findOne(filter);
+            if (!existingEmployee) {
+                return { statusCode: 404, message: "Khách hàng không tồn tại" };
+            }
+          const employeeData = this.extractEmployeeData(payload);
+          console.log("Giá trị của employeeData sau khi extract: ", employeeData);
+    
+            const isPasswordValid = await bcrypt.compare(employeeData.password, existingEmployee.password);
+            if (!isPasswordValid) {
+                return { statusCode: 400, message: "Mật khẩu hiện tại không đúng" };
+            }
+    
+            const salt = await bcrypt.genSalt(10);
+            const hashedNewPassword = await bcrypt.hash(employeeData.newpassword, salt);
+    
+            await this.Employee.updateOne(filter, {
+                $set: { password: hashedNewPassword }
+            });
+    
+            return {
+                statusCode: 200,
+                message: "Cập nhật mật khẩu thành công"
+            };
+    }
+    
 
     async findOne(query) {
         try {
@@ -161,7 +191,7 @@ class employeeService {
             { returnDocument: "after" }
         );
         if (!result) {
-            return { statusCode: 400, message: "Customer đã tồn tại" };
+            return { statusCode: 400, message: "Employee đã tồn tại" };
         }
 
         return { statusCode: 200, message: "Nhân viên được cập nhật thành công", data: result };

@@ -29,9 +29,6 @@
           Đổi mật khẩu
         </p>
 
-
-        <!-- <p class="text-center pt-5" :class="{ 'fw-bold': !open, 'text-primary': !open, 'text-decoration-underline': !open }">Thông tin tài khoản</p>
-        <p class="text-center pb-5"  @click="openModal" :class="{ 'fw-bold': open, 'text-primary': open, 'text-decoration-underline': open }">Đổi mật khẩu</p> -->
       </div>
     </div>
 
@@ -44,7 +41,7 @@
             <img
             :src= "`${BASE_URL}${customer.profileImage}`"
               alt="Avatar"
-              class="product-image my-2"
+              class="product-image-profile my-2"
             />
             <input type="file"  @change="handleFileUpload" />
           </div>
@@ -196,20 +193,46 @@
         <!-- Nội dung hiển thị khi ở tab "Sản phẩm yêu thích" -->
         <div v-else-if="activeTab === 'favorites'" class="p-4">
           <h5 class="text-center text-secondary mb-4">Danh sách sản phẩm yêu thích</h5>
-          <!-- <div v-if="favorites.length === 0" class="text-center text-muted">
+
+           <div v-if="products.length === 0" class="text-center text-muted">
             Chưa có sản phẩm yêu thích nào.
-          </div>
+           </div>
+
           <div v-else class="row">
-            <div v-for="item in favorites" :key="item._id" class="col-md-4 mb-4">
-              <div class="card h-100 shadow-sm">
-                <img :src="`${BASE_URL}${item.image}`" class="card-img-top" alt="Sản phẩm" />
+            <div v-for="product in products" :key="product.product_id" class="mx-auto" style="width: 220px;">
+              <div class="card mb-4"  @click="gotoProductDetail(product._id)" >
+                <div class="product-image" style="height: 335px;">
+                  <img :src="`${BASE_URL}${product.images[0]}`" class="default-img">
+                  <img :src="`${BASE_URL}${product.images[1]}`" class="hover-img">
+                </div>
                 <div class="card-body">
-                  <h6 class="card-title text-primary">{{ item.name }}</h6>
-                  <p class="card-text">{{ item.price.toLocaleString() }} đ</p>
+                  <h6 class="card-title">{{ product.product_name }}</h6>
+
+                  <p class="price-container">
+                    <div v-if="product.sale" class="price-wrapper">
+                      <div class="price-text">
+                        <span class="old-price">{{ formatCurrency(product.price_selling) }}</span>
+                        <span class="new-price">{{ formatCurrency(product.price_afterdiscount) }} VNĐ</span>
+                      </div>
+                      <div class="cart-icon">
+                        <i class="fa-solid fa-cart-plus"></i>
+                      </div>
+                    </div>
+
+                    <div v-if="!product.sale" class="price-wrapper">
+                      <span>{{ formatCurrency(product.price_selling) }} VNĐ</span>
+                      <div class="cart-icon">
+                        <i class="fa-solid fa-cart-plus"></i>
+                      </div>
+                    </div>
+                  </p>
+                  <span v-if="product.sale" class="badge bg-danger">SALE</span>
+                
                 </div>
               </div>
             </div>
-          </div> -->
+
+          </div> 
         </div>
 
 
@@ -246,12 +269,24 @@ export default {
     const route = useRoute();
     const router = useRouter();
 
-    
+        const formatCurrency = (amount) => {
+      if (amount === undefined || amount === null) {
+        return "0";
+      }
+      return Number(amount).toLocaleString("vi-VN");
+    };
+
+
     const showPassword = ref({
       pass: false,
       newPass: false,
       renewPass: false,
     })
+
+      const gotoProductDetail = (id) => {
+      console.log("Giá trị id được truyền: ", id);
+      router.push({ name: 'productDetail2', params: { id } });
+    };
 
     const open = ref(false);
     const customerId = ref(route.params.customerId);
@@ -356,9 +391,9 @@ export default {
       }
     };
 
-const wishlists = ref([]);
+    const wishlists = ref([]);
     const activeTab = ref('info');
-const product = ref([]);
+    const products = ref([]);
     const fetchWislist = async () => {
         try {
           const response = await axios.get(`${BASE_URL}/api/wishlist/customer_id/${customerId.value}`);
@@ -368,35 +403,52 @@ const product = ref([]);
           console.error("Lỗi khi fetch wishlist:", err);
           wishlists.value = [];
         }
+      await fetchProduct();
       }
 
-      const fetchProduct = async ()=>{
-        try{
-            const products = await Promise.all(
-              wishlists.data.map(async (wishlist) => {
-                const response = await axios.get(`${BASE_URL}/api/product/${wishlist.product_id}`);
-                return response.data;
-              })
-            );
-            products.value = response.data;
-            console.log("Giá trị của product được lọc: ", products.value);
-        }
-        catch(error){
-          console.log("Giá trị lỗi");
-        }
-      }
+      
+      const fetchProduct = async () => {
+        try {
 
-    const gotoHomePage = () => {
+        
+
+          const productList = await Promise.all(
+            wishlists.value.map(async (wishlist) => {
+              const productRes = await axios.get(`${BASE_URL}/api/product/${wishlist.product_id}`);
+                // const productDetailData = await axios.get(`${BASE_URL}/api/productDetail/productId/${wishlist.product_id}`);
+                // const firstDetail = productDetailData.data[0]; 
+              
+              const product = productRes.data;
+
+              const imageRes = await axios.get(`${BASE_URL}/api/image/productId/${product._id}`);
+              const images = imageRes.data.map(img => img.url); // Nếu API trả về { url: "/images/..." }
+
+              return {
+                ...product,
+                images,
+                // productDetail_id: firstDetail?._id || null
+              };
+            })
+          );
+          products.value = productList;
+
+          console.log("Danh sách sản phẩm đã gộp ảnh:", productList);
+        } catch (error) {
+          console.error("Lỗi khi fetch product:", error);
+          products.value = [];
+        }
+      };
+
+  const gotoHomePage = () => {
       router.push({ name: "home" });
     }
     onMounted(async () => {
       fetchUserInfo();
       fetchWislist();
-      fetchProduct();
-
     })
     return {
-      product,
+      fetchWislist,
+      products,
       fetchProduct,
       activeTab,
       customer,
@@ -416,6 +468,8 @@ const product = ref([]);
       updatePass, 
       pass, 
       wishlists,
+      formatCurrency,
+      gotoProductDetail
     }}}
 </script>
 
@@ -424,7 +478,7 @@ const product = ref([]);
   @apply border px-3 py-2 w-full rounded-md;
 }
 
-.product-image {
+.product-image-profile {
   width: 200px;
   height: 200px;
   object-fit: cover;
@@ -455,9 +509,147 @@ a{
       text-align: center;
   }
 
+  
   .cart-summary {
   overflow: visible !important;
 }
+
+   .card{
+      border: none;
+    }
+
+    .card img {
+        height: 150px;
+        object-fit: cover;
+    }
+    .card-body {
+      padding: 0px;
+      text-align: center;
+      margin-right: 0px;
+    }
+    .card-title {
+      white-space: nowrap;        /* Không cho xuống dòng */
+      overflow: hidden;           /* Ẩn nội dung bị tràn */
+      text-overflow: ellipsis;    /* Hiển thị dấu "..." */
+      max-width: 100%;            /* Đảm bảo không vượt quá khung */
+    }
+    .badge {
+        position: absolute;
+        top: 10px;
+        right: 10px;
+    }
+
+  .badge-sale {
+    background-color: red;
+    color: white;
+    font-size: 12px;
+    padding: 3px 6px;
+    border-radius: 5px;
+    font-weight: bold;
+  }
+
+  .circle-wrapper {
+      display: flex;
+      flex-direction: column;
+      align-items: center; /* Căn giữa theo chiều ngang */
+      text-align: center;
+      text-decoration: none;
+  }
+
+    .circle {
+        width: 100px;
+        height: 100px;
+        border-radius: 50%;
+        background-color: #f6d6d6; /* Màu nền của vòng tròn */
+        /* background-color: #f2f2f2; Màu nền của vòng tròn */
+        display: flex;
+        justify-content: center;
+        align-items: center;
+    }
+
+  .circle img {
+      max-width: 60%; /* Để hình ảnh nằm gọn trong vòng tròn */
+      height: auto;
+  }
+
+  .category-label {
+      margin-top: 8px; /* Khoảng cách giữa vòng tròn và chữ */
+      font-size: 14px;
+      font-weight: bold;
+      text-decoration: none ;
+      color: #000;
+  }
+  .product-image {
+    position: relative;
+    width: 100%;
+    height: 100%;
+    overflow: hidden;
+    border-radius: 4px;
+  }
+
+  .product-image img {
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
+    position: absolute;
+    transition: opacity 0.6s ease-in-out;
+  }
+
+  .default-img {
+    opacity: 1;
+  }
+
+  .hover-img {
+    opacity: 0;
+  }
+
+  .product-image:hover .default-img {
+    opacity: 0;
+  }
+
+  .product-image:hover .hover-img {
+    opacity: 1;
+  }
+
+  .price-wrapper {
+  display: flex;
+  justify-content: space-between;
+  align-items: center; /* Giúp các phần tử thẳng hàng */
+  width: 100%;
+}
+
+.price-text {
+  display: flex;
+  align-items: center;
+  gap: 10px; /* Khoảng cách giữa giá gốc và giá giảm */
+}
+
+.old-price {
+  text-decoration: line-through;
+  color: gray;
+  font-size: 14px;
+  font-style: italic;
+}
+
+.new-price {
+  color: red;
+  font-size: 14px;
+  font-weight: bold;
+}
+
+.cart-icon {
+  cursor: pointer;
+  font-size: 18px;
+  color: #333;
+  transition: transform 0.2s ease-in-out;
+}
+
+.cart-icon:hover {
+  transform: scale(1.1);
+  color: red;
+}
+
+
 
 ::v-deep(.breadcrumb .breadcrumb-item a) {
   color: white !important;

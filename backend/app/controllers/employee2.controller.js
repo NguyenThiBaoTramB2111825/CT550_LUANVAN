@@ -28,6 +28,24 @@ exports.create = [
         }
     }
 ]
+exports.updatePass = async (req, res, next) => {
+    const id = req.params.id;
+    const payload = req.body;
+
+    try {
+        const employee2Service = new Employee2Service(MongoDB.client);
+        const document = await employee2Service.updatePass(id, payload);
+        if (document.statusCode && document.statusCode !== 200) {
+            return next(new ApiError(document.statusCode, document.message));
+        }
+        return res.send({ message: "Đã cập nhật mật khẩu thành công", data: document });
+
+    } catch (error) {
+        return res.send({ message: error.message });
+    }
+}
+
+
 
 exports.loginEmployee2 = async (req, res, next) => {
     if (!req.body?.name || !req.body?.password) {

@@ -147,7 +147,7 @@ export default {
         const rawCart = response.data;
         if (!rawCart.items || rawCart.items.length === 0) {
           Swal.fire("Thông báo", "Giỏ hàng của bạn đang trống.", "info");
-          // router.push({ name: 'home' });
+          router.push({ name: 'home' });
           cart.value = { ...rawCart, items: [] };
           return;
         }

@@ -17,13 +17,45 @@ class employee2Service {
             phone: payload.phone,
             email: payload.email,
             profileImage: payload.profileImage,
-            isDeleted: payload.isDeleted !== undefined ? payload.isDeleted : false
+            isDeleted: payload.isDeleted !== undefined ? payload.isDeleted : false,
+             newpassword: payload.newpassword || null,
+        
         };
         Object.keys(employee2).forEach(
             (key) => (employee2[key] === undefined || employee2[key] === null) && delete employee2[key]
         );
         return employee2;
     }
+
+
+    async updatePass(id, payload) {
+        const filter = { _id: new ObjectId(id) };
+        
+        const existingEmployee2 = await this.Employee2.findOne(filter);
+        if (!existingEmployee2) {
+            return { statusCode: 404, message: "Khách hàng không tồn tại" };
+        }
+        const employee2Data = this.extractEmployee2Data(payload);
+        console.log("Giá trị của employee2Data sau khi extract: ", employee2Data);
+
+        const isPasswordValid = await bcrypt.compare(employee2Data.password, existingEmployee2.password);
+        if (!isPasswordValid) {
+            return { statusCode: 400, message: "Mật khẩu hiện tại không đúng" };
+        }
+
+        const salt = await bcrypt.genSalt(10);
+        const hashedNewPassword = await bcrypt.hash(employee2Data.newpassword, salt);
+
+        await this.Employee2.updateOne(filter, {
+            $set: { password: hashedNewPassword }
+        });
+
+        return {
+            statusCode: 200,
+            message: "Cập nhật mật khẩu thành công"
+        };
+    }
+    
     async create(payload) {
         const employee2 = this.extractEmployee2Data(payload);
         let existingEmployee2 = await this.Employee2.findOne({ phone: employee2.phone });

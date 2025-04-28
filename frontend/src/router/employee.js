@@ -12,12 +12,12 @@ const employee = [
           breadcrumb: 'Trang chủ'
         }
       },
-//       {
-//         path: "store-manager",
-//         name: "store-manager",
-//         component: () => import("../pages/admin/store-manager/index.vue"),
-//         meta: { breadcrumb: 'Quản lý nhân viên cửa hàng' }
-//       },
+      {
+        path: "employee_info",
+        name: "employee_info",
+        component: () => import("../pages/employee/info/index.vue"),
+        meta: { breadcrumb: 'Cập nhật thông tin' }
+      },
 //       {
 //         path: "store-manager-update/:id",
 //         name: "store-manager-update",

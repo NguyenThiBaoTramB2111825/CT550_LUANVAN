@@ -127,42 +127,107 @@ class OrderService {
         return order;
     }
 
+    // async create(payload) {
+    //     // const existingCustomer = await this.Customer.findOne({ _id: new ObjectId(payload.customer_id) });
+    //     // if (!existingCustomer) {
+    //     //     return { statusCode: 400, message: "Lỗi vì Customer được truyền không đúng" }
+    //     // }
+    //     for (const item of payload.items) {
+    //         const productDetail = await this.ProductDetail.findOne({ _id: new ObjectId(item.productDetail_id) });
+    //         if (!productDetail) {
+    //             return { statusCode: 400, message: `Lỗi vì productDetail được truyền không đúng` }
+    //         }
+
+    //     }
+    //     const order = await this.extractOrderData(payload);
+    //     console.log("Giá trị của order sau khi extract: ", order);
+
+    //     const result = await this.Order.insertOne(order);
+    //     console.log("Giá trị của result: ", result);
+
+    //     await this.Cart.deleteMany({
+    //         customer_id: new ObjectId(payload.customer_id),
+    //         productDetail_id: { $in: payload.items.map(item => new ObjectId(item.productDetail_id)) }
+    //     });
+
+    //     await this.Cart.updateOne(
+    //         { customer_id: new ObjectId(payload.customer_id) },
+    //         {
+    //             $pull: {
+    //                 items: {
+    //                     productDetail_id: { $in: payload.items.map(item => new ObjectId(item.productDetail_id)) }
+    //                 }
+    //             }
+    //         }
+    //     );
+    //     return { statusCode: 200, message: "Tạo đơn hàng mới thành công", _id: result.insertedId, data: order }
+
+    // }
+
+
+
+
+
     async create(payload) {
-        // const existingCustomer = await this.Customer.findOne({ _id: new ObjectId(payload.customer_id) });
-        // if (!existingCustomer) {
-        //     return { statusCode: 400, message: "Lỗi vì Customer được truyền không đúng" }
-        // }
+        // Kiểm tra customer_id
+        if (!ObjectId.isValid(payload.customer_id)) {
+            return { statusCode: 400, message: "customer_id không hợp lệ" };
+        }
+
+        // Kiểm tra từng productDetail_id
         for (const item of payload.items) {
-            const productDetail = await this.ProductDetail.findOne({ _id: new ObjectId(item.productDetail_id) });
-            if (!productDetail) {
-                return { statusCode: 400, message: `Lỗi vì productDetail được truyền không đúng` }
+            if (!ObjectId.isValid(item.productDetail_id)) {
+                return { statusCode: 400, message: `productDetail_id không hợp lệ: ${item.productDetail_id}` };
             }
 
+            const productDetail = await this.ProductDetail.findOne({
+                _id: new ObjectId(item.productDetail_id),
+            });
+
+            if (!productDetail) {
+                return { statusCode: 400, message: `Không tìm thấy sản phẩm: ${item.productDetail_id}` };
+            }
         }
+
+        // Tạo dữ liệu order
         const order = await this.extractOrderData(payload);
         console.log("Giá trị của order sau khi extract: ", order);
 
+        // Lưu order
         const result = await this.Order.insertOne(order);
         console.log("Giá trị của result: ", result);
 
-        await this.Cart.deleteMany({
-            customer_id: new ObjectId(payload.customer_id),
-            productDetail_id: { $in: payload.items.map(item => new ObjectId(item.productDetail_id)) }
-        });
+        // Trừ số lượng tồn kho
+        for (const item of order.items) {
+            await this.ProductDetail.updateOne(
+                { _id: new ObjectId(item.productDetail_id) },
+                { $inc: { stock: -item.quantity } }
+            );
+        }
 
+        // Xoá các item đã mua khỏi giỏ hàng
         await this.Cart.updateOne(
             { customer_id: new ObjectId(payload.customer_id) },
             {
                 $pull: {
                     items: {
-                        productDetail_id: { $in: payload.items.map(item => new ObjectId(item.productDetail_id)) }
-                    }
-                }
+                        productDetail_id: {
+                            $in: payload.items.map(item => new ObjectId(item.productDetail_id)),
+                        },
+                    },
+                },
             }
         );
-        return { statusCode: 200, message: "Tạo đơn hàng mới thành công", _id: result.insertedId, data: order }
 
+        return {
+            statusCode: 200,
+            message: "Tạo đơn hàng mới thành công",
+            _id: result.insertedId,
+            data: order,
+        };
     }
+    
+            
     //findByInfo
     async getOrderInfoById(_id) {
         return await this.Order.findOne({
