@@ -1,101 +1,121 @@
 <template>
-  <div style="display: flex; justify-content: flex-start; padding: 10px">
-  <Breadcrumb />
-</div>
+    <div style="display: flex; justify-content: flex-start; padding: 10px">
+        <Breadcrumb />
+    </div>
         <h5 class="text-center">Danh sách order</h5>
-
-        <div class="row mb-3 text-center mx-auto">
-            <!-- <div class="col-md-3">
-                <input type="text" v-model="filter.customerName" name="" id="" placeholder="Tên khách hàng">
-
-            </div> -->
-            <div class="col-md-3 ">
+        <div class="row my-3 text-center mx-auto">
+            <div class="col-md-3 mb-2">
                 <select class="form-select" v-model="filter.paymentStatus">
-                <option value="">Lọc theo trạng thái thanh toán</option>
-                <option value="Unpaid">Chưa thanh toán</option>
-                <option value="Paid">Đã thanh toán</option>
-                <option value="Failed">Thất bại</option>
-                </select>
-            </div>
-            <div class="col-md-3">
-                <select class="form-select" v-model="filter.deliveryStatus">
-                <option value="">Lọc theo trạng thái giao hàng</option>
-                <option value="Pending">Đang xử lý</option>
-                <option value="Confirm">Đã xác nhận</option>
-                <option value="Shipped">Vận chuyển</option>
-                <option value="Delivered">Đã giao</option>
-                <option value="Cancelled">Hủy</option>
-                </select>
-            </div>
-            <div class="col-md-3">
-                <select class="form-select" v-model="filter.paymentMethod">
-                <option value="">Lọc theo phương thức thanh toán</option>
-                <option value="ONLINE">Online</option>
-                <option value="COD">COD</option>
+                    <option class="text-center" value="">Trạng thái thanh toán</option>
+                    <option value="Unpaid">Chưa thanh toán</option>
+                    <option value="Paid">Đã thanh toán</option>
+                    <option value="Failed">Thất bại</option>
                 </select>
             </div>
 
-            <div class="col-md-3 d-flex align-items-center">
-                <button class="btn btn-secondary" @click="resetFilter">Xóa lọc</button>
+            <div class="col-md-3 mb-2">
+                <select class="form-select" v-model="filter.deliveryStatus">
+                    <option class="text-center" value="">Trạng thái giao hàng</option>
+                    <option value="Pending">Đang xử lý</option>
+                    <option value="Confirm">Đã xác nhận</option>
+                    <option value="Shipped">Vận chuyển</option>
+                    <option value="Delivered">Đã giao</option>
+                    <option value="Cancelled">Hủy</option>
+                </select>
+            </div>
+
+            <div class="col-md-3 mb-2">
+                <select class="form-select" v-model="filter.paymentMethod">
+                    <option class="text-center" value="">Phương thức thanh toán</option>
+                    <option value="COD">COD</option>
+                    <option value="Tiền mặt">Tiền mặt</option>
+                </select>
+            </div>
+
+            <div class="col-md-3 mb-2">
+                <select class="form-select" v-model="filter.typeOrder">
+                    <option class="text-center" value="">Loại đơn hàng</option>
+                    <option value="online">Online</option>
+                    <option value="direct">Trực tiếp</option>
+                </select>
+            </div>
+
+            <div class="col-md-3 mb-2">
+                <input type="text" class="form-control text-center" v-model="filter.customerName" placeholder="Tên khách hàng">
+            </div>
+
+            <div class="col-md-3 mb-2">
+                <input type="date" class="form-control text-center" v-model="filter.startDate" placeholder="Nhập ngày bắt đầu">
+            </div>
+
+            <div class="col-md-3 mb-2">
+                <input type="date" class="form-control text-center" v-model="filter.endDate">
+            </div>
+
+            <div class="col-md-3 mb-2">
+                <button class="btn btn-danger w-100" @click="resetFilter">Xóa lọc</button>
             </div>
         </div>
-
-
+        <span class="fw-bold">Tổng đơn hàng: {{ totalOrder }}</span>
 
         <table class="py-3  table table-bordered table-striped justify-content-center align-items-center text-center">
             <thead>
                 <tr>
                     <th>#</th>
-                    <th  @click="sortBy('name')">Tên <i class="fa-solid fa-sort"></i></th>
-                    <th >Địa chỉ</th>
+                    <th @click="sortBy('name')">Tên <i class="fa-solid fa-sort"></i></th>
+                    <th>Địa chỉ</th>
                     <th>Ngày đặt</th>
-                    <th>Phương thức thanh toán</th>
-                    <th >Trạng thái thanh toán</th>
-                    <th>Trạng thái giao hàng</th>
-                    <th>Trạng thái đơn hàng</th>
+                    <th>Loại đơn</th>
+                    <th>Phương thức</th>
+                    <th>Thanh toán</th>
+                    <th>Giao hàng</th>
+                    <th>Nhân viên</th>
+                    <th>Đơn hàng</th>
+                    <th>Nhân viên</th>
                     <th>Tổng tiền</th>
                     <th>Thao tác</th>
                 </tr>
             </thead>
-            <tbody>
+            <tbody >
                 <tr v-for="(order, index) in filteredOrders" :key="order._id">
-
                     <td>{{ index + 1 }}</td>
                     <td>{{ order.customer_name || 'Chưa có khách hàng' }}</td>
-                    <td>{{ order.street}}, {{ order.ward_name }}, {{ order.district_name  }}, {{ order.province_name }}</td>
+                    <td v-if="order.orderType === 'online' || order.address_id">
+                        {{ order.street }}, {{ order.ward_name }}, {{ order.district_name }}, {{ order.province_name }}
+                    </td>
+                    <td v-else>Đơn hàng trực tiếp</td>
                     <td>{{ formatDate(order.dateCreated) }}</td>
-                    <td>{{ (order.paymentMethod) }}</td>
+                    <td v-if="order.address_id"> Online</td>
+                    <td v-else>Trực tiếp</td>
+                    <td>{{ (order.paymentMethod) }}</td>                    
                     <td>
-                    <div class="dropdown">
-                            <button
-                            type="button" class="dropdown-toggle me-2"
-                            :class="[
-                                'btn',
-                                order.paymentStatus === 'Unpaid' ? 'btn-secondary' :
-                                order.paymentStatus === 'Paid' ? 'btn-success' :
-                                order.paymentStatus === 'Failed' ? 'btn-danger' : 'btn-outline-dark'
-                            ]"
-                            @click="toggleDropdown(order._id)"
-                            >
-                           <span class="" v-if="`${order.paymentStatus}` === 'Unpaid'"> Chưa thanh toán</span>
-                           <span class="" v-if="`${order.paymentStatus}` === 'Paid' "> Đã thanh toán</span>
-                           <span class="" v-if="`${order.paymentStatus}` === 'Failed' "> Thất bại</span>
-                        </button>
-                            <ul  v-if="order.paymentMethod === 'ONLINE'" class="dropdown-menu" :class="{ 'show': dropdownOpenId === order._id }">
-                                <li>
-                                    <a class="dropdown-item" @click="updatePaymentStatus(order, 'Paid')">Đã thanh toán</a>
-                                </li>
-                                <li>
-                                    <a class="dropdown-item" @click="updatePaymentStatus(order, 'Failed')">Thất bại</a>
-                                </li>
-                                <!-- <li ><a class="dropdown-item" @click="updatePaymentStatus(order, 'Unpaid')">Chưa thanh toán</a></li>
-                                <li ><a class="dropdown-item" @click="updatePaymentStatus(order, 'Paid')">Đã thanh toán</a></li>
-                                <li><a class="dropdown-item" @click="updatePaymentStatus(order, 'Failed')">Thất bại</a></li> -->
-                            </ul>
-                    </div>
+                        <div class="dropdown">
+                                <button
+                                type="button" class="dropdown-toggle me-2"
+                                :class="[
+                                    'btn',
+                                    order.paymentStatus === 'Unpaid' ? 'btn-secondary' :
+                                    order.paymentStatus === 'Paid' ? 'btn-success' :
+                                    order.paymentStatus === 'Failed' ? 'btn-danger' : 'btn-outline-dark'
+                                ]"
+                                @click="toggleDropdown(order._id)"
+                                >
+                            <span class="" v-if="`${order.paymentStatus}` === 'Unpaid'"> Chưa thanh toán</span>
+                            <span class="" v-if="`${order.paymentStatus}` === 'Paid' "> Đã thanh toán</span>
+                            <span class="" v-if="`${order.paymentStatus}` === 'Failed' "> Thất bại</span>
+                            </button>
+                                <ul  v-if="order.paymentMethod === 'ONLINE'" class="dropdown-menu" :class="{ 'show': dropdownOpenId === order._id }">
+                                    <li>
+                                        <a class="dropdown-item" @click="updatePaymentStatus(order, 'Paid')">Đã thanh toán</a>
+                                    </li>
+                                    <li>
+                                        <a class="dropdown-item" @click="updatePaymentStatus(order, 'Failed')">Thất bại</a>
+                                    </li>
+                                </ul>
+                        </div>
                     </td>
     
-                     <td>
+                    <td v-if="order.orderType === 'online' || order.address_id">
                         <div class="dropdown">
                             <button
                             type="button" class="dropdown-toggle me-2"
@@ -115,23 +135,49 @@
                            <span class="" v-if="`${order.deliveryStatus}` === 'Delivered' "> Đã giao</span>
                            <span class="m-0" v-if="`${order.deliveryStatus}` === 'Cancelled' ">Hủy</span>
                         </button>
-                            <ul v-if="order.status !== 'Cancelled'" class="dropdown-menu" :class="{ 'show': dropdownOpenDelivery === order._id }">
+                            <ul v-if="order.status !== 'Cancelled' && order.status !== 'Pending' && role === 'employee2'" class="dropdown-menu" :class="{ 'show': dropdownOpenDelivery === order._id }">
                                 <li ><a class="dropdown-item" @click="updateDeliveryStatus(order, 'Pending')">Đang xử lý</a></li>
                                 <li ><a class="dropdown-item" @click="updateDeliveryStatus(order, 'Confirm')">Đã xác nhận</a></li>
                                 <li ><a class="dropdown-item" @click="updateDeliveryStatus(order, 'Shipped')">Vận chuyển</a></li>
                                 <li><a class="dropdown-item" @click="updateDeliveryStatus(order, 'Delivered')">Đã giao</a></li>
                                 <li><a class="dropdown-item" @click="updateDeliveryStatus(order, 'Cancelled')">Hủy</a></li>
                             </ul>
-                    </div>
-                     </td>
-                    <td class="fw-bold">
-                        <span v-if="order.status === 'Pending'">Chờ xác nhận</span>
-                        <span v-else-if="order.status === 'Confirm'">Đã xác nhận</span>
-                        <span v-else-if="order.status === 'Processing'">Đang giao</span>
-                        <span v-else-if="order.status === 'Completed'">Hoàn thành</span>
-                        <span v-else-if="order.status === 'Cancelled'">Đã hủy</span>
-                        <span v-else>Không xác định</span>
+                        </div>
                     </td>
+                    <td v-else>---</td>
+
+                    <td v-if="order.updatedBy  && order.updatedBy!== null">{{ order.employee2Name }}</td>
+                    <td v-else>---</td>
+                    <td>
+                        <div class="dropdown">
+                            <button
+                                type="button" class="dropdown-toggle me-2"
+                                :class="[
+                                    'btn',
+                                    order.status === 'Pending' ? 'btn-secondary' :
+                                    order.status === 'Confirm' ? 'btn-primary' :
+                                    order.status === 'Processing' ? 'btn-info' :
+                                    order.status === 'Completed' ? 'btn-success' :
+                                    order.status === 'Cancelled' ? 'btn-danger' :
+                                    order.status === 'Refund' ? 'btn-warning' : 'btn-outline-dark'
+                                ]"
+                                @click="toggleOrder(order._id)"
+                                >
+                                <span class="m-0" v-if="`${order.status}` === 'Pending'"> Chờ xác nhận</span>
+                                <span class="m-0" v-if="`${order.status}` === 'Confirm'">Đã xác nhận </span>
+                                <span class="m-0" v-if="`${order.status}` === 'Processing'">Đang Vận chuyển </span>
+                                <span class="" v-if="`${order.status}` === 'Completed' "> Hoàn thành</span>
+                                <span class="m-0" v-if="`${order.status}` === 'Cancelled' ">Hủy</span>
+                                <span class="m-0" v-if="`${order.status}` === 'Refund' ">Hoàn tiền</span>
+                            </button>
+                            <ul v-if="order.status === 'Pending' && role === 'employee'" class="dropdown-menu" :class="{ 'show': dropdownOpenOrder === order._id }">
+                                <li ><a class="dropdown-item" @click="updateOrderStatus(order, 'Confirm')">Đã xác nhận</a></li>
+                            </ul>
+                        </div>
+                     </td>
+                     <td v-if="order.approvedBy  && order.approvedBy!== null">{{ order.employeeName }}</td>
+                    <td v-else>---</td>
+
                     <td>{{ formatCurrency(order.totalPrice) }}</td>
                     <td>
                         <button @click="deleteOrderId(order._id)" class="btn btn-danger m-1" ><i class="fa-solid fa-trash"></i></button> 
@@ -144,6 +190,8 @@
 </template>
 
 <script>
+    import Cookies from 'js-cookie';
+    import { jwtDecode } from "jwt-decode";
     import axios from 'axios';
     import { ref, onMounted, onUnmounted,  computed } from 'vue';
     import Breadcrumb from "@/components/Breadcrumb.vue";
@@ -152,47 +200,58 @@
     import { io } from 'socket.io-client';
     import dayjs from "dayjs";
     import utc from "dayjs/plugin/utc";
-import { Dropdown } from 'bootstrap';
-import router from '@/router';
-const BASE_URL = "http://localhost:3000";
-  const socket = io(BASE_URL);
-export default {
+    import { Dropdown } from 'bootstrap';
+    import router from '@/router';
+    const BASE_URL = "http://localhost:3000";
+    const socket = io(BASE_URL);
+    export default {
     components: {
         Breadcrumb
     },
     setup() {
+        const role = ref('');
         const dropdownOpenId = ref(null);
         const dropdownOpenDelivery = ref(null);
+        const dropdownOpenOrder = ref(null);
         const orders = ref([]);
         const sortField = ref('');
         const sortAsc = ref(true);
 
         const filter = ref({
-            // customerName: '',
+            customerName: '',
             paymentStatus: '',
             deliveryStatus: '',
-            paymentMethod: ''
+            paymentMethod: '',
+            typeOrder: '',
+            startDate: null,
+            endDate: null,
         });
 
         const resetFilter = () => {
             filter.value = {
-                // customerName: '',
+                customerName: '',
                 paymentStatus: '',
                 deliveryStatus: '',
-                paymentMethod: ''
+                paymentMethod: '',
+                typeOrder: '',
+                startDate: null,
+                endDate: null,
             };
         };
 
         const filteredOrders = computed(() => {
             return orders.value.filter(order => {
-                // const matchCustomerName = filter.value.customerName ? order.customer_name === filter.value.customerName : true;
+                const matchCustomerName = filter.value.customerName ? order.customer_name.toLowerCase().includes(filter.value.customerName.toLowerCase()) : true;
                 const matchPaymentStatus = filter.value.paymentStatus ? order.paymentStatus === filter.value.paymentStatus : true;
                 const matchDeliveryStatus = filter.value.deliveryStatus ? order.deliveryStatus === filter.value.deliveryStatus : true;
                 const matchPaymentMethod = filter.value.paymentMethod ? order.paymentMethod === filter.value.paymentMethod : true;
-                return matchPaymentStatus && matchDeliveryStatus && matchPaymentMethod;
+                const matchTypeOrder = filter.value.typeOrder ? order.orderType === filter.value.typeOrder : true;
+                const matchDate = (filter.value.startDate && filter.value.endDate) ? (order.dateCreated >= filter.value.startDate && order.dateCreated <= filter.value.endDate) : true;
+
+                return matchPaymentStatus && matchDeliveryStatus && matchPaymentMethod && matchTypeOrder && matchCustomerName && matchDate;
             })
         })
-    
+
 
         const toggleDropdown = (orderId) => {
             dropdownOpenId.value = dropdownOpenId.value === orderId ? null : orderId;
@@ -201,6 +260,10 @@ export default {
         const toggleDelivery = (orderId) => {
             dropdownOpenDelivery.value = dropdownOpenDelivery.value === orderId ? null : orderId;
             console.log("Dropdown state:", dropdownOpenDelivery.value);
+        };
+        const toggleOrder = (orderId) => {
+            dropdownOpenOrder.value = dropdownOpenOrder.value === orderId ? null : orderId;
+            console.log("Dropdown state:", dropdownOpenOrder.value);
         };
         const formatDate = (dateString) => {
             return dateString ? dayjs(dateString).format("DD/MM/YYYY") : "N/A";
@@ -221,7 +284,6 @@ export default {
                 sortAsc.value = true;
             }
         }
-
 
         const updatePaymentStatus = async (order, newStatus) => {
             if (order.paymentMethod === "ONLINE" && newStatus === "Paid" && order.paymentStatus === "Failed") {
@@ -281,6 +343,13 @@ export default {
             }
         };
 
+        const updateOrderStatus = async (order, newStatus) => {
+            const response = await axios.put(`http://127.0.0.1:3000/api/order/${order._id}`, {
+                status: newStatus,
+            });
+            order.status = newStatus;
+        }
+
 
         const fetchOrder = async () => {
             try {
@@ -292,40 +361,62 @@ export default {
                         if (order.customer_id) {
                             const customerRes = await axios.get(`http://127.0.0.1:3000/api/customer/${order.customer_id}`);
                             order.customer_name = customerRes.data ? customerRes.data.name : `${customerRes.data.name} - Đã bị xóa`;
-
                         }
 
-                    } catch (error) {
-                        console.error("Lỗi khi lấy danh sách khách hàng:", error);
-                    }
-
-                    const responseAddress = await axios.get(`${BASE_URL}/api/address/customerId/${order.customer_id}`);
-                    const rawAddress = responseAddress.data;
-                    const enrichedItems = await Promise.all(
-                        rawAddress.map(async (raw) => {
+                        if (order.address_id) {
+                            const responseAddress = await axios.get(`${BASE_URL}/api/address/${order.address_id}`);
+                            const rawAddress = responseAddress.data;
                             try {
-                                const [provinceData, DistrictData, WardData] = await Promise.all([
-                                    axios.get(`${BASE_URL}/api/province/${raw.province_id}`),
-                                    axios.get(`${BASE_URL}/api/district/id/${raw.district_id}`),
-                                    axios.get(`${BASE_URL}/api/ward/id/${raw.ward_id}`),
+                                const [provinceData, districtData, wardData] = await Promise.all([
+                                    axios.get(`${BASE_URL}/api/province/${rawAddress.province_id}`),
+                                    axios.get(`${BASE_URL}/api/district/id/${rawAddress.district_id}`),
+                                    axios.get(`${BASE_URL}/api/ward/id/${rawAddress.ward_id}`),
                                 ]);
 
                                 const province = provinceData.data;
-                                const district = DistrictData.data;
-                                const ward = WardData.data;
+                                const district = districtData.data;
+                                const ward = wardData.data;
 
                                 order.province_name = province.name;
                                 order.district_name = district.name;
                                 order.ward_name = ward.name;
-                                order.street = rawAddress[0].street
-                                // order.street = rawAddress.street;
+                                order.street = rawAddress.street;
                             } catch (err) {
-                                console.error("Lỗi khi lấy danh sách khách hàng:", err);
+                                console.error("Lỗi khi lấy thông tin địa chỉ mặc định:", err);
                             }
-                        }))
-                }
+                        }
+                    } catch (error) {
+                        console.error("Lỗi khi lấy danh sách khách hàng:", error);
+                    }
 
-                    
+                    // if (order.approvedBy && order.approvedBy !== "" && order.approvedBy !== null) {
+                    //     console.log("Giá trị của order.approvedBy: ", order.approvedBy);
+                    //     const employeeRes = await axios.get(`BASE_URL/api/employee/${order.approvedBy}`);
+                    //     // console.log("Giá trị của employeeRes: ", employeeRes.data);
+                    //     order.employeeName = employeeRes.data?.name || '';
+                    // }
+
+                    if (order.updatedBy?.trim()) {
+                        try {
+                            console.log("Giá trị của order.updatedBy: ", order.updatedBy);
+                            const employee2Res = await axios.get(`http://127.0.0.1:3000/api/employee2/${order.updatedBy}`);
+                            order.employee2Name = employee2Res.data?.name || '';
+                        } catch (error) {
+                            // console.error("Lỗi khi lấy thông tin updatedBy:", error.response?.data || error.message);
+                            order.employee2Name = '';
+                        }
+                    }
+                    if (order.approvedBy?.trim()) {
+                        try {
+                            console.log("Giá trị của order.approvedBy: ", order.approvedBy);
+                            const employeeRes = await axios.get(`http://127.0.0.1:3000/api/employee/${order.approvedBy}`);
+                            order.employeeName = employeeRes.data?.name || '';
+                        } catch (error) {
+                            // console.error("Lỗi khi lấy thông tin updatedBy:", error.response?.data || error.message);
+                            order.employeeName = '';
+                        }
+                    }
+                }
                 orderData.sort((a, b) => {
 
                     const field = sortField.value;
@@ -335,17 +426,17 @@ export default {
                     return sortAsc.value ? aVal.localeCompare(bVal, 'vi', { sensitivity: 'base' })
                         : bVal.localeCompare(aVal, 'vi', { sensitivity: 'base' });
                 });
-                 orderData.sort((a, b) => new Date(b.dateCreated) - new Date(a.dateCreated));
+                orderData.sort((a, b) => new Date(b.dateCreated) - new Date(a.dateCreated));
 
                 orders.value = orderData;
                 console.log("Danh sách sản phẩm sau khi cập nhật:", orders.value);
             } catch (error) {
-                console.error("Lỗi khi lấy danh sách sản phẩm:", error);
+                console.error("Lỗi khi lấy danh sách sản phẩm:", error.message);
             }
         }
 
         const totalOrder = computed(() => {
-            return orders.value.length;
+            return filteredOrders.value.length;
         })
 
 
@@ -381,7 +472,7 @@ export default {
                 } else if (order.deliveryStatus === "Shipped") {
                     status = "Processing";
                 } else if (order.paymentStatus === "Paid") {
-                    status = "Confirmed";
+                    status = "Confirm";
                 } else {
                     status = "Pending";
                 }
@@ -434,7 +525,10 @@ export default {
                 }
             })
 
-
+            const token = Cookies.get('accessToken');
+            const decoded = jwtDecode(token);
+            console.log("Giá trị của decoded: ", decoded);
+            role.value = decoded.role;
         })
         onUnmounted(() => {
             socket.off('order_update');
@@ -456,13 +550,17 @@ export default {
             updatePaymentStatus,
             updateDeliveryStatus,
             toggleDelivery,
+            toggleOrder,
+            dropdownOpenOrder,
             dropdownOpenDelivery,
             calculateOrderStatus,
             deleteOrderId,
             gotoOrderDetail,
             filter,
             filteredOrders,
-            resetFilter
+            resetFilter,
+            updateOrderStatus,
+            role
         }
     }
 }

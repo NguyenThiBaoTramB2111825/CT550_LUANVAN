@@ -1,149 +1,3 @@
-<!-- <template>
-    <div style="display: flex; justify-content: flex-start; padding: 10px">
-    <Breadcrumb />
-    </div>
-
-    <div class="card mb-4 shadow-sm">
-      <div class="card-header bg-light text-dark">
-        <h5 class="mb-0">Tạo đơn hàng trực tiếp
-        </h5>
-      </div>
-      <div class="card-body">
-
-
-    <div class="row g-3">
-        <div class="col-md-4">
-            <label class="form-label">Nhập tên khách hàng</label>
-            <input
-                type="text"
-                v-model="searchName"
-                class="form-control"
-                placeholder="Nhập tên khách hàng"
-            />
-            <ul
-                v-if="filteredCustomers.length > 0 && searchName && !selectedCustomer"
-                class="list-group mt-1"
-            >
-                <li  v-for="customer in filteredCustomers" :key="customer._id" class="list-group-item list-group-item-action"
-                     @click="selectCustomer(customer)"
-                >
-                {{ customer.name }}
-                </li>
-            </ul>
-
-            <div v-if="isNewCustomer" class="text-success mt-2">
-                Không tìm thấy khách hàng. Sẽ tạo mới với tên: "<strong>{{ searchName }}</strong>"
-            </div> 
-            </div>
-
-
-
-        <div class="row g-3">
-          <!-- Chọn sản phẩm 
-          <div class="col-md-4">
-            <label class="form-label">Chọn sản phẩm</label>
-            <input
-              type="text" v-model="searchQuery" class="form-control" placeholder="Nhập tên sản phẩm" />
-            <ul
-              v-if="filteredProducts.length > 0 && searchQuery && !selectedProduct" class="list-group mt-1">
-              <li
-                v-for="product in filteredProducts"
-                :key="product._id"
-                class="list-group-item list-group-item-action"
-                @click="selectProduct(product)"
-              >
-                {{ product.name }}
-           
-              </li>
-            </ul>
-          </div>
-
-  
-          <div class="col-md-4">
-            <label class="form-label">Màu sắc</label>
-            <select v-model="selectedColorId" class="form-select">
-              <option disabled value="">Chọn màu sắc</option>
-              <option v-for="color in colors" :value="color._id" :key="color._id">
-                {{ color.name }}
-              </option>
-            </select>
-          </div>
-
-
-          <div class="col-md-4">
-            <label class="form-label">Kích cỡ</label>
-            <select v-model="selectedSizeId" class="form-select">
-              <option disabled value="">Chọn kích cỡ</option>
-              <option v-for="size in sizes" :value="size._id" :key="size._id">
-                {{ size.name }}
-              </option>
-            </select>
-          </div>
-
-   
-          <div class="col-md-4">
-            <label class="form-label">Số lượng nhập</label>
-            <input type="number" v-model="quantity" class="form-control text-center" />
-          </div>
-
-        </div>
-
-        <div class="mt-4 text-end">
-          <button class="btn btn-primary" @click="addItem">
-            <i class="bi bi-plus-circle me-1"></i> Thêm vào danh sách
-          </button>
-        </div>
-      </div>
-    </div>
-
-    <div class="card shadow-sm">
-      <div class="card-header bg-light text-dark">
-        <h5 class="mb-0">Danh sách chi tiết nhập</h5>
-      </div>
-      <div class="card-body p-0">
-        <table class="table table-bordered table-hover mb-0">
-          <thead class="table-light">
-            <tr>
-              <th>Sản phẩm</th>
-              <th>Màu</th>
-              <th>Size</th>
-              <th class="text-center">Số lượng</th>
-              <th class="text-center">Giá giảm (nếu có) </th>
-              <th class="text-center">Thao tác</th>
-            </tr>
-          </thead>
-          <tbody>
-            <tr v-for="(item, index) in importItems" :key="index">
-              <td>{{ item.product.name }}</td>
-              <td>{{ getColorName(item.color_id) }}</td>
-              <td>{{ getSizeName(item.size_id) }}</td>
-              <td>{{ getSupplierName(item.supplier_id) }}</td>
-              <td class="text-center">{{ item.quantity }}</td>
-              <td class="text-end">{{ item.price.toLocaleString() }}</td>
-              <td class="text-center">
-                <button class="btn btn-sm btn-danger" @click="importItems.splice(index, 1)">
-                  Xóa
-                </button>
-              </td>
-            </tr>
-            <tr v-if="importItems.length === 0">
-              <td colspan="7" class="text-center text-muted">Chưa có sản phẩm nào được thêm.</td>
-            </tr>
-          </tbody>
-        </table>
-      </div>
-    </div>
-
-    <div class="text-end mt-3">
-      <button class="btn btn-success" @click="saveOrders">
-        <i class="bi bi-save2 me-1"></i> Tạo order
-      </button>
-    </div>
-  </div>
-</template> -->
-
-
-
 <template>
   <div class="container py-3">
     <div class="mb-3">
@@ -425,6 +279,7 @@ const saveOrders = async () => {
 
     const response = await axios.post(`${BASE_URL}/api/order/`, {
       customer_id: selectedCustomerId.value || null,
+      customer_name: searchName.value || null,
       items,
       shippingFee: 0,
       paymentMethod: "Tiền mặt",
@@ -433,19 +288,18 @@ const saveOrders = async () => {
       dateCreated: today,
       expectedDeliveryDate: today,
       approvedBy: decoded.id,  
+      deliveryStatus: "Delivered",
+      
     });
 
     console.log("Đáp ứng từ server:", response.data);
     Swal.fire("Thành công", "Đã lưu tất cả chi tiết nhập", "success");
-
     importItems.value = [];
   } catch (error) {
     console.error("Lỗi khi lưu:", error);
     Swal.fire("Lỗi", error?.response?.data?.message || "Đã xảy ra lỗi khi lưu đơn hàng", "error");
   }
 };
-
-
 
 const getColorName = (id) => colors.value.find(c => c._id === id)?.name || "N/A";
 const getSizeName = (id) => sizes.value.find(s => s._id === id)?.name || "N/A";
