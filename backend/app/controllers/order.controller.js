@@ -5,11 +5,7 @@ const { getSocket } = require("../../socket");
 const { ObjectId } = require("mongodb");
 
 exports.create = async (req, res, next) => {
-    const { customer_id, items } = req.body;
-    // if (!ObjectId.isValid(customer_id)) {
-    //     return next(new ApiError(400, "Customer_id không hợp lệ"));
-    // }
-
+    const { items } = req.body;
     for (const item of items) {
         if (!ObjectId.isValid(item.productDetail_id)) {
             return next(new ApiError(400, `productDetail_id ${item.productDetail_id} không hợp lệ`));
@@ -30,7 +26,6 @@ exports.create = async (req, res, next) => {
             message: document.message,
             data: document.data
          });
-        //   return res.status(201).json(document.message);  // 201 Create
     }
     catch (error) {
         return next(new ApiError(500, `Error create order : ${error.message}`));

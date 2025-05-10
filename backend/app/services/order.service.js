@@ -23,6 +23,7 @@ class OrderService {
         const order = {
             customer_id: payload.customer_id && ObjectId.isValid(payload.customer_id) ? new ObjectId(payload.customer_id) : null,
             // customer_id: ObjectId.isValid(payload.customer_id) ? new ObjectId(payload.customer_id) : undefined,
+            // customer_name: '',
             customer_name: payload.customer_id ? '' : payload.customer_name || 'Khách hàng không đăng nhập',
             items: [],
             shippingFee: payload.shippingFee ? parseFloat(payload.shippingFee) : 0,
@@ -41,11 +42,10 @@ class OrderService {
             paymentStatus: payload.paymentStatus || "Unpaid",//"Unpaid" | "Paid" | "Failed"
             deliveryStatus: payload.deliveryStatus || "Pending", //"Pending", "Shipped", "Delivered", "Cancelled"
             address_id: ObjectId.isValid(payload.address_id) ? new ObjectId(payload.address_id) : undefined,
+            orderType: payload.address_id ? "online" : "direct",
             transaction_id: payload.transaction_id || null,
             admin_note: payload.admin_note || "",
             reasonCancel : '',
-            
-
         };
         let totalPrice = 0;
         order.items = await Promise.all(payload.items.map(async (item) => {
@@ -108,7 +108,7 @@ class OrderService {
 
         if (!payload.customer_id) {
             order.customer_id = null;
-            order.customer_name = payload.customer_name || 'Khách hàng không đăng nhập';
+            order.customer_name = payload.customer_name || "Không có thông tin người mua";
         } else {
             order.customer_id = ObjectId.isValid(payload.customer_id) ? new ObjectId(payload.customer_id) : null;
             const customer = await this.Customer.findOne({ _id: order.customer_id });
@@ -116,8 +116,6 @@ class OrderService {
                 order.customer_name = customer.name;
             }
         }
-        // const customer = await this.Customer.findOne({ _id: new ObjectId(payload.customer_id) });
-        // order.customer_name = customer.name;
         order.items = order.items.filter(item => item !== null);
         order.totalPrice = totalPrice + order.shippingFee - order.discount_value;
 
@@ -127,50 +125,11 @@ class OrderService {
         return order;
     }
 
-    // async create(payload) {
-    //     // const existingCustomer = await this.Customer.findOne({ _id: new ObjectId(payload.customer_id) });
-    //     // if (!existingCustomer) {
-    //     //     return { statusCode: 400, message: "Lỗi vì Customer được truyền không đúng" }
-    //     // }
-    //     for (const item of payload.items) {
-    //         const productDetail = await this.ProductDetail.findOne({ _id: new ObjectId(item.productDetail_id) });
-    //         if (!productDetail) {
-    //             return { statusCode: 400, message: `Lỗi vì productDetail được truyền không đúng` }
-    //         }
-
-    //     }
-    //     const order = await this.extractOrderData(payload);
-    //     console.log("Giá trị của order sau khi extract: ", order);
-
-    //     const result = await this.Order.insertOne(order);
-    //     console.log("Giá trị của result: ", result);
-
-    //     await this.Cart.deleteMany({
-    //         customer_id: new ObjectId(payload.customer_id),
-    //         productDetail_id: { $in: payload.items.map(item => new ObjectId(item.productDetail_id)) }
-    //     });
-
-    //     await this.Cart.updateOne(
-    //         { customer_id: new ObjectId(payload.customer_id) },
-    //         {
-    //             $pull: {
-    //                 items: {
-    //                     productDetail_id: { $in: payload.items.map(item => new ObjectId(item.productDetail_id)) }
-    //                 }
-    //             }
-    //         }
-    //     );
-    //     return { statusCode: 200, message: "Tạo đơn hàng mới thành công", _id: result.insertedId, data: order }
-
-    // }
-
-
-
-
-
     async create(payload) {
+        console.log("Giá trị được truyền từ payload: ", payload);
+        
         // Kiểm tra customer_id
-        if (!ObjectId.isValid(payload.customer_id)) {
+        if ( payload.customer_id && !ObjectId.isValid(payload.customer_id)) {
             return { statusCode: 400, message: "customer_id không hợp lệ" };
         }
 
@@ -206,18 +165,20 @@ class OrderService {
         }
 
         // Xoá các item đã mua khỏi giỏ hàng
-        await this.Cart.updateOne(
-            { customer_id: new ObjectId(payload.customer_id) },
-            {
-                $pull: {
-                    items: {
-                        productDetail_id: {
-                            $in: payload.items.map(item => new ObjectId(item.productDetail_id)),
+        if (payload.customer_id) {
+            await this.Cart.updateOne(
+                { customer_id: new ObjectId(payload.customer_id) },
+                {
+                    $pull: {
+                        items: {
+                            productDetail_id: {
+                                $in: payload.items.map(item => new ObjectId(item.productDetail_id)),
+                            },
                         },
                     },
-                },
-            }
-        );
+                }
+            );
+        }
 
         return {
             statusCode: 200,
