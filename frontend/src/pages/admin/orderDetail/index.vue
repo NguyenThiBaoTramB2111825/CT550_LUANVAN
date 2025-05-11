@@ -5,13 +5,16 @@
     <Breadcrumb />
   </div>
 
-  <button class="btn btn-outline-danger" @click="exportToPDF">
+  <div class="text-end">
+    <button class="btn btn-outline-success" @click="gotoPdf(orderId)">
     Xuất PDF
   </button>
+  </div>
+
 
   <div ref="pdfContent">
 
-    <div id="storeInfo" style="display: none;">
+    <!-- <div id="storeInfo" style="display: none;">
       <p class="text-end">#{{ orderId }}</p>
       <h3>FASHION SHOP</h3>
       <p>Địa chỉ: 3/2, Phường Xuân Khánh, Quận Ninh Kiều, Cần Thơ</p>
@@ -19,8 +22,7 @@
       <p>SĐT: 0901 234 567</p>
       <p v-if="order.approvedBy  && order.approvedBy!== null">Nhân viên xử lý: {{ order.employeeName}}</p>
       <hr>
-  
-    </div>
+    </div> -->
  
     <h4 class="text-center mb-4">Chi tiết đơn hàng</h4>
     <div class="row mb-5">
@@ -28,7 +30,7 @@
         <div class="card p-2 shadow-sm">
           <p class="mx-5"><strong>Tên khách hàng:</strong> {{ order.customer_name }}</p>
           <p  v-if="order.orderType === 'online'" class="mx-5"><strong>Tên người nhận :</strong> {{ order.receive_name }}</p>
-          <p v v-if="order.phone"  class= "mx-5" > <strong>SĐT: </strong> {{ order.phone }}</p >
+          <p v-if="order.phone"  class= "mx-5" > <strong>SĐT: </strong> {{ order.phone }}</p >
           <p v-if="order.orderType === 'online'" class="mx-5"><strong>Địa chỉ:</strong> {{ order.street }}, {{ order.ward_name }}, {{ order.district_name }}, {{ order.province_name }}</p>
           <p v-if="order.orderType === 'direct'"  class="mx-5" ><strong>Địa chỉ:</strong> Khách hàng mua trực tiếp tại cửa hàng</p>
           <p  class="mx-5"><strong>Ghi chú:</strong> {{ order.note || 'Không có' }}</p>
@@ -169,7 +171,6 @@ export default {
 
         if (orderData.address_id) {
           const responseAddress = await axios.get(`${BASE_URL}/api/address/${orderData.address_id}`);
-
           const rawAddress = responseAddress.data;
           console.log("Giá trị của rawAddress: ", rawAddress);
 
@@ -184,7 +185,6 @@ export default {
             const district = districtData.data;
             const ward = wardData.data;
 
-            // Gán thông tin địa chỉ vào order
             orderData.receive_name = rawAddress.receive_name;
             orderData.province_name = province.name;
             orderData.district_name = district.name;
@@ -199,26 +199,27 @@ export default {
           console.log("Thực hiện fetch lấy employeeName");
           try {
             console.log("Giá trị của orderData.approvedBy: ", orderData.approvedBy);
-            const employeeRes = await axios.get(`http://127.0.0.1:3000/api/employee/${orderData.approvedBy}`);
+            const employeeRes = await axios.get(`${BASE_URL}/api/employee/${orderData.approvedBy}`);
             orderData.employeeName = employeeRes.data?.name || '';
             console.log("Giá trị của orderData.employeeName: ", orderData.employeeName);
           } catch (error) {
-            // console.error("Lỗi khi lấy thông tin updatedBy:", error.response?.data || error.message);
             orderData.employeeName = '';
           }
         }
+
         orderData.items.sort((a, b) => {
           return sortAsc.value ? a.product_name.localeCompare(b.product_name, 'vi', { sensitivity: 'base' })
             : b.product_name.localeCompare(a.product_name, 'vi', { sensitivity: 'base' });
         });
+
         order.value = orderData;
         console.log("Thông tin orderDetail được bắt:", order.value);
-
-
       } catch (error) {
         console.error("Lỗi khi lấy danh sách sản phẩm:", error);
       }
     }
+
+
     const totalOrder = computed(() => {
       return order.value.items?.length;
     })
@@ -242,10 +243,15 @@ export default {
 
         html2pdf().from(element).set(opt).save().then(() => {
           storeInfo.style.display = 'none';
-    });
-;
+        });
+        ;
       });
     }
+    
+    const gotoPdf = (id) => {
+      router.push({ name: 'PDF', params: { id } });
+    };
+
 
     onMounted(async () => {
       fetchOrderDetail();
@@ -271,18 +277,14 @@ export default {
       exportToPDF,
       pdfContent,
       orderId,
+      exportToPDF, 
+      gotoPdf
     }
   }
 }
 </script>
 
 <style scoped>
-
-    /* ::v-deep(.table thead th) {
-  vertical-align: middle !important;
-  text-align: center !important;
-} */
-
   /* Ẩn khỏi giao diện chính */
   .hidden-print {
     display: none;

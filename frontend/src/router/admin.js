@@ -266,6 +266,14 @@ const admin = [
           breadcrumb: 'Chi tiết đơn hàng'
         },
       },
+      {
+        path: "pdf/:id",
+        name: "PDF",
+        component: () => import("../pages/admin/pdf/index.vue"),
+        meta: {
+          breadcrumb: 'Xuất hóa đơn'
+        },
+      },
     ],
   },
   {
@@ -276,6 +284,7 @@ const admin = [
       breadcrumb: 'Quản lý khuyến mãi'
     },
   },
+  
 ]
 
 export default admin;
