@@ -16,12 +16,10 @@ class CartService {
             items: payload.items.map(item => ({
                 productDetail_id: ObjectId.isValid(item.productDetail_id) ? new ObjectId(item.productDetail_id) : undefined,
                 quantity: item.quantity ? parseFloat(item.quantity) : undefined,
-                // dateAdded: this.parseDate(item.dateAdded) || undefined,
                 dateAdded: new Date(),
                 status: item.status || "Selected" || undefined,
             })),
-            dateAdded: new Date(),
-            // dateAdded: this.parseDate(payload.dateAdded) || undefined,
+            dateCreated: new Date(),
         }
 
         Object.keys(cart).forEach(

@@ -12,7 +12,7 @@ class BrandService{
             name: payload.name,
             description: payload.description,
             website: payload.website,
-            isActive:  payload.isActive !== undefined ? payload.isActive : true, // Sửa lỗi ở đây
+            isActive:  payload.isActive !== undefined ? payload.isActive : true,
         };
         Object.keys(brand).forEach(
             (key) => brand[key] === undefined && delete brand[key]

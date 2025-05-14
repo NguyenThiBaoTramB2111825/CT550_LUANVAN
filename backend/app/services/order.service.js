@@ -22,8 +22,6 @@ class OrderService {
         expectedDeliveryDate.setDate(expectedDeliveryDate.getDate() + 3);
         const order = {
             customer_id: payload.customer_id && ObjectId.isValid(payload.customer_id) ? new ObjectId(payload.customer_id) : null,
-            // customer_id: ObjectId.isValid(payload.customer_id) ? new ObjectId(payload.customer_id) : undefined,
-            // customer_name: '',
             customer_name: payload.customer_id ? '' : payload.customer_name || 'Khách hàng không đăng nhập',
             items: [],
             shippingFee: payload.shippingFee ? parseFloat(payload.shippingFee) : 0,
