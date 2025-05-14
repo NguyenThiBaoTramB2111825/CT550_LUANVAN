@@ -1,4 +1,4 @@
-  <template>
+<template>
     <div class="container py-4">
       <div style="display: flex; justify-content: flex-start; padding: 10px">
         <Breadcrumb />

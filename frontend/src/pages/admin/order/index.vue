@@ -132,7 +132,7 @@
                            <span class="m-0" v-if="`${order.deliveryStatus}` === 'Pending'"> Đang xử lý</span>
                            <span class="m-0" v-if="`${order.deliveryStatus}` === 'Confirm'">Đã xác nhận </span>
                            <span class="m-0" v-if="`${order.deliveryStatus}` === 'Shipped'">Vận chuyển </span>
-                           <span class="" v-if="`${order.deliveryStatus}` === 'Delivered' "> Đã giao</span>
+                           <span class="m-0" v-if="`${order.deliveryStatus}` === 'Delivered' "> Đã giao</span>
                            <span class="m-0" v-if="`${order.deliveryStatus}` === 'Cancelled' ">Hủy</span>
                         </button>
                             <ul v-if="order.status !== 'Cancelled' && order.status !== 'Pending' && role === 'employee2'" class="dropdown-menu" :class="{ 'show': dropdownOpenDelivery === order._id }">
@@ -146,8 +146,9 @@
                     </td>
                     <td v-else>---</td>
 
-                    <td v-if="order.updatedBy  && order.updatedBy!== null">{{ order.employee2Name }}</td>
-                    <td v-else>---</td>
+                    <!-- <td v-if="order.updatedBy  && order.updatedBy!== null">{{ order.employee2Name }}</td>
+                    <td v-else>---</td> -->
+                    <td>{{ order.updatedBy ? order.employee2Name : '---' }}</td>
                     <td>
                         <div class="dropdown">
                             <button
@@ -166,7 +167,7 @@
                                 <span class="m-0" v-if="`${order.status}` === 'Pending'"> Chờ xác nhận</span>
                                 <span class="m-0" v-if="`${order.status}` === 'Confirm'">Đã xác nhận </span>
                                 <span class="m-0" v-if="`${order.status}` === 'Processing'">Đang Vận chuyển </span>
-                                <span class="" v-if="`${order.status}` === 'Completed' "> Hoàn thành</span>
+                                <span class="m-0" v-if="`${order.status}` === 'Completed' "> Hoàn thành</span>
                                 <span class="m-0" v-if="`${order.status}` === 'Cancelled' ">Hủy</span>
                                 <span class="m-0" v-if="`${order.status}` === 'Refund' ">Hoàn tiền</span>
                             </button>
@@ -175,8 +176,7 @@
                             </ul>
                         </div>
                      </td>
-                     <td v-if="order.approvedBy  && order.approvedBy!== null">{{ order.employeeName }}</td>
-                    <td v-else>---</td>
+                    <td>{{ order.approvedBy ? order.employeeName : '---' }}</td>
 
                     <td>{{ formatCurrency(order.totalPrice) }}</td>
                     <td>
@@ -204,7 +204,7 @@
     import router from '@/router';
     const BASE_URL = "http://localhost:3000";
     const socket = io(BASE_URL);
-    export default {
+export default {
     components: {
         Breadcrumb
     },
@@ -321,7 +321,7 @@
             try {
                 // Nếu đơn COD được giao thành công -> cập nhật cả deliveryStatus và paymentStatus
                 if (order.paymentMethod === "COD" && newStatus === "Delivered") {
-                    const response = await axios.put(`http://127.0.0.1:3000/api/order/${order._id}`, {
+                    const response = await axios.put(`${BASE_URL}/api/order/${order._id}`, {
                         paymentStatus: "Paid",
                         deliveryStatus: newStatus,
                     });
@@ -329,7 +329,7 @@
                     order.deliveryStatus = newStatus;
                 } else {
                     // Trường hợp khác -> chỉ cập nhật deliveryStatus
-                    const response = await axios.put(`http://127.0.0.1:3000/api/order/${order._id}`, {
+                    const response = await axios.put(`${BASE_URL}/api/order/${order._id}`, {
                         deliveryStatus: newStatus,
                     });
                     order.deliveryStatus = newStatus;
@@ -344,7 +344,7 @@
         };
 
         const updateOrderStatus = async (order, newStatus) => {
-            const response = await axios.put(`http://127.0.0.1:3000/api/order/${order._id}`, {
+            const response = await axios.put(`${BASE_URL}/api/order/${order._id}`, {
                 status: newStatus,
             });
             order.status = newStatus;
@@ -353,87 +353,132 @@
 
         const fetchOrder = async () => {
             try {
-                console.log("Thực hiện fetch dữ liệu sản phẩm...");
-                const response = await axios.get("http://127.0.0.1:3000/api/order");
+                console.log("🔄 Đang tải dữ liệu đơn hàng...");
+
+                const response = await axios.get(`${BASE_URL}/api/order`);
                 let orderData = response.data;
-                for (let order of orderData) {
+
+                // Xử lý tất cả đơn hàng song song
+                orderData = await Promise.all(orderData.map(async (order) => {
                     try {
+                        // Lấy thông tin khách hàng
                         if (order.customer_id) {
-                            const customerRes = await axios.get(`http://127.0.0.1:3000/api/customer/${order.customer_id}`);
-                            order.customer_name = customerRes.data ? customerRes.data.name : `${customerRes.data.name} - Đã bị xóa`;
+                            const customerRes = await axios.get(`${BASE_URL}/api/customer/${order.customer_id}`);
+                            order.customer_name = customerRes.data?.name || 'Không xác định';
                         }
 
+                        // Lấy thông tin địa chỉ
                         if (order.address_id) {
-                            const responseAddress = await axios.get(`${BASE_URL}/api/address/${order.address_id}`);
-                            const rawAddress = responseAddress.data;
-                            try {
-                                const [provinceData, districtData, wardData] = await Promise.all([
-                                    axios.get(`${BASE_URL}/api/province/${rawAddress.province_id}`),
-                                    axios.get(`${BASE_URL}/api/district/id/${rawAddress.district_id}`),
-                                    axios.get(`${BASE_URL}/api/ward/id/${rawAddress.ward_id}`),
-                                ]);
+                            const addressRes = await axios.get(`${BASE_URL}/api/address/${order.address_id}`);
+                            const address = addressRes.data;
 
-                                const province = provinceData.data;
-                                const district = districtData.data;
-                                const ward = wardData.data;
+                            const [province, district, ward] = await Promise.all([
+                                axios.get(`${BASE_URL}/api/province/${address.province_id}`),
+                                axios.get(`${BASE_URL}/api/district/id/${address.district_id}`),
+                                axios.get(`${BASE_URL}/api/ward/id/${address.ward_id}`),
+                            ]);
 
-                                order.province_name = province.name;
-                                order.district_name = district.name;
-                                order.ward_name = ward.name;
-                                order.street = rawAddress.street;
-                            } catch (err) {
-                                console.error("Lỗi khi lấy thông tin địa chỉ mặc định:", err);
-                            }
+                            order.province_name = province.data?.name || '';
+                            order.district_name = district.data?.name || '';
+                            order.ward_name = ward.data?.name || '';
+                            order.street = address.street || '';
                         }
-                    } catch (error) {
-                        console.error("Lỗi khi lấy danh sách khách hàng:", error);
+
+                        if (order.updatedBy?.trim()) {
+                            const emp2Res = await axios.get(`${BASE_URL}/api/employee2/${order.updatedBy}`);
+                            order.employee2Name = emp2Res.data?.name || '';
+                            console.log("Giá trị của employee2Name: ", order.employee2Name);
+                        }
+
+                        if (order.approvedBy?.trim()) {
+                            const empRes = await axios.get(`${BASE_URL}/api/employee/${order.approvedBy}`);
+                            order.employeeName = empRes.data?.name || '';
+                            console.log("Giá trị của employeeName: ", order.employeeName);
+                        }
+                    } catch (err) {
+                        console.error(`Lỗi xử lý đơn hàng ${order._id}:`, err.message);
                     }
 
-                    // if (order.approvedBy && order.approvedBy !== "" && order.approvedBy !== null) {
-                    //     console.log("Giá trị của order.approvedBy: ", order.approvedBy);
-                    //     const employeeRes = await axios.get(`BASE_URL/api/employee/${order.approvedBy}`);
-                    //     // console.log("Giá trị của employeeRes: ", employeeRes.data);
-                    //     order.employeeName = employeeRes.data?.name || '';
-                    // }
+                    return order;
+                }));
 
-                    if (order.updatedBy?.trim()) {
-                        try {
-                            console.log("Giá trị của order.updatedBy: ", order.updatedBy);
-                            const employee2Res = await axios.get(`http://127.0.0.1:3000/api/employee2/${order.updatedBy}`);
-                            order.employee2Name = employee2Res.data?.name || '';
-                        } catch (error) {
-                            // console.error("Lỗi khi lấy thông tin updatedBy:", error.response?.data || error.message);
-                            order.employee2Name = '';
-                        }
-                    }
-                    if (order.approvedBy?.trim()) {
-                        try {
-                            console.log("Giá trị của order.approvedBy: ", order.approvedBy);
-                            const employeeRes = await axios.get(`http://127.0.0.1:3000/api/employee/${order.approvedBy}`);
-                            order.employeeName = employeeRes.data?.name || '';
-                        } catch (error) {
-                            // console.error("Lỗi khi lấy thông tin updatedBy:", error.response?.data || error.message);
-                            order.employeeName = '';
-                        }
-                    }
-                }
-                orderData.sort((a, b) => {
-
-                    const field = sortField.value;
-                    const aVal = (a[field] || '').toString().toLowerCase();
-                    const bVal = (b[field] || '').toString().toLowerCase();
-
-                    return sortAsc.value ? aVal.localeCompare(bVal, 'vi', { sensitivity: 'base' })
-                        : bVal.localeCompare(aVal, 'vi', { sensitivity: 'base' });
-                });
+                // Sắp xếp theo ngày tạo mới nhất
                 orderData.sort((a, b) => new Date(b.dateCreated) - new Date(a.dateCreated));
-
                 orders.value = orderData;
-                console.log("Danh sách sản phẩm sau khi cập nhật:", orders.value);
+
+                console.log("Đã tải xong danh sách đơn hàng:", orders.value);
             } catch (error) {
-                console.error("Lỗi khi lấy danh sách sản phẩm:", error.message);
+                console.error("Lỗi khi tải danh sách đơn hàng:", error);
             }
         }
+
+        // const fetchOrder = async () => {
+        //     try {
+        //         const response = await axios.get(`{BASE_URL}/api/order`);
+        //         let orderData = response.data;
+
+        //         orderData = await Promise.all(orderData.map(async (order) => {
+        //             try {
+        //                 if (order.customer_id) {
+        //                     const customerRes = await axios.get(`${BASE_URL}/api/customer/${order.customer_id}`);
+        //                     order.customer_name = customerRes.data ? customerRes.data.name : `${customerRes.data.name} - Đã bị xóa`;
+        //                 }
+        //                 if (order.address_id) {
+        //                     const responseAddress = await axios.get(`${BASE_URL}/api/address/${order.address_id}`);
+        //                     const rawAddress = responseAddress.data;
+        //                     try {
+        //                         const [provinceData, districtData, wardData] = await Promise.all([
+        //                             axios.get(`${BASE_URL}/api/province/${rawAddress.province_id}`),
+        //                             axios.get(`${BASE_URL}/api/district/id/${rawAddress.district_id}`),
+        //                             axios.get(`${BASE_URL}/api/ward/id/${rawAddress.ward_id}`),
+        //                         ]);
+
+        //                         const province = provinceData.data;
+        //                         const district = districtData.data;
+        //                         const ward = wardData.data;
+
+        //                         order.province_name = province.name;
+        //                         order.district_name = district.name;
+        //                         order.ward_name = ward.name;
+        //                         order.street = rawAddress.street;
+        //                     } catch (err) {
+        //                         console.error("Lỗi khi lấy thông tin địa chỉ mặc định:", err);
+        //                     }
+        //                 }
+        //                 if (order.updatedBy?.trim()) {
+        //                     // try {
+        //                     console.log("Giá trị của order.updatedBy: ", order.updatedBy);
+        //                     const employee2Res = await axios.get(`${BASE_URL}/api/employee2/${order.updatedBy}`);
+        //                     order.employee2Name = employee2Res.data?.name || '';
+        //                     // } catch (error) {
+        //                     //     console.error("Lỗi khi lấy thông tin updatedBy:", error.response?.data || error.message);
+        //                     //     order.employee2Name = '';
+        //                     // }
+        //                 }
+        //                 if (order.approvedBy?.trim()) {
+        //                     try {
+        //                         console.log("Giá trị của order.approvedBy: ", order.approvedBy);
+        //                         const employeeRes = await axios.get(`${BASE_URL}/api/employee/${order.approvedBy}`);
+        //                         order.employeeName = employeeRes.data?.name || '';
+        //                     } catch (error) {
+        //                         // console.error("Lỗi khi lấy thông tin updatedBy:", error.response?.data || error.message);
+        //                         // order.employeeName = '';
+        //                     }
+        //                 }
+        //             } catch (err) {
+        //                 console.error(`Lỗi xử lý đơn hàng ${order._id}:`, err);
+        //             }
+
+        //             return order;
+        //         }));
+        //         orderData.sort((a, b) => new Date(b.dateCreated) - new Date(a.dateCreated));
+        //         orders.value = orderData;
+
+        //         console.log("Đã tải xong danh sách đơn hàng:", orders.value);
+        //     } catch (error) {
+        //         console.error("Lỗi khi tải danh sách đơn hàng:", error);
+        //     }
+        // }
 
         const totalOrder = computed(() => {
             return filteredOrders.value.length;
@@ -480,9 +525,8 @@
 
             order.status = status;
             console.log("Giá trị order.status: ", status);
-
             try {
-                await axios.put(`http://127.0.0.1:3000/api/order/${order._id}`, { status });
+                await axios.put(`${BASE_URL}/api/order/${order._id}`, { status });
             } catch (error) {
                 console.error("Lỗi khi cập nhật trạng thái đơn hàng:", error.message);
             }
@@ -505,7 +549,6 @@
                     const response = await axios.delete(`${BASE_URL}/api/order/${orderId}`);
                     console.log("Giá trị của response: ", response);
                     Swal.fire('Thông báo!', response.data.message, 'success');
-                    // fetchOrder();
                 } catch (error) {
                     Swal.fire('Lỗi!', 'Có lỗi khi xóa sản phẩm', 'error')
                     console.error(error);
@@ -533,7 +576,6 @@
         onUnmounted(() => {
             socket.off('order_update');
         })
-
 
         return {
             BASE_URL,

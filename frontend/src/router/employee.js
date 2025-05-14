@@ -134,6 +134,14 @@ const employee = [
         },
       },
       {
+        path: "employee_pdf/:id",
+        name: "employee_PDF",
+        component: () => import("../pages/employee/PDF/index.vue"),
+        meta: {
+          breadcrumb: 'Xuất hóa đơn'
+        },
+      },
+      {
         path: "employee_orderDetail/:id",
         name: "employee_orderDetail",
         component: () => import("../pages/employee/orderDetail/index.vue"),

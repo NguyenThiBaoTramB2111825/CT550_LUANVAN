@@ -122,7 +122,8 @@ export default defineComponent({
       },
       {
         title: 'Tạo đơn hàng trực tiếp',
-        icon: 'fa-solid fa-list-check',
+        icon: 'fa-solid fa-file-lines',
+        // icon: 'fa-solid fa-list-check',
           route: 'employee_orderdirect',
          visibleTo: ['employee']
       }

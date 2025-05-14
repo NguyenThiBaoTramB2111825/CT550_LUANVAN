@@ -57,6 +57,13 @@ export default {
                 crumbs.splice(1, 0, {  path: "/admin/product", label: "Quản lý sản phảm" });
                 crumbs.splice(2, 0, {  path: "/admin/image", label: "Hình ảnh" });
             }
+            if (route.name === "PDF") {
+                const orderId = route.params.id;
+
+                crumbs.splice(1, 0, {  path: "/admin/order", label: "Quản lý đơn hàng" });
+                crumbs.splice(2, 0, {  path: `/admin/orderDetail/${orderId}`, label: "Chi tiết đơn hàng" });
+            }
+
             if (route.name === "size"|| route.name === "color") {
                 crumbs.splice(1, 0, {  path: "/admin/product", label: "Quản lý sản phảm" });
             }
@@ -71,6 +78,12 @@ export default {
             if (route.name === "OrderHistory") {
                crumbs.unshift({ path: "/", label: "Trang chủ" });
             }
+            if (route.name === "employee_PDF") {
+                const orderId = route.params.id;
+
+                crumbs.splice(1, 0, {  path: "/employee/employee_order", label: "Quản lý đơn hàng" });
+                crumbs.splice(2, 0, {  path: `/employee/employee_orderDetail/${orderId}`, label: "Chi tiết đơn hàng" });
+            }
             if (route.name === "Cart") {
                crumbs.unshift({ path: "/", label: "Trang chủ" });
             }
@@ -84,6 +97,7 @@ export default {
             if (route.name === "aboutUs") {
                 crumbs.unshift({ path: "/", label: "Trang chủ" });
             }
+
        
 
             return crumbs;

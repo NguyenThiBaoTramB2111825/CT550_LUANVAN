@@ -46,7 +46,7 @@
                 </tr>
             </tbody>
         </table>
-        <span>Tổng nhân viên quản lý cửa hàng: {{totalEmployees2}}</span>
+        <span>Tổng nhân viên kho: {{totalEmployees2}}</span>
 
         <div class="text-end">
             <button class="btn btn-info" @click="addWarehouseManager">

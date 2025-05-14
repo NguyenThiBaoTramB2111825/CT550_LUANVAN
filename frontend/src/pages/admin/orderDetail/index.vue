@@ -5,24 +5,14 @@
     <Breadcrumb />
   </div>
 
-  <div class="text-end">
+  <div class="text-end" v-if="order.status === 'Completed'">
     <button class="btn btn-outline-success" @click="gotoPdf(orderId)">
-    Xuất PDF
+    In hóa đơn
   </button>
   </div>
 
 
   <div ref="pdfContent">
-
-    <!-- <div id="storeInfo" style="display: none;">
-      <p class="text-end">#{{ orderId }}</p>
-      <h3>FASHION SHOP</h3>
-      <p>Địa chỉ: 3/2, Phường Xuân Khánh, Quận Ninh Kiều, Cần Thơ</p>
-      <p>Mã số thuế: 0123456789 - Ngày cấp: 01/01/2020</p>
-      <p>SĐT: 0901 234 567</p>
-      <p v-if="order.approvedBy  && order.approvedBy!== null">Nhân viên xử lý: {{ order.employeeName}}</p>
-      <hr>
-    </div> -->
  
     <h4 class="text-center mb-4">Chi tiết đơn hàng</h4>
     <div class="row mb-5">
@@ -51,7 +41,7 @@
             <span v-if="order.paymentStatus === 'Paid'" class="text-success">Đã thanh toán</span>
             <span v-if="order.paymentStatus === 'Failed'" class="text-danger">Thất bại</span>
           </p>
-          <p v-if="order.orderType === 'online'"  class="mx-5"><strong>Trạng thái giao hàng:</strong> 
+          <p v-if="order.orderType === 'online'"  class="mx-5"><strong>Trạng thái giao hàng: </strong> 
              <span v-if="order.deliveryStatus === 'Pending'">Chờ xử lý</span>
             <span v-if="order.deliveryStatus === 'Confirm'">Đã xác nhận</span>
             <span v-if="order.deliveryStatus === 'Shipped'">Đang vận chuyển</span>
@@ -199,7 +189,7 @@ export default {
           console.log("Thực hiện fetch lấy employeeName");
           try {
             console.log("Giá trị của orderData.approvedBy: ", orderData.approvedBy);
-            const employeeRes = await axios.get(`${BASE_URL}/api/employee/${orderData.approvedBy}`);
+            const employeeRes = axios.get(`${BASE_URL}/api/employee/${orderData.approvedBy}`);
             orderData.employeeName = employeeRes.data?.name || '';
             console.log("Giá trị của orderData.employeeName: ", orderData.employeeName);
           } catch (error) {
